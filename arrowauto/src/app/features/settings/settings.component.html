@@ -1,0 +1,468 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="animate-slide-up">
+    <h1 class="text-2xl font-bold text-base-content">Settings</h1>
+    <p class="text-base-content/60">Configure your system preferences and data</p>
+  </div>
+
+  <!-- Settings Layout -->
+  <div class="flex flex-col lg:flex-row gap-6">
+    <!-- Sidebar Navigation -->
+    <div class="lg:w-64 flex-shrink-0">
+      <div class="card-premium rounded-xl p-2 animate-slide-up stagger-1">
+        <nav class="space-y-1">
+          @for (section of sections; track section.id) {
+          <button
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
+            [class]="
+              activeSection() === section.id
+                ? 'bg-gradient-primary text-white shadow-glow-primary'
+                : 'text-base-content/70 hover:bg-base-200'
+            "
+            (click)="activeSection.set(section.id)"
+          >
+            <span [innerHTML]="section.icon" class="w-5 h-5"></span>
+            <span class="font-medium">{{ section.name }}</span>
+          </button>
+          }
+        </nav>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 animate-slide-up stagger-2">
+      <!-- General Settings -->
+      @if (activeSection() === 'general') {
+      <div class="space-y-6">
+        <div class="form-section">
+          <h3 class="form-section-title">Business Information</h3>
+          <p class="form-section-description">Basic details about your business</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-1">Business Name</label>
+              <input
+                type="text"
+                value="ArrowAuto Ltd"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-1">Trading Name</label>
+              <input
+                type="text"
+                value="ArrowAuto"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-base-content mb-1">Address</label>
+              <input
+                type="text"
+                value="123 Industrial Estate, London, UK"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-1">Phone</label>
+              <input
+                type="text"
+                value="+44 20 1234 5678"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-1">Email</label>
+              <input
+                type="email"
+                value="info@arrowauto.com"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Tax & Registration</h3>
+          <p class="form-section-description">Legal and tax information</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-1">VAT Number</label>
+              <input
+                type="text"
+                value="GB123456789"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-1">Company Number</label>
+              <input
+                type="text"
+                value="12345678"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-1">VAT Rate (%)</label>
+              <input
+                type="number"
+                value="20"
+                class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Operations Settings -->
+      @if (activeSection() === 'operations') {
+      <div class="form-section">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="form-section-title">Service Operations</h3>
+            <p class="form-section-description">Define the services you offer</p>
+          </div>
+          <button class="btn-premium">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Operation
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          @for (op of operations(); track op.id) {
+          <div
+            class="flex items-center gap-4 p-4 bg-base-200/50 rounded-xl hover:bg-base-200 transition-colors"
+          >
+            <div
+              class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold"
+            >
+              {{ op.code }}
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-base-content">{{ op.name }}</p>
+              <p class="text-sm text-base-content/60">
+                {{ op.estimatedDuration }} min • £{{ op.defaultPrice }}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+              </button>
+              <button class="btn btn-ghost btn-sm btn-square hover:bg-error/10 hover:text-error">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Inspection Points -->
+      @if (activeSection() === 'inspection') {
+      <div class="form-section">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="form-section-title">Inspection Points</h3>
+            <p class="form-section-description">Define checklist items for vehicle inspections</p>
+          </div>
+          <button class="btn-premium">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Category
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          @for (category of inspectionCategories(); track category) {
+          <div class="p-4 bg-base-200/50 rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-semibold text-base-content">{{ category }}</h4>
+              <button class="btn btn-ghost btn-xs text-primary">+ Add Point</button>
+            </div>
+            <div class="space-y-2">
+              @for (point of getPointsByCategory(category); track point.id) {
+              <div class="flex items-center gap-3 p-3 bg-white rounded-lg">
+                <span
+                  class="w-6 h-6 rounded-full bg-base-200 flex items-center justify-center text-xs font-medium"
+                >
+                  {{ point.code }}
+                </span>
+                <span class="flex-1 text-sm text-base-content">{{ point.name }}</span>
+                <button class="btn btn-ghost btn-xs btn-square">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Users & Operators -->
+      @if (activeSection() === 'users') {
+      <div class="form-section">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="form-section-title">Users & Operators</h3>
+            <p class="form-section-description">Manage team members and their permissions</p>
+          </div>
+          <button class="btn-premium">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add User
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (user of users(); track user.id) {
+          <div class="user-card p-4">
+            <div class="user-avatar">
+              <div
+                class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold"
+              >
+                {{ getInitials(user.name) }}
+              </div>
+              <div
+                class="user-status"
+                [class]="user.status === 'online' ? 'online' : 'offline'"
+              ></div>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-base-content">{{ user.name }}</p>
+              <p class="text-sm text-base-content/60">{{ user.email }}</p>
+              <div class="flex gap-1 mt-2">
+                @for (role of user.roles; track role) {
+                <span
+                  class="px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary"
+                  >{{ role }}</span
+                >
+                }
+              </div>
+            </div>
+            <div class="flex flex-col gap-1">
+              <button class="btn btn-ghost btn-xs">Edit</button>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Labor Rates -->
+      @if (activeSection() === 'rates') {
+      <div class="form-section">
+        <h3 class="form-section-title">Labor Rates</h3>
+        <p class="form-section-description">Configure hourly rates for different service types</p>
+
+        <div class="space-y-4 mt-6">
+          <div class="flex items-center gap-4 p-4 bg-base-200/50 rounded-xl">
+            <div
+              class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-base-content">Standard Rate</p>
+              <p class="text-sm text-base-content/60">Default labor rate for most services</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg font-bold text-base-content">£</span>
+              <input
+                type="number"
+                value="45"
+                class="w-24 px-4 py-2 bg-white border border-base-200 rounded-xl text-center font-semibold focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+              <span class="text-base-content/60">/hour</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 p-4 bg-base-200/50 rounded-xl">
+            <div
+              class="w-12 h-12 rounded-xl bg-gradient-warning flex items-center justify-center text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-base-content">Express Rate</p>
+              <p class="text-sm text-base-content/60">Premium rate for urgent services</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg font-bold text-base-content">£</span>
+              <input
+                type="number"
+                value="65"
+                class="w-24 px-4 py-2 bg-white border border-base-200 rounded-xl text-center font-semibold focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+              <span class="text-base-content/60">/hour</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 p-4 bg-base-200/50 rounded-xl">
+            <div
+              class="w-12 h-12 rounded-xl bg-gradient-accent flex items-center justify-center text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-base-content">Specialist Rate</p>
+              <p class="text-sm text-base-content/60">For specialized diagnostic work</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg font-bold text-base-content">£</span>
+              <input
+                type="number"
+                value="85"
+                class="w-24 px-4 py-2 bg-white border border-base-200 rounded-xl text-center font-semibold focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+              <span class="text-base-content/60">/hour</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Save Button -->
+      <div class="flex justify-end mt-6">
+        <button class="btn-premium">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

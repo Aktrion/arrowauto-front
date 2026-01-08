@@ -1,0 +1,298 @@
+<div class="min-h-screen bg-base-200 font-sans">
+  <!-- Header with Gradient Border -->
+  <header class="bg-base-100 shadow-sm relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-accent"></div>
+    <div class="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-base-content tracking-tight">Vehicle Inspection Report</h1>
+            <p class="text-base-content/60 font-medium">Review and approve recommended repairs</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 bg-base-200/50 p-3 rounded-xl border border-base-200">
+          <div class="text-right">
+            <p class="font-black text-xl leading-none tracking-tight">{{ vehicleData.plate }}</p>
+            <p class="text-xs font-bold text-base-content/50 uppercase tracking-wide mt-1">{{ vehicleData.make }} {{ vehicleData.model }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-full bg-neutral text-neutral-content flex items-center justify-center font-bold">
+            {{ vehicleData.make.charAt(0) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Repair Items List -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="card card-premium bg-gradient-to-br from-warning/5 to-transparent border-l-4 border-l-warning">
+          <div class="card-body p-6">
+            <h2 class="card-title flex items-center gap-3 text-lg">
+              <div class="p-2 bg-warning/10 rounded-full text-warning">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              Items Requiring Attention
+            </h2>
+            <p class="text-base-content/70 pl-12">We've identified the following issues that require your attention. Select the items you wish to proceed with.</p>
+          </div>
+        </div>
+
+        @for (item of repairItems; track item.id) {
+        <div class="card card-premium transition-all duration-300 group hover:shadow-lg hover:-translate-y-0.5 border-l-4" [class.border-l-primary]="isInCart(item.id)" [class.border-l-transparent]="!isInCart(item.id)">
+          <div class="card-body p-0">
+            <div class="p-6">
+              <div class="flex items-start gap-4 sm:gap-6">
+                <!-- Checkbox -->
+                <div class="form-control pt-1">
+                  <label class="cursor-pointer">
+                    <input
+                      type="checkbox"
+                      class="checkbox checkbox-primary checkbox-lg rounded-lg shadow-sm"
+                      [checked]="isInCart(item.id)"
+                      (change)="toggleCart(item.id)"
+                    />
+                  </label>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+                    <div>
+                      <div class="flex items-center flex-wrap gap-2 mb-1">
+                        <h3 class="font-bold text-lg cursor-pointer hover:text-primary transition-colors" (click)="toggleCart(item.id)">{{ item.name }}</h3>
+                        <span
+                          class="badge badge-sm font-medium border-none py-2"
+                          [class.bg-warning/15]="item.severity === 'minor'"
+                          [class.text-warning]="item.severity === 'minor'"
+                          [class.bg-error/15]="item.severity === 'major'"
+                          [class.text-error]="item.severity === 'major'"
+                        >
+                          {{ item.severity | uppercase }}
+                        </span>
+                      </div>
+                      <p class="text-xs font-bold text-base-content/40 uppercase tracking-wide">{{ item.category }}</p>
+                    </div>
+                    <div class="text-left sm:text-right mt-2 sm:mt-0 bg-base-200/50 sm:bg-transparent p-3 sm:p-0 rounded-xl">
+                      <p class="text-xs text-base-content/50 uppercase font-bold tracking-wider mb-0.5">Estimated Cost</p>
+                      <p class="text-2xl font-black text-primary leading-none">
+                        £{{ (item.partsCost + item.laborCost).toFixed(2) }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 p-4 bg-base-200/50 rounded-xl border border-base-200">
+                    <p class="text-sm leading-relaxed">{{ item.comment }}</p>
+                  </div>
+
+                  <!-- Photos placeholder -->
+                  @if (item.photos.length > 0) {
+                  <div class="mt-4">
+                    <p class="text-xs font-bold text-base-content/40 uppercase tracking-wide mb-2">Evidence Photos</p>
+                    <div class="flex flex-wrap gap-3">
+                      @for (photo of item.photos; track photo) {
+                      <div class="w-20 h-20 bg-base-300 rounded-xl flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ring-1 ring-base-content/5 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      </div>
+                      }
+                    </div>
+                  </div>
+                  }
+
+                  <!-- Cost Breakdown -->
+                  <div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-xl mt-4 shadow-sm">
+                    <input type="checkbox" />
+                    <div class="collapse-title text-sm font-bold text-base-content/70">View cost details</div>
+                    <div class="collapse-content">
+                      <div class="flex gap-4 pt-2">
+                        <div class="flex-1 p-3 bg-base-200/50 rounded-lg text-center border border-base-200">
+                          <div class="text-[10px] uppercase font-bold text-base-content/40 mb-1">Parts</div>
+                          <div class="font-bold">£{{ item.partsCost.toFixed(2) }}</div>
+                        </div>
+                        <div class="flex-1 p-3 bg-base-200/50 rounded-lg text-center border border-base-200">
+                          <div class="text-[10px] uppercase font-bold text-base-content/40 mb-1">Labor</div>
+                          <div class="font-bold">£{{ item.laborCost.toFixed(2) }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Full Inspection Report -->
+        <div class="card card-premium">
+          <div class="card-body p-6">
+            <h2 class="card-title flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center text-success">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              Full Inspection Summary
+            </h2>
+            <p class="text-base-content/60 text-sm mb-4">Detailed breakdown of all inspected points</p>
+
+            <div class="space-y-3">
+              @for (category of inspectionCategories; track category.name) {
+              <div class="collapse collapse-plus bg-base-100 border border-base-200 rounded-xl shadow-sm hover:border-primary/30 transition-colors">
+                <input type="checkbox" />
+                <div class="collapse-title font-medium flex items-center justify-between pr-12">
+                  <div class="flex items-center gap-3">
+                    {{ category.name }}
+                  </div>
+                  <div class="flex items-center gap-3">
+                     <span class="text-xs font-bold text-base-content/40 uppercase tracking-wide hidden sm:inline-block">Status</span>
+                     <div class="flex gap-1">
+                        @if(category.status === 'ok') { <div class="w-2 h-2 rounded-full bg-success"></div> }
+                        @else if(category.status === 'warning') { <div class="w-2 h-2 rounded-full bg-warning"></div> }
+                     </div>
+                     <span class="badge badge-sm badge-ghost font-mono">{{ category.okCount }}/{{ category.totalCount }}</span>
+                  </div>
+                </div>
+                <div class="collapse-content">
+                  <div class="pt-2 pb-2 space-y-1">
+                    @for (point of category.points; track point.name) {
+                    <div class="flex items-center justify-between py-2 px-2 hover:bg-base-200/50 rounded-lg transition-colors">
+                      <span class="text-sm font-medium">{{ point.name }}</span>
+                      <span
+                        class="badge badge-sm border-none font-bold text-[10px]"
+                        [class.bg-success/10]="point.status === 'ok'"
+                        [class.text-success]="point.status === 'ok'"
+                        [class.bg-warning/10]="point.status === 'warning'"
+                        [class.text-warning]="point.status === 'warning'"
+                        [class.bg-error/10]="point.status === 'defect'"
+                        [class.text-error]="point.status === 'defect'"
+                      >
+                        {{ point.status | uppercase }}
+                      </span>
+                    </div>
+                    }
+                  </div>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart / Summary Sticky Sidebar -->
+      <div class="lg:col-span-1">
+        <div class="card card-premium sticky top-6 shadow-xl shadow-primary/5 ring-1 ring-primary/5">
+          <div class="card-body p-6">
+            <h2 class="card-title text-lg mb-4">Your Selection</h2>
+
+            <!-- Selected Items List -->
+            @if (cartItems().length > 0) {
+            <div class="space-y-3 mb-6 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
+              @for (item of cartItems(); track item.id) {
+              <div class="flex items-center justify-between p-2 bg-base-100 rounded-lg border border-base-200 group hover:border-primary/50 transition-colors">
+                <div class="flex items-center gap-3 overflow-hidden">
+                  <button class="btn btn-ghost btn-xs btn-circle text-error bg-error/10 hover:bg-error hover:text-white transition-colors flex-shrink-0" (click)="toggleCart(item.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                  <span class="text-sm font-medium truncate">{{ item.name }}</span>
+                </div>
+                <span class="font-bold text-sm">£{{ (item.partsCost + item.laborCost).toFixed(2) }}</span>
+              </div>
+              }
+            </div>
+
+            <div class="divider my-4"></div>
+
+            <!-- Totals -->
+            <div class="space-y-3 bg-base-200/50 p-4 rounded-xl border border-base-200">
+              <div class="flex justify-between text-sm">
+                <span class="text-base-content/60 font-medium">Parts</span>
+                <span class="font-bold">£{{ totalParts().toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-base-content/60 font-medium">Labor</span>
+                <span class="font-bold">£{{ totalLabor().toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-base-content/60 font-medium">VAT (20%)</span>
+                <span class="font-bold">£{{ totalVat().toFixed(2) }}</span>
+              </div>
+              <div class="divider my-1"></div>
+              <div class="flex justify-between items-center pt-1">
+                <span class="font-black text-lg">Total</span>
+                <span class="font-black text-3xl text-primary">£{{ grandTotal().toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block btn-lg shadow-lg shadow-primary/30 mt-6 transform transition-transform hover:scale-[1.02] active:scale-[0.98]" (click)="confirmSelection()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+              Approve Repairs
+            </button>
+            
+            <p class="text-center text-xs text-base-content/40 mt-3 px-4">By approving, you agree to our terms of service and authorize the work to commence.</p>
+
+            } @else {
+            <div class="text-center py-12 px-4 rounded-xl bg-base-100 border-2 border-dashed border-base-200">
+              <div class="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-4 text-base-content/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+              </div>
+              <p class="font-bold text-base-content/70">No items selected</p>
+              <p class="text-sm text-base-content/50 mt-1 mb-4">Please select the repairs you would like to proceed with.</p>
+            </div>
+            }
+
+            <div class="divider my-4"></div>
+
+            <button class="btn btn-ghost btn-sm btn-block gap-2 text-base-content/60 hover:text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              Have questions? Request a Call
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirmation Modal -->
+  <dialog id="confirm_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-white/10">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-success/10 text-success rounded-full flex items-center justify-center mx-auto mb-4">
+           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </div>
+        <h3 class="font-bold text-2xl">Confirm Approval</h3>
+      </div>
+      
+      <div class="py-4 text-center">
+        <p class="mb-2">You are about to approve <span class="badge badge-neutral font-bold">{{ cartItems().length }}</span> repairs.</p>
+        <p class="text-3xl font-black text-primary my-4">£{{ grandTotal().toFixed(2) }}</p>
+        <p class="text-sm text-base-content/60 max-w-xs mx-auto">
+          We will begin work on these items immediately. You'll be notified when your vehicle is ready.
+        </p>
+      </div>
+
+      <div class="modal-action justify-center mt-6">
+        <form method="dialog">
+          <button class="btn btn-ghost hover:bg-base-200">Go Back</button>
+        </form>
+        <button class="btn btn-primary px-8 shadow-lg shadow-primary/30" (click)="submitApproval()">Yes, Approve Work</button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-neutral/50 backdrop-blur-sm">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!-- Success Toast -->
+  @if (showSuccess()) {
+  <div class="toast toast-top toast-center z-50 animate-fade-in-down">
+    <div class="alert alert-success shadow-lg shadow-success/20 text-white border-none">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <span class="font-bold">Success! Your approval has been received.</span>
+    </div>
+  </div>
+  }
+</div>

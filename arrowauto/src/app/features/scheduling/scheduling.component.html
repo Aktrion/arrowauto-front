@@ -1,0 +1,394 @@
+<div class="space-y-8">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Scheduling</h1>
+      <p class="text-base-content/60 mt-1">Plan and assign operations to operators efficiently</p>
+    </div>
+    <div class="join shadow-sm border border-base-300 rounded-lg bg-base-100">
+      <button
+        class="join-item btn btn-ghost btn-sm px-3"
+        (click)="previousWeek()"
+        title="Previous Week"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+      <button
+        class="join-item btn btn-ghost btn-sm px-4 font-medium min-w-[140px] cursor-default hover:bg-transparent"
+      >
+        {{ formatWeekRange() }}
+      </button>
+      <button class="join-item btn btn-ghost btn-sm px-3" (click)="nextWeek()" title="Next Week">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      <button
+        class="join-item btn btn-ghost btn-sm px-3 border-l border-base-200 text-primary font-medium"
+        (click)="goToToday()"
+      >
+        Today
+      </button>
+    </div>
+  </div>
+
+  <!-- Week Overview -->
+  <div class="grid grid-cols-7 gap-3">
+    @for (day of weekDays(); track day.date) {
+    <button
+      class="card card-premium hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
+      [class.ring-2]="isSelectedDay(day.date)"
+      [class.ring-primary]="isSelectedDay(day.date)"
+      [class.ring-offset-2]="isSelectedDay(day.date)"
+      [class.ring-offset-base-100]="isSelectedDay(day.date)"
+      (click)="selectDay(day.date)"
+    >
+      <div class="card-body p-3 text-center">
+        <p
+          class="text-xs font-semibold uppercase tracking-wider opacity-60 group-hover:opacity-100 transition-opacity"
+          [class.text-primary]="isToday(day.date)"
+        >
+          {{ day.dayName }}
+        </p>
+        <p class="text-3xl font-black my-1" [class.text-primary]="isToday(day.date)">
+          {{ day.dayNumber }}
+        </p>
+        <div class="mt-2 text-left">
+          <div
+            class="flex justify-between text-[10px] uppercase font-bold text-base-content/50 mb-1"
+          >
+            <span>Progress</span>
+            <span>{{ day.scheduledHours }}/{{ day.totalHours }}h</span>
+          </div>
+          <progress
+            class="progress w-full h-1.5 rounded-full transition-all"
+            [class.progress-primary]="day.scheduledHours < day.totalHours"
+            [class.progress-warning]="day.scheduledHours >= day.totalHours"
+            [value]="day.scheduledHours"
+            [max]="day.totalHours"
+          ></progress>
+        </div>
+      </div>
+      @if (isSelectedDay(day.date)) {
+      <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+      }
+    </button>
+    }
+  </div>
+
+  <!-- Daily Schedule View -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="lg:col-span-3">
+      <div class="card card-premium h-full">
+        <div class="card-body p-0 sm:p-5">
+          <div class="flex items-center justify-between mb-6 p-4 sm:p-0">
+            <div>
+              <h2 class="card-title text-xl">
+                {{ selectedDay() | date : 'fullDate' }}
+              </h2>
+              <p class="text-sm text-base-content/60 mt-1">Daily schedule overview</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="badge badge-neutral gap-1 pl-1.5 py-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="w-4 h-4 text-base-content/70"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-5.5-2.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 12a5.99 5.99 0 00-4.793 2.39A9.948 9.948 0 0110 5a9.948 9.948 0 014.793 1.39A9.948 9.948 0 0114 8c0 1.103-.311 2.136-.851 3.016A5.99 5.99 0 0010 12z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                {{ operators().length }} operators
+              </span>
+              <span class="badge badge-primary gap-1 pl-1.5 py-3 shadow-sm shadow-primary/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="w-4 h-4"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                {{ getAvailableHours() }}h available
+              </span>
+            </div>
+          </div>
+
+          <!-- Schedule Grid -->
+          <div class="overflow-hidden border border-base-200 rounded-xl bg-base-100 shadow-inner">
+            <div class="overflow-x-auto custom-scrollbar pb-2">
+              <table class="table table-xs">
+                <thead>
+                  <tr class="bg-base-200/50">
+                    <th
+                      class="sticky left-0 bg-base-100 z-20 w-44 shadow-lg shadow-base-300/20 py-3 uppercase text-[10px] font-bold text-base-content/50 tracking-wider"
+                    >
+                      Operator
+                    </th>
+                    @for (slot of timeSlots(); track slot.time) {
+                    <th
+                      class="text-center min-w-[70px] py-3 text-[10px] font-bold text-base-content/50 border-l border-base-200/50"
+                    >
+                      {{ slot.time }}
+                    </th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (operator of operators(); track operator.id) {
+                  <tr class="hover:bg-base-100 h-16 group">
+                    <td
+                      class="sticky left-0 bg-base-100 z-10 shadow-lg shadow-base-300/20 group-hover:bg-base-100/80 transition-colors border-t border-base-200"
+                    >
+                      <div class="flex items-center gap-3 py-1">
+                        <div class="avatar placeholder">
+                          <div
+                            class="bg-primary/10 text-primary rounded-lg w-9 h-9 border border-primary/20"
+                          >
+                            <span class="text-xs font-bold">{{ getInitials(operator.name) }}</span>
+                          </div>
+                        </div>
+                        <span class="font-semibold text-sm truncate">{{ operator.name }}</span>
+                      </div>
+                    </td>
+                    @for (slot of timeSlots(); track slot.time) {
+                    <td
+                      class="p-1 border-l border-base-200/50 border-t border-base-200 relative group-hover:bg-base-200/20 transition-colors"
+                    >
+                      @if (getSlotTask(operator.id, slot.time); as task) {
+                      <div
+                        class="h-full min-h-[40px] rounded-lg text-xs p-1.5 cursor-pointer shadow-sm transition-all hover:scale-[1.02] hover:shadow-md flex flex-col justify-center"
+                        [class.bg-primary]="task.status === 'scheduled'"
+                        [class.bg-warning]="task.status === 'in_progress'"
+                        [class.bg-success]="task.status === 'completed'"
+                        [class.text-primary-content]="task.status === 'scheduled'"
+                        [class.text-warning-content]="task.status === 'in_progress'"
+                        [class.text-success-content]="task.status === 'completed'"
+                        [title]="task.name"
+                      >
+                        <span class="font-bold truncate">{{ task.code }}</span>
+                        <!-- optional: <span class="text-[9px] opacity-80 truncate">{{ task.name }}</span> -->
+                      </div>
+                      } @else {
+                      <div
+                        class="h-full min-h-[40px] rounded-lg hover:bg-base-300/50 cursor-pointer transition-all border border-transparent hover:border-base-300 hover:border-dashed flex items-center justify-center group/slot"
+                        (click)="openSlotModal(operator.id, slot.time)"
+                      >
+                        <span
+                          class="opacity-0 group-hover/slot:opacity-50 text-xl font-light text-base-content"
+                          >+</span
+                        >
+                      </div>
+                      }
+                    </td>
+                    }
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div
+            class="flex flex-wrap items-center gap-6 mt-6 px-4 py-2 border border-base-200 rounded-lg bg-base-100/50"
+          >
+            <span class="text-xs font-bold uppercase text-base-content/40 mr-2">Status Key:</span>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-primary shadow-sm shadow-primary/40"></div>
+              <span class="text-sm font-medium">Scheduled</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-warning shadow-sm shadow-warning/40"></div>
+              <span class="text-sm font-medium">In Progress</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-success shadow-sm shadow-success/40"></div>
+              <span class="text-sm font-medium">Completed</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-base-200 border border-base-300"></div>
+              <span class="text-sm font-medium text-base-content/60">Available</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Operations Sidebar -->
+    <div class="lg:col-span-1">
+      <div class="card card-premium h-full sticky top-4">
+        <div class="card-body p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="card-title text-lg">Pending Operations</h2>
+            <div class="badge badge-neutral badge-sm">{{ pendingOperations().length }}</div>
+          </div>
+
+          <div class="space-y-3 h-[calc(100vh-20rem)] overflow-y-auto custom-scrollbar pr-1">
+            @for (op of pendingOperations(); track op.id) {
+            <div
+              class="p-3 bg-base-100 border border-base-200 rounded-xl cursor-move hover:border-primary hover:shadow-md hover:shadow-primary/5 transition-all group animate-fade-in-up"
+            >
+              <div class="flex items-start justify-between mb-2">
+                <span class="badge badge-sm badge-outline font-mono text-[10px] opacity-70">{{
+                  op.vehiclePlate
+                }}</span>
+                <span class="text-xs font-bold text-primary"
+                  >{{ op.operation?.estimatedDuration }} min</span
+                >
+              </div>
+              <p class="font-bold text-sm leading-tight group-hover:text-primary transition-colors">
+                {{ op.operation?.name }}
+              </p>
+              <div class="mt-2 flex items-center justify-between">
+                <div class="w-full h-1 bg-base-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-base-content/20 w-1/3"></div>
+                </div>
+              </div>
+            </div>
+            } @empty {
+            <div
+              class="text-center py-12 px-4 border-2 border-dashed border-base-200 rounded-xl bg-base-50/50"
+            >
+              <div
+                class="w-12 h-12 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-3 opacity-50"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <p class="text-sm font-medium opacity-60">No pending operations</p>
+              <p class="text-xs opacity-40 mt-1">All qualified operations have been scheduled.</p>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Operation Modal -->
+  <dialog id="assign_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-white/10">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+      </form>
+      <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-primary"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+        Assign Operation
+      </h3>
+
+      <div class="space-y-6">
+        <div class="bg-base-200/50 p-4 rounded-xl border border-base-200 flex items-center gap-4">
+          <div
+            class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide opacity-60 font-bold">Operator</p>
+            <p class="font-bold text-lg leading-tight">{{ selectedOperatorName() }}</p>
+            <p class="text-sm opacity-70 mt-0.5">
+              {{ selectedSlotTime() }} - {{ selectedDay() | date : 'mediumDate' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Select Pending Operation</span>
+            <span class="label-text-alt text-base-content/50"
+              >{{ pendingOperations().length }} available</span
+            >
+          </label>
+          <select
+            class="select select-bordered w-full h-12 text-base shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          >
+            <option value="" disabled selected>Choose an operation...</option>
+            @for (op of pendingOperations(); track op.id) {
+            <option [value]="op.id" class="py-2">
+              {{ op.vehiclePlate }} - {{ op.operation?.name }} ({{
+                op.operation?.estimatedDuration
+              }}min)
+            </option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-action mt-8">
+        <form method="dialog">
+          <button class="btn btn-ghost hover:bg-base-200">Cancel</button>
+        </form>
+        <button class="btn btn-primary shadow-lg shadow-primary/20 px-8">Confirm Assignment</button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-neutral/50 backdrop-blur-sm">
+      <button>close</button>
+    </form>
+  </dialog>
+</div>

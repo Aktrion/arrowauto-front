@@ -1,0 +1,462 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="animate-slide-up">
+      <h1 class="text-2xl font-bold text-base-content">Dashboard</h1>
+      <p class="text-base-content/60">Welcome back! Here's what's happening today.</p>
+    </div>
+    <a
+      routerLink="/vehicles"
+      class="btn-premium inline-flex items-center gap-2 animate-slide-up stagger-1"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        class="h-5 w-5"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      New Vehicle
+    </a>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Active Vehicles -->
+    <div class="stat-card animate-slide-up stagger-1">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-sm font-medium text-base-content/60">Active Vehicles</p>
+          <p class="text-3xl font-bold text-base-content mt-1">{{ vehicles().length }}</p>
+        </div>
+        <div class="stat-icon stat-icon-primary">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-6 w-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center gap-2">
+        <div class="trend-up">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-4 w-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 11l5-5m0 0l5 5m-5-5v12"
+            />
+          </svg>
+          <span>+12%</span>
+        </div>
+        <span class="text-xs text-base-content/50">from yesterday</span>
+      </div>
+      <!-- Mini sparkline -->
+      <div class="mt-3 flex items-end gap-0.5 h-8">
+        <div class="flex-1 bg-primary/20 rounded-t" style="height: 40%"></div>
+        <div class="flex-1 bg-primary/20 rounded-t" style="height: 60%"></div>
+        <div class="flex-1 bg-primary/20 rounded-t" style="height: 45%"></div>
+        <div class="flex-1 bg-primary/20 rounded-t" style="height: 80%"></div>
+        <div class="flex-1 bg-primary/20 rounded-t" style="height: 55%"></div>
+        <div class="flex-1 bg-primary/20 rounded-t" style="height: 90%"></div>
+        <div class="flex-1 bg-primary rounded-t" style="height: 100%"></div>
+      </div>
+    </div>
+
+    <!-- Pending Inspections -->
+    <div class="stat-card animate-slide-up stagger-2">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-sm font-medium text-base-content/60">Pending Inspections</p>
+          <p class="text-3xl font-bold text-base-content mt-1">{{ pendingInspections() }}</p>
+        </div>
+        <div class="stat-icon stat-icon-warning">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-6 w-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-4">
+        <span class="text-sm text-warning font-medium">⚡ Requires attention</span>
+      </div>
+      <div class="mt-3 flex items-end gap-0.5 h-8">
+        <div class="flex-1 bg-warning/20 rounded-t" style="height: 30%"></div>
+        <div class="flex-1 bg-warning/20 rounded-t" style="height: 50%"></div>
+        <div class="flex-1 bg-warning/20 rounded-t" style="height: 40%"></div>
+        <div class="flex-1 bg-warning/20 rounded-t" style="height: 60%"></div>
+        <div class="flex-1 bg-warning/20 rounded-t" style="height: 35%"></div>
+        <div class="flex-1 bg-warning/20 rounded-t" style="height: 45%"></div>
+        <div class="flex-1 bg-warning rounded-t" style="height: 70%"></div>
+      </div>
+    </div>
+
+    <!-- Awaiting Approval -->
+    <div class="stat-card animate-slide-up stagger-3">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-sm font-medium text-base-content/60">Awaiting Approval</p>
+          <p class="text-3xl font-bold text-base-content mt-1">{{ awaitingApproval() }}</p>
+        </div>
+        <div class="stat-icon stat-icon-info">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-6 w-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-4">
+        <span class="text-sm text-info font-medium">📧 Customer response pending</span>
+      </div>
+      <div class="mt-3 flex items-end gap-0.5 h-8">
+        <div class="flex-1 bg-info/20 rounded-t" style="height: 60%"></div>
+        <div class="flex-1 bg-info/20 rounded-t" style="height: 40%"></div>
+        <div class="flex-1 bg-info/20 rounded-t" style="height: 55%"></div>
+        <div class="flex-1 bg-info/20 rounded-t" style="height: 30%"></div>
+        <div class="flex-1 bg-info/20 rounded-t" style="height: 45%"></div>
+        <div class="flex-1 bg-info/20 rounded-t" style="height: 25%"></div>
+        <div class="flex-1 bg-info rounded-t" style="height: 50%"></div>
+      </div>
+    </div>
+
+    <!-- Revenue Today -->
+    <div class="stat-card animate-slide-up stagger-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-sm font-medium text-base-content/60">Revenue Today</p>
+          <p class="text-3xl font-bold text-base-content mt-1">£2,450</p>
+        </div>
+        <div class="stat-icon stat-icon-success">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-6 w-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center gap-2">
+        <div class="trend-up">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="h-4 w-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 11l5-5m0 0l5 5m-5-5v12"
+            />
+          </svg>
+          <span>+8%</span>
+        </div>
+        <span class="text-xs text-base-content/50">from last week</span>
+      </div>
+      <div class="mt-3 flex items-end gap-0.5 h-8">
+        <div class="flex-1 bg-success/20 rounded-t" style="height: 50%"></div>
+        <div class="flex-1 bg-success/20 rounded-t" style="height: 70%"></div>
+        <div class="flex-1 bg-success/20 rounded-t" style="height: 55%"></div>
+        <div class="flex-1 bg-success/20 rounded-t" style="height: 85%"></div>
+        <div class="flex-1 bg-success/20 rounded-t" style="height: 65%"></div>
+        <div class="flex-1 bg-success/20 rounded-t" style="height: 90%"></div>
+        <div class="flex-1 bg-success rounded-t" style="height: 100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Recent Vehicles Table -->
+    <div class="lg:col-span-2">
+      <div class="card-premium rounded-xl overflow-hidden animate-slide-up stagger-2">
+        <div class="p-6 border-b border-base-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-semibold text-base-content">Recent Vehicles</h2>
+              <p class="text-sm text-base-content/60">Latest vehicles in the system</p>
+            </div>
+            <a routerLink="/vehicles" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10">
+              View All
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                class="h-4 w-4 ml-1"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table-premium">
+            <thead>
+              <tr>
+                <th class="text-left">Vehicle</th>
+                <th class="text-left">Client</th>
+                <th class="text-left">Status</th>
+                <th class="text-left">Progress</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (vehicle of vehicles().slice(0, 5); track vehicle.id; let i = $index) {
+              <tr class="hover:bg-base-200/30 transition-colors">
+                <td>
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm"
+                    >
+                      {{ vehicle.make.charAt(0) }}
+                    </div>
+                    <div>
+                      <p class="font-semibold text-base-content">{{ vehicle.plate }}</p>
+                      <p class="text-sm text-base-content/60">
+                        {{ vehicle.make }} {{ vehicle.model }}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="text-sm text-base-content">{{
+                    getClientName(vehicle.clientId)
+                  }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="getStatusBadgeClass(vehicle.status)">
+                    {{ formatStatus(vehicle.status) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="progress-tracker w-24">
+                    <div
+                      class="progress-step"
+                      [class.completed]="getProgress(vehicle.status) >= 1"
+                    ></div>
+                    <div
+                      class="progress-step"
+                      [class.completed]="getProgress(vehicle.status) >= 2"
+                      [class.current]="getProgress(vehicle.status) === 1"
+                    ></div>
+                    <div
+                      class="progress-step"
+                      [class.completed]="getProgress(vehicle.status) >= 3"
+                      [class.current]="getProgress(vehicle.status) === 2"
+                    ></div>
+                    <div
+                      class="progress-step"
+                      [class.completed]="getProgress(vehicle.status) >= 4"
+                      [class.current]="getProgress(vehicle.status) === 3"
+                    ></div>
+                  </div>
+                </td>
+                <td>
+                  <a
+                    [routerLink]="['/vehicles', vehicle.id]"
+                    class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      class="h-4 w-4"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </a>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="space-y-6">
+      <!-- Quick Actions -->
+      <div class="card-premium rounded-xl p-6 animate-slide-up stagger-3">
+        <h2 class="text-lg font-semibold text-base-content mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <a routerLink="/vehicles" class="action-card">
+            <div class="action-card-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                class="h-6 w-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-base-content">New Vehicle</span>
+          </a>
+          <a routerLink="/inspection" class="action-card">
+            <div class="action-card-icon" style="background: var(--gradient-warning)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                class="h-6 w-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-base-content">Inspection</span>
+          </a>
+          <a routerLink="/scheduling" class="action-card">
+            <div class="action-card-icon" style="background: var(--gradient-info)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                class="h-6 w-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-base-content">Schedule</span>
+          </a>
+          <a routerLink="/invoicing" class="action-card">
+            <div class="action-card-icon" style="background: var(--gradient-success)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                class="h-6 w-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"
+                />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-base-content">Invoice</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Available Operators -->
+      <div class="card-premium rounded-xl p-6 animate-slide-up stagger-4">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-base-content">Operators</h2>
+          <span class="px-2 py-1 text-xs font-semibold rounded-full bg-success/20 text-success">
+            {{ operators().length }} online
+          </span>
+        </div>
+        <div class="space-y-3">
+          @for (operator of operators().slice(0, 4); track operator.id) {
+          <div class="user-card">
+            <div class="user-avatar">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-secondary flex items-center justify-center text-white font-semibold text-sm"
+              >
+                {{ getInitials(operator.name) }}
+              </div>
+              <div class="user-status online"></div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-base-content truncate">{{ operator.name }}</p>
+              <p class="text-xs text-base-content/50">Available</p>
+            </div>
+            <div class="w-16">
+              <div class="h-1.5 bg-base-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-success rounded-full" style="width: 30%"></div>
+              </div>
+              <p class="text-xs text-base-content/50 mt-1">30% busy</p>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
