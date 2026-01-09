@@ -42,7 +42,7 @@
 /* === CSS Custom Properties === */
 :root {
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #9483ba 0%, #935592 100%);
+  --gradient-primary: linear-gradient(135deg, #9483ba 0%, #886fbe 100%);
   --gradient-secondary: linear-gradient(135deg, #bfb5d6 0%, #9483ba 100%);
   --gradient-accent: linear-gradient(135deg, #935592 0%, #6b3d6b 100%);
   --gradient-success: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
