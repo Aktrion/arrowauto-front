@@ -14,10 +14,12 @@
         <div class="card-body p-5">
           <h2 class="card-title text-lg flex justify-between items-center mb-2">
             Select Vehicle
-            <span class="badge badge-neutral font-normal">{{ vehiclesForInspection().length }} pending</span>
+            <span class="badge badge-neutral font-normal"
+              >{{ vehiclesForInspection().length }} pending</span
+            >
           </h2>
 
-          <div class="space-y-3 mt-2 h-[calc(100vh-25rem)] overflow-y-auto pr-1 custom-scrollbar">
+          <div class="space-y-3 mt-2 h-[calc(80vh-25rem)] overflow-y-auto pr-1 custom-scrollbar">
             @for (vehicle of vehiclesForInspection(); track vehicle.id) {
             <button
               class="w-full p-4 rounded-xl border transition-all text-left relative overflow-hidden group"
@@ -46,15 +48,43 @@
                   <p class="text-sm opacity-80 truncate">{{ vehicle.make }} {{ vehicle.model }}</p>
                 </div>
                 @if (selectedVehicleId() === vehicle.id) {
-                  <div class="absolute right-3 top-1/2 -translate-y-1/2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                  </div>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
                 }
               </div>
             </button>
             } @empty {
-            <div class="text-center py-12 text-base-content/60 bg-base-200/50 rounded-xl border border-dashed border-base-300">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <div
+              class="text-center py-12 text-base-content/60 bg-base-200/50 rounded-xl border border-dashed border-base-300"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-12 w-12 mx-auto mb-3 opacity-50"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
               <p>No vehicles pending inspection</p>
             </div>
             }
@@ -83,19 +113,31 @@
           </div>
 
           <div class="flex justify-between items-center px-2 mb-2">
-             <span class="text-base-content/60 text-sm">Progress</span>
-             <span class="font-bold text-sm">{{ countByStatus('ok') + countByStatus('warning') + countByStatus('defect') }} / {{ inspectionPoints().length }}</span>
+            <span class="text-base-content/60 text-sm">Progress</span>
+            <span class="font-bold text-sm"
+              >{{ countByStatus('ok') + countByStatus('warning') + countByStatus('defect') }} /
+              {{ inspectionPoints().length }}</span
+            >
           </div>
-          <progress class="progress progress-primary w-full h-2 rounded-full mb-6" [value]="countByStatus('ok') + countByStatus('warning') + countByStatus('defect')" [max]="inspectionPoints().length"></progress>
+          <progress
+            class="progress progress-primary w-full h-2 rounded-full mb-6"
+            [value]="countByStatus('ok') + countByStatus('warning') + countByStatus('defect')"
+            [max]="inspectionPoints().length"
+          ></progress>
 
           @if (totalCost() > 0) {
           <div class="bg-base-200/50 rounded-xl p-4 mb-4 text-center border border-base-200">
-            <p class="text-xs text-base-content/60 uppercase tracking-wide font-medium">Estimated Repair Cost</p>
+            <p class="text-xs text-base-content/60 uppercase tracking-wide font-medium">
+              Estimated Repair Cost
+            </p>
             <p class="text-3xl font-black text-primary mt-1">£{{ totalCost().toFixed(2) }}</p>
           </div>
           }
 
-          <button class="btn btn-primary btn-block shadow-lg shadow-primary/20" [disabled]="!hasInspectionResults()">
+          <button
+            class="btn btn-primary btn-block shadow-lg shadow-primary/20"
+            [disabled]="!hasInspectionResults()"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5 mr-2"
@@ -118,157 +160,138 @@
     </div>
 
     <!-- Inspection Points -->
-    <div class="lg:col-span-2">
+    <div class="lg:col-span-2 space-y-8">
       @if (selectedVehicleId()) {
       <div class="card card-premium animate-fade-in">
         <div class="card-body p-0 sm:p-5">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 sm:p-0">
-            <h2 class="card-title text-xl">Inspection Points</h2>
-            <div class="tabs tabs-boxed bg-base-200/50 p-1 rounded-xl">
-              <button
-                class="tab rounded-lg transition-all duration-300"
-                [class.tab-active]="activeCategory() === 'all'"
-                [class.bg-white]="activeCategory() === 'all'"
-                [class.shadow-sm]="activeCategory() === 'all'"
-                (click)="setCategory('all')"
-              >
-                All
-              </button>
-              @for (cat of categories(); track cat) {
-              <button
-                class="tab rounded-lg transition-all duration-300"
-                [class.tab-active]="activeCategory() === cat"
-                [class.bg-white]="activeCategory() === cat"
-                [class.shadow-sm]="activeCategory() === cat"
-                (click)="setCategory(cat)"
-              >
-                {{ cat }}
-              </button>
-              }
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 sm:p-0"
+          >
+            <h2 class="card-title text-xl">Vehicle Health Check Record</h2>
+            <div class="flex gap-2">
+              <!-- Legend could go here if needed -->
             </div>
           </div>
 
-          <div class="space-y-3 p-4 sm:p-0">
-            @for (point of filteredPoints(); track point.id) {
-            <div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-xl hover:border-primary/30 transition-colors shadow-sm">
+          <div class="space-y-1 p-4 sm:p-0">
+            @for (group of groupedPoints(); track group.category) {
+            <div class="inspection-group-header">
+              <span>{{ group.category }}</span>
+              <div
+                class="hidden sm:flex gap-8 px-4 text-xs font-bold uppercase tracking-wide text-base-content/40"
+              >
+                <div class="w-6 text-center">OK</div>
+                <div class="w-6 text-center">Warn</div>
+                <div class="w-6 text-center">Fail</div>
+              </div>
+            </div>
+
+            @for (point of group.points; track point.id) {
+            <div
+              class="collapse collapse-arrow bg-base-100 border-b border-base-100 rounded-none hover:bg-base-50 transition-colors"
+            >
               <input type="checkbox" />
-              <div class="collapse-title flex items-center gap-4 py-4">
-                <div
-                  class="w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 shadow-inner"
-                  [class.bg-success/10]="getPointStatus(point.id) === 'ok'"
-                  [class.bg-warning/10]="getPointStatus(point.id) === 'warning'"
-                  [class.bg-error/10]="getPointStatus(point.id) === 'defect'"
-                  [class.bg-base-200]="getPointStatus(point.id) === 'not_inspected'"
-                >
-                  @switch (getPointStatus(point.id)) { @case ('ok') {
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6 text-success"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  } @case ('warning') {
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6 text-warning"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 9v2m0 4h.01"
-                    />
-                  </svg>
-                  } @case ('defect') {
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6 text-error"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                  } @default {
-                  <div class="w-3 h-3 rounded-full bg-base-content/20"></div>
+              <div class="collapse-title flex items-center gap-4 py-3 pr-12 min-h-[3.5rem]">
+                <!-- Status Toggles (Visible in header when closed) -->
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-3 h-3 rounded-full"
+                    [class.bg-success]="getPointStatus(point.id) === 'ok'"
+                    [class.bg-warning]="getPointStatus(point.id) === 'warning'"
+                    [class.bg-error]="getPointStatus(point.id) === 'defect'"
+                    [class.bg-base-300]="getPointStatus(point.id) === 'not_inspected'"
+                  ></div>
+                </div>
+
+                <div class="flex-1">
+                  <p class="font-medium text-sm">{{ point.name }}</p>
+                  @if(getPointStatus(point.id) !== 'not_inspected' && (getPointStatus(point.id) ===
+                  'warning' || getPointStatus(point.id) === 'defect')) {
+                  @if(getPointPartsCost(point.id) > 0) {
+                  <p class="text-xs text-error mt-0.5">
+                    Est. £{{
+                      (getPointPartsCost(point.id) + getPointLaborCost(point.id)).toFixed(2)
+                    }}
+                  </p>
                   } }
                 </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <p class="font-bold text-base">{{ point.name }}</p>
-                    @if(getPointStatus(point.id) !== 'not_inspected') {
-                      <span class="badge badge-sm" 
-                        [class.badge-success]="getPointStatus(point.id) === 'ok'"
-                        [class.badge-warning]="getPointStatus(point.id) === 'warning'"
-                        [class.badge-error]="getPointStatus(point.id) === 'defect'">
-                        {{ getPointStatus(point.id) }}
-                      </span>
-                    }
-                  </div>
-                  <p class="text-xs text-base-content/60 font-medium uppercase tracking-wide mt-0.5">{{ point.category }}</p>
+
+                <!-- Quick Toggles -->
+                <div class="flex gap-2 z-10" (click)="$event.stopPropagation()">
+                  <button
+                    class="status-toggle"
+                    [class.active-ok]="getPointStatus(point.id) === 'ok'"
+                    (click)="setPointStatus(point.id, 'ok')"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="status-toggle"
+                    [class.active-warning]="getPointStatus(point.id) === 'warning'"
+                    (click)="setPointStatus(point.id, 'warning')"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M12 9v2m0 4h.01"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="status-toggle"
+                    [class.active-defect]="getPointStatus(point.id) === 'defect'"
+                    (click)="setPointStatus(point.id, 'defect')"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="3"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
-              <div class="collapse-content">
-                <div class="space-y-5 pt-2 pb-2">
-                  <div class="divider my-0"></div>
-                  <!-- Status Buttons -->
-                  <div class="grid grid-cols-3 gap-3">
-                    <button
-                      class="btn btn-sm h-10 border-success/30 hover:bg-success hover:text-success-content hover:border-success"
-                      [class.btn-success]="getPointStatus(point.id) === 'ok'"
-                      [class.btn-outline]="getPointStatus(point.id) !== 'ok'"
-                      [class.text-success]="getPointStatus(point.id) !== 'ok'"
-                      (click)="setPointStatus(point.id, 'ok')"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                      Pass
-                    </button>
-                    <button
-                      class="btn btn-sm h-10 border-warning/30 hover:bg-warning hover:text-warning-content hover:border-warning"
-                      [class.btn-warning]="getPointStatus(point.id) === 'warning'"
-                      [class.btn-outline]="getPointStatus(point.id) !== 'warning'"
-                      [class.text-warning]="getPointStatus(point.id) !== 'warning'"
-                      (click)="setPointStatus(point.id, 'warning')"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01" /></svg>
-                      Advisory
-                    </button>
-                    <button
-                      class="btn btn-sm h-10 border-error/30 hover:bg-error hover:text-error-content hover:border-error"
-                      [class.btn-error]="getPointStatus(point.id) === 'defect'"
-                      [class.btn-outline]="getPointStatus(point.id) !== 'defect'"
-                      [class.text-error]="getPointStatus(point.id) !== 'defect'"
-                      (click)="setPointStatus(point.id, 'defect')"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                      Fail
-                    </button>
-                  </div>
 
-                  <!-- Predefined Comments -->
-                  @if (getPointStatus(point.id) === 'warning' || getPointStatus(point.id) === 'defect') {
-                  <div class="animate-fade-in bg-base-200/30 p-4 rounded-xl border border-base-200">
+              <div class="collapse-content">
+                <div class="pt-4 pb-2 pl-8">
+                  <!-- Detailed Edit Mode -->
+                  <div class="bg-base-200/50 p-4 rounded-xl border border-base-200">
                     <div class="form-control mb-4">
-                      <label class="label pt-0">
-                        <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Quick Comment</span>
-                      </label>
-                      <div class="flex flex-wrap gap-2">
+                      <label class="label pt-0"
+                        ><span class="label-text font-medium text-xs uppercase opacity-70"
+                          >Comments & Notes</span
+                        ></label
+                      >
+                      <div class="flex flex-wrap gap-2 mb-2">
                         @for (comment of point.predefinedComments; track comment) {
                         <button
                           class="btn btn-xs rounded-full normal-case font-normal"
@@ -280,80 +303,339 @@
                         </button>
                         }
                       </div>
-                    </div>
-
-                    <!-- Custom Comment -->
-                    <div class="form-control mb-4">
-                      <label class="label">
-                        <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Additional Notes</span>
-                      </label>
                       <textarea
-                        class="textarea textarea-bordered h-20 focus:border-primary focus:ring-1 focus:ring-primary/20"
-                        placeholder="Add specific details about the issue..."
+                        class="textarea textarea-bordered h-20 text-sm"
+                        placeholder="Additional details..."
                         [value]="getPointNotes(point.id)"
                         (input)="setPointNotes(point.id, $event)"
                       ></textarea>
                     </div>
 
-                    <!-- Cost Estimation -->
                     <div class="grid grid-cols-2 gap-4">
-                      <div class="form-control">
-                        <label class="label">
-                          <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Parts Cost (£)</span>
-                        </label>
-                        <div class="relative">
-                          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">£</span>
-                          <input
-                            type="number"
-                            class="input input-bordered input-sm w-full pl-7 focus:border-primary focus:ring-1 focus:ring-primary/20"
-                            placeholder="0.00"
-                            [value]="getPointPartsCost(point.id)"
-                            (input)="setPointPartsCost(point.id, $event)"
-                          />
-                        </div>
+                      <div>
+                        <label class="label pt-0"
+                          ><span class="label-text font-medium text-xs uppercase opacity-70"
+                            >Parts £</span
+                          ></label
+                        >
+                        <input
+                          type="number"
+                          class="input input-bordered input-sm w-full"
+                          [value]="getPointPartsCost(point.id)"
+                          (input)="setPointPartsCost(point.id, $event)"
+                        />
                       </div>
-                      <div class="form-control">
-                        <label class="label">
-                          <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Labor Cost (£)</span>
-                        </label>
-                        <div class="relative">
-                          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50">£</span>
-                          <input
-                            type="number"
-                            class="input input-bordered input-sm w-full pl-7 focus:border-primary focus:ring-1 focus:ring-primary/20"
-                            placeholder="0.00"
-                            [value]="getPointLaborCost(point.id)"
-                            (input)="setPointLaborCost(point.id, $event)"
-                          />
-                        </div>
+                      <div>
+                        <label class="label pt-0"
+                          ><span class="label-text font-medium text-xs uppercase opacity-70"
+                            >Labor £</span
+                          ></label
+                        >
+                        <input
+                          type="number"
+                          class="input input-bordered input-sm w-full"
+                          [value]="getPointLaborCost(point.id)"
+                          (input)="setPointLaborCost(point.id, $event)"
+                        />
                       </div>
                     </div>
 
-                    <!-- Photo Upload -->
-                    <div class="form-control mt-4">
-                      <label class="label">
-                        <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Evidence</span>
-                      </label>
-                      <div class="flex gap-2">
-                        <button class="btn btn-outline btn-sm gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                          Camera
-                        </button>
-                        <button class="btn btn-outline btn-sm gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                          Upload
-                        </button>
-                      </div>
+                    <div class="flex justify-end mt-4">
+                      <button class="btn btn-sm btn-outline gap-2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                          />
+                        </svg>
+                        Add Photo
+                      </button>
                     </div>
                   </div>
-                  }
                 </div>
+              </div>
+            </div>
+            } }
+          </div>
+        </div>
+      </div>
+
+      <!-- Tyre Wear Record -->
+      <div class="card card-premium animate-fade-in-up stagger-1">
+        <div class="card-body p-8">
+          <h2 class="card-title text-xl text-center justify-center mb-8 flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"
+              />
+            </svg>
+            Tyre Wear Record
+          </h2>
+
+          <div class="tyre-legend">
+            <div class="tyre-legend-item">
+              <div class="tyre-status-indicator status-attention"></div>
+              <span class="text-xs font-bold uppercase tracking-wider text-error"
+                >Requires Attention</span
+              >
+            </div>
+            <div class="tyre-legend-item">
+              <div class="tyre-status-indicator status-acceptable"></div>
+              <span class="text-xs font-bold uppercase tracking-wider text-warning"
+                >Acceptable</span
+              >
+            </div>
+            <div class="tyre-legend-item">
+              <div class="tyre-status-indicator status-good"></div>
+              <span class="text-xs font-bold uppercase tracking-wider text-success">Good</span>
+            </div>
+            <div class="tyre-legend-item">
+              <div class="tyre-status-indicator bg-base-200 border-base-300"></div>
+              <span class="text-xs font-bold uppercase tracking-wider text-base-content/50"
+                >Unknown</span
+              >
+            </div>
+          </div>
+
+          <div class="car-diagram-container">
+            <div class="car-body">
+              <div class="car-window front"></div>
+              <div class="car-window rear"></div>
+            </div>
+
+            <!-- Front Left (NSF) -->
+            @if (getTyrePointId('NSF'); as pid) {
+            <div class="tyre-control front-left">
+              <div class="flex flex-col items-end gap-2">
+                <div
+                  class="tyre-status-indicator"
+                  [class.status-good]="getTyreCondition(pid) === 'good'"
+                  [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
+                  [class.status-attention]="getTyreCondition(pid) === 'attention'"
+                  (click)="
+                    setTyreCondition(
+                      pid,
+                      getTyreCondition(pid) === 'good'
+                        ? 'acceptable'
+                        : getTyreCondition(pid) === 'acceptable'
+                        ? 'attention'
+                        : 'good'
+                    )
+                  "
+                ></div>
+                <p class="font-bold text-sm mt-1">Passenger Side Front</p>
+                <div class="tyre-inputs">
+                  <span class="text-xs text-base-content/60">Inner</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'inner')"
+                    (change)="setTyreMeasurement(pid, 'inner', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Middle</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'middle')"
+                    (change)="setTyreMeasurement(pid, 'middle', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Outer</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'outer')"
+                    (change)="setTyreMeasurement(pid, 'outer', $event)"
+                  />
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Front Right (OSF) -->
+            @if (getTyrePointId('OSF'); as pid) {
+            <div class="tyre-control front-right">
+              <div class="flex flex-col items-start gap-2">
+                <div
+                  class="tyre-status-indicator"
+                  [class.status-good]="getTyreCondition(pid) === 'good'"
+                  [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
+                  [class.status-attention]="getTyreCondition(pid) === 'attention'"
+                  (click)="
+                    setTyreCondition(
+                      pid,
+                      getTyreCondition(pid) === 'good'
+                        ? 'acceptable'
+                        : getTyreCondition(pid) === 'acceptable'
+                        ? 'attention'
+                        : 'good'
+                    )
+                  "
+                ></div>
+                <p class="font-bold text-sm mt-1">Driver Side Front</p>
+                <div class="tyre-inputs">
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'inner')"
+                    (change)="setTyreMeasurement(pid, 'inner', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Inner</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'middle')"
+                    (change)="setTyreMeasurement(pid, 'middle', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Middle</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'outer')"
+                    (change)="setTyreMeasurement(pid, 'outer', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Outer</span>
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Rear Left (NSR) -->
+            @if (getTyrePointId('NSR'); as pid) {
+            <div class="tyre-control rear-left">
+              <div class="flex flex-col items-end gap-2">
+                <div
+                  class="tyre-status-indicator"
+                  [class.status-good]="getTyreCondition(pid) === 'good'"
+                  [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
+                  [class.status-attention]="getTyreCondition(pid) === 'attention'"
+                  (click)="
+                    setTyreCondition(
+                      pid,
+                      getTyreCondition(pid) === 'good'
+                        ? 'acceptable'
+                        : getTyreCondition(pid) === 'acceptable'
+                        ? 'attention'
+                        : 'good'
+                    )
+                  "
+                ></div>
+                <p class="font-bold text-sm mt-1">Passenger Side Rear</p>
+                <div class="tyre-inputs">
+                  <span class="text-xs text-base-content/60">Inner</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'inner')"
+                    (change)="setTyreMeasurement(pid, 'inner', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Middle</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'middle')"
+                    (change)="setTyreMeasurement(pid, 'middle', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Outer</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'outer')"
+                    (change)="setTyreMeasurement(pid, 'outer', $event)"
+                  />
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Rear Right (OSR) -->
+            @if (getTyrePointId('OSR'); as pid) {
+            <div class="tyre-control rear-right">
+              <div class="flex flex-col items-start gap-2">
+                <div
+                  class="tyre-status-indicator"
+                  [class.status-good]="getTyreCondition(pid) === 'good'"
+                  [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
+                  [class.status-attention]="getTyreCondition(pid) === 'attention'"
+                  (click)="
+                    setTyreCondition(
+                      pid,
+                      getTyreCondition(pid) === 'good'
+                        ? 'acceptable'
+                        : getTyreCondition(pid) === 'acceptable'
+                        ? 'attention'
+                        : 'good'
+                    )
+                  "
+                ></div>
+                <p class="font-bold text-sm mt-1">Driver Side Rear</p>
+                <div class="tyre-inputs">
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'inner')"
+                    (change)="setTyreMeasurement(pid, 'inner', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Inner</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'middle')"
+                    (change)="setTyreMeasurement(pid, 'middle', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Middle</span>
+                  <input
+                    class="tyre-input"
+                    type="number"
+                    [value]="getTyreMeasurement(pid, 'outer')"
+                    (change)="setTyreMeasurement(pid, 'outer', $event)"
+                  />
+                  <span class="text-xs text-base-content/60">Outer</span>
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Spare -->
+            @if (getTyrePointId('Spare'); as pid) {
+            <div class="tyre-control spare">
+              <div class="flex flex-col items-center gap-2">
+                <div
+                  class="tyre-status-indicator w-10 h-10 border-2"
+                  [class.status-good]="getTyreCondition(pid) === 'good'"
+                  [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
+                  [class.status-attention]="getTyreCondition(pid) === 'attention'"
+                  (click)="
+                    setTyreCondition(
+                      pid,
+                      getTyreCondition(pid) === 'good'
+                        ? 'acceptable'
+                        : getTyreCondition(pid) === 'acceptable'
+                        ? 'attention'
+                        : 'good'
+                    )
+                  "
+                ></div>
+                <p class="font-bold text-xs mt-1">Spare</p>
               </div>
             </div>
             }
           </div>
         </div>
       </div>
+
       } @else {
       <div class="card card-premium">
         <div class="card-body items-center text-center py-24">
@@ -375,7 +657,7 @@
           </div>
           <h3 class="font-bold text-2xl">Ready to Inspect</h3>
           <p class="text-base-content/60 max-w-sm mt-2">
-            Select a vehicle from the list on the left to begin the inspection process or continue a pending one.
+            Select a vehicle from the list on the left to begin the inspection process.
           </p>
         </div>
       </div>

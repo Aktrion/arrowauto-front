@@ -1,6 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { InspectionPointStatus, InspectionResult } from '../../core/models';
+import {
+  InspectionPointStatus,
+  InspectionResult,
+  TyreCondition,
+  TyreMeasurement,
+} from '../../core/models';
 import { DataService } from '../../core/services/data.service';
 
 @Component({
@@ -34,6 +39,53 @@ export class InspectionComponent {
     if (category === 'all') return this.inspectionPoints();
     return this.inspectionPoints().filter((p) => p.category === category);
   });
+
+  groupedPoints = computed(() => {
+    const points = this.filteredPoints();
+    const groups = new Map<string, typeof points>();
+
+    // Define the order of categories as per requirement
+    const order = [
+      'Vehicle Receiving',
+      'External/Drive in Inspection',
+      'Internal/Lamps/Electrics',
+      'Under Bonnet',
+      'Wheels Tyres',
+      'Brakes Hubs',
+      'Underside',
+      'Additional Items',
+      'Video Overview',
+    ];
+
+    points.forEach((point) => {
+      const current = groups.get(point.category) || [];
+      current.push(point);
+      groups.set(point.category, current);
+    });
+
+    // Return array of objects { category: string, points: Point[] } sorted by defined order
+    return order
+      .filter((cat) => groups.has(cat))
+      .map((category) => ({
+        category,
+        points: groups.get(category)!,
+      }));
+  });
+
+  // Helper to find specific tyre points for the visualizer
+  getTyrePointId(position: 'NSF' | 'OSF' | 'NSR' | 'OSR' | 'Spare'): string | undefined {
+    // Map visual positions to codes
+    const codeMap: Record<string, string> = {
+      NSF: 'NSFT', // Near Side Front (Passenger)
+      OSF: 'OSFT', // Off Side Front (Driver)
+      NSR: 'NSRT', // Near Side Rear
+      OSR: 'OSRT', // Off Side Rear
+      Spare: 'SS',
+    };
+
+    const code = codeMap[position];
+    return this.inspectionPoints().find((p) => p.code === code)?.id;
+  }
 
   totalCost = computed(() => {
     let total = 0;
@@ -161,5 +213,54 @@ export class InspectionComponent {
 
   hasInspectionResults(): boolean {
     return this.inspectionResults().size > 0;
+  }
+
+  // Tyre specific methods
+  getTyreMeasurement(pointId: string, type: keyof TyreMeasurement): number {
+    const result = this.inspectionResults().get(pointId);
+    return result?.tyreMeasurements?.[type] || 0;
+  }
+
+  setTyreMeasurement(pointId: string, type: keyof TyreMeasurement, event: Event): void {
+    const value = parseFloat((event.target as HTMLInputElement).value) || 0;
+    this.inspectionResults.update((results) => {
+      const newResults = new Map(results);
+      const existing = newResults.get(pointId) || {
+        id: crypto.randomUUID(),
+        pointId,
+        vehicleId: this.selectedVehicleId()!,
+        photos: [],
+        requiresParts: false,
+        status: 'not_inspected', // Default status if starting with measurements
+      };
+
+      const measurements = existing.tyreMeasurements || { inner: 0, middle: 0, outer: 0 };
+      newResults.set(pointId, {
+        ...existing,
+        tyreMeasurements: { ...measurements, [type]: value },
+      });
+      return newResults;
+    });
+  }
+
+  getTyreCondition(pointId: string): TyreCondition {
+    return this.inspectionResults().get(pointId)?.tyreCondition || 'unknown';
+  }
+
+  setTyreCondition(pointId: string, condition: TyreCondition): void {
+    this.inspectionResults.update((results) => {
+      const newResults = new Map(results);
+      const existing = newResults.get(pointId) || {
+        id: crypto.randomUUID(),
+        pointId,
+        vehicleId: this.selectedVehicleId()!,
+        photos: [],
+        requiresParts: false,
+        status: 'not_inspected',
+      };
+
+      newResults.set(pointId, { ...existing, tyreCondition: condition });
+      return newResults;
+    });
   }
 }
