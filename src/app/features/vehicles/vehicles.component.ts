@@ -2,20 +2,27 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { DataService } from '../../core/services/data.service';
+import { LucideAngularModule } from 'lucide-angular';
+import { ICONS } from '../../shared/icons';
+import { VehicleService } from './services/vehicle.service';
+import { ClientService } from '../clients/services/client.service';
+import { OperationService } from '../../shared/services/operation.service';
 import { Vehicle } from '../../core/models';
 
 @Component({
   selector: 'app-vehicles',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe],
+  imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule],
   templateUrl: './vehicles.component.html',
 })
 export class VehiclesComponent {
-  private dataService = inject(DataService);
+  icons = ICONS;
+  private vehicleService = inject(VehicleService);
+  private clientService = inject(ClientService);
+  private operationService = inject(OperationService);
 
-  vehicles = this.dataService.vehicles;
-  clients = this.dataService.clients;
+  vehicles = this.vehicleService.vehicles;
+  clients = this.clientService.clients;
   filteredVehicles = signal<Vehicle[]>([]);
   selectedVehicle = signal<Vehicle | null>(null);
   hpiResult = signal(false);
@@ -90,7 +97,7 @@ export class VehiclesComponent {
   createVehicle(): void {
     if (!this.newVehicle.plate || !this.newVehicle.make || !this.newVehicle.model) return;
 
-    this.dataService.addVehicle({
+    this.vehicleService.addVehicle({
       plate: this.newVehicle.plate.toUpperCase(),
       make: this.newVehicle.make,
       model: this.newVehicle.model,
@@ -122,12 +129,12 @@ export class VehiclesComponent {
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    const client = this.dataService.getClientById(clientId);
+    const client = this.clientService.getClientById(clientId);
     return client?.name ?? 'Unknown';
   }
 
   getVehicleOperations(vehicleId: string) {
-    return this.dataService.getVehicleOperations(vehicleId);
+    return this.operationService.getVehicleOperations(vehicleId);
   }
 
   formatStatus(status: string): string {

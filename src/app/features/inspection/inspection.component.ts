@@ -6,25 +6,30 @@ import {
   TyreCondition,
   TyreMeasurement,
 } from '../../core/models';
-import { DataService } from '../../core/services/data.service';
+import { InspectionService } from './services/inspection.service';
+import { VehicleService } from '../vehicles/services/vehicle.service';
+import { LucideAngularModule } from 'lucide-angular';
+import { ICONS } from '../../shared/icons';
 
 @Component({
   selector: 'app-inspection',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, LucideAngularModule],
   templateUrl: './inspection.component.html',
 })
 export class InspectionComponent {
-  private dataService = inject(DataService);
+  icons = ICONS;
+  private inspectionService = inject(InspectionService);
+  private vehicleService = inject(VehicleService);
 
-  inspectionPoints = this.dataService.inspectionPoints;
+  inspectionPoints = this.inspectionService.inspectionPoints;
 
   selectedVehicleId = signal<string | null>(null);
   activeCategory = signal<string>('all');
   inspectionResults = signal<Map<string, Partial<InspectionResult>>>(new Map());
 
   vehiclesForInspection = computed(() =>
-    this.dataService
+    this.vehicleService
       .vehicles()
       .filter((v) => v.status === 'inspection' || v.status === 'in_progress')
   );

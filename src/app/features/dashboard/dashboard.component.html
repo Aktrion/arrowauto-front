@@ -9,15 +9,7 @@
       routerLink="/vehicles"
       class="btn-premium inline-flex items-center gap-2 animate-slide-up stagger-1"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        class="h-5 w-5"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
+      <lucide-icon [name]="icons.Plus" class="h-5 w-5"></lucide-icon>
       New Vehicle
     </a>
   </div>
@@ -29,47 +21,15 @@
       <div class="flex items-start justify-between">
         <div>
           <p class="text-sm font-medium text-base-content/60">Active Vehicles</p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ vehicles().length }}</p>
+          <p class="text-3xl font-bold text-base-content mt-1">{{ stats().activeVehicles }}</p>
         </div>
         <div class="stat-icon stat-icon-primary">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-6 w-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
-            />
-          </svg>
+          <lucide-icon [name]="icons.Car" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
       <div class="mt-4 flex items-center gap-2">
         <div class="trend-up">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-4 w-4"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 11l5-5m0 0l5 5m-5-5v12"
-            />
-          </svg>
+          <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
           <span>+12%</span>
         </div>
         <span class="text-xs text-base-content/50">from yesterday</span>
@@ -91,23 +51,10 @@
       <div class="flex items-start justify-between">
         <div>
           <p class="text-sm font-medium text-base-content/60">Pending Inspections</p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ pendingInspections() }}</p>
+          <p class="text-3xl font-bold text-base-content mt-1">{{ stats().pendingInspections }}</p>
         </div>
         <div class="stat-icon stat-icon-warning">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-6 w-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
+          <lucide-icon [name]="icons.ClipboardCheck" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
       <div class="mt-4">
@@ -129,23 +76,10 @@
       <div class="flex items-start justify-between">
         <div>
           <p class="text-sm font-medium text-base-content/60">Awaiting Approval</p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ awaitingApproval() }}</p>
+          <p class="text-3xl font-bold text-base-content mt-1">{{ stats().awaitingApproval }}</p>
         </div>
         <div class="stat-icon stat-icon-info">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-6 w-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <lucide-icon [name]="icons.Clock" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
       <div class="mt-4">
@@ -167,41 +101,17 @@
       <div class="flex items-start justify-between">
         <div>
           <p class="text-sm font-medium text-base-content/60">Revenue Today</p>
-          <p class="text-3xl font-bold text-base-content mt-1">£2,450</p>
+          <p class="text-3xl font-bold text-base-content mt-1">
+            £{{ stats().totalRevenue | number : '1.0-0' }}
+          </p>
         </div>
         <div class="stat-icon stat-icon-success">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-6 w-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <lucide-icon [name]="icons.CreditCard" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
       <div class="mt-4 flex items-center gap-2">
         <div class="trend-up">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            class="h-4 w-4"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 11l5-5m0 0l5 5m-5-5v12"
-            />
-          </svg>
+          <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
           <span>+8%</span>
         </div>
         <span class="text-xs text-base-content/50">from last week</span>
@@ -231,20 +141,7 @@
             </div>
             <a routerLink="/vehicles" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10">
               View All
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                class="h-4 w-4 ml-1"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
             </a>
           </div>
         </div>
@@ -315,20 +212,7 @@
                     [routerLink]="['/vehicles', vehicle.id]"
                     class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      class="h-4 w-4"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
                   </a>
                 </td>
               </tr>
@@ -347,77 +231,25 @@
         <div class="grid grid-cols-2 gap-3">
           <a routerLink="/vehicles" class="action-card">
             <div class="action-card-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                class="h-6 w-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+              <lucide-icon [name]="icons.Plus" class="h-6 w-6"></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">New Vehicle</span>
           </a>
           <a routerLink="/inspection" class="action-card">
             <div class="action-card-icon" style="background: var(--gradient-warning)">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                class="h-6 w-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                />
-              </svg>
+              <lucide-icon [name]="icons.ClipboardCheck" class="h-6 w-6"></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">Inspection</span>
           </a>
           <a routerLink="/scheduling" class="action-card">
             <div class="action-card-icon" style="background: var(--gradient-info)">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                class="h-6 w-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+              <lucide-icon [name]="icons.Calendar" class="h-6 w-6"></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">Schedule</span>
           </a>
           <a routerLink="/invoicing" class="action-card">
             <div class="action-card-icon" style="background: var(--gradient-success)">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                class="h-6 w-6"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"
-                />
-              </svg>
+              <lucide-icon [name]="icons.FileText" class="h-6 w-6"></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">Invoice</span>
           </a>

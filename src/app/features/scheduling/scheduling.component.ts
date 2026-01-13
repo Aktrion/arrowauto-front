@@ -1,6 +1,10 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DataService } from '../../core/services/data.service';
+import { UserService } from '../../core/services/user.service';
+import { VehicleService } from '../vehicles/services/vehicle.service';
+import { OperationService } from '../../shared/services/operation.service';
+import { LucideAngularModule } from 'lucide-angular';
+import { ICONS } from '../../shared/icons';
 
 interface DaySlot {
   date: Date;
@@ -19,13 +23,16 @@ interface TimeSlot {
 @Component({
   selector: 'app-scheduling',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './scheduling.component.html',
 })
 export class SchedulingComponent {
-  private dataService = inject(DataService);
+  icons = ICONS;
+  private userService = inject(UserService);
+  private vehicleService = inject(VehicleService);
+  private operationService = inject(OperationService);
 
-  operators = this.dataService.operatorsByRole;
+  operators = this.userService.operatorsByRole;
   currentWeekStart = signal(this.getWeekStart(new Date()));
   selectedDay = signal(new Date());
   selectedOperatorId = signal<string | null>(null);
@@ -65,8 +72,8 @@ export class SchedulingComponent {
   });
 
   pendingOperations = computed(() => {
-    const vehicles = this.dataService.vehicles();
-    const vehicleOps = this.dataService.vehicleOperations();
+    const vehicles = this.vehicleService.vehicles();
+    const vehicleOps = this.operationService.vehicleOperations();
 
     return vehicleOps
       .filter((vo) => vo.status === 'pending')

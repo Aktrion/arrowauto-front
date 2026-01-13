@@ -49,20 +49,7 @@
                 </div>
                 @if (selectedVehicleId() === vehicle.id) {
                 <div class="absolute right-3 top-1/2 -translate-y-1/2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  <lucide-icon [name]="icons.ChevronRight" class="h-6 w-6"></lucide-icon>
                 </div>
                 }
               </div>
@@ -71,20 +58,10 @@
             <div
               class="text-center py-12 text-base-content/60 bg-base-200/50 rounded-xl border border-dashed border-base-300"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
+              <lucide-icon
+                [name]="icons.FileSearch"
                 class="h-12 w-12 mx-auto mb-3 opacity-50"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
+              ></lucide-icon>
               <p>No vehicles pending inspection</p>
             </div>
             }
@@ -138,20 +115,7 @@
             class="btn btn-primary btn-block shadow-lg shadow-primary/20"
             [disabled]="!hasInspectionResults()"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
+            <lucide-icon [name]="icons.Send" class="h-5 w-5 mr-2"></lucide-icon>
             Send to Customer
           </button>
         </div>
@@ -223,60 +187,21 @@
                     [class.active-ok]="getPointStatus(point.id) === 'ok'"
                     (click)="setPointStatus(point.id, 'ok')"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-3 w-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="3"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <lucide-icon [name]="icons.Check" class="h-3 w-3"></lucide-icon>
                   </button>
                   <button
                     class="status-toggle"
                     [class.active-warning]="getPointStatus(point.id) === 'warning'"
                     (click)="setPointStatus(point.id, 'warning')"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-3 w-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="3"
-                        d="M12 9v2m0 4h.01"
-                      />
-                    </svg>
+                    <lucide-icon [name]="icons.TriangleAlert" class="h-3 w-3"></lucide-icon>
                   </button>
                   <button
                     class="status-toggle"
                     [class.active-defect]="getPointStatus(point.id) === 'defect'"
                     (click)="setPointStatus(point.id, 'defect')"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-3 w-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="3"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <lucide-icon [name]="icons.X" class="h-3 w-3"></lucide-icon>
                   </button>
                 </div>
               </div>
@@ -342,20 +267,7 @@
 
                     <div class="flex justify-end mt-4">
                       <button class="btn btn-sm btn-outline gap-2">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                          />
-                        </svg>
+                        <lucide-icon [name]="icons.Camera" class="h-4 w-4"></lucide-icon>
                         Add Photo
                       </button>
                     </div>
@@ -372,16 +284,7 @@
       <div class="card card-premium animate-fade-in-up stagger-1">
         <div class="card-body p-8">
           <h2 class="card-title text-xl text-center justify-center mb-8 flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"
-              />
-            </svg>
+            <lucide-icon [name]="icons.Disc" class="h-6 w-6"></lucide-icon>
             Tyre Wear Record
           </h2>
 
@@ -640,20 +543,10 @@
       <div class="card card-premium">
         <div class="card-body items-center text-center py-24">
           <div class="w-24 h-24 rounded-full bg-base-200 flex items-center justify-center mb-6">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
+            <lucide-icon
+              [name]="icons.CircleCheckBig"
               class="h-10 w-10 text-base-content/30"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            ></lucide-icon>
           </div>
           <h3 class="font-bold text-2xl">Ready to Inspect</h3>
           <p class="text-base-content/60 max-w-sm mt-2">

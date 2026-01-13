@@ -1,5 +1,7 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
+import { ICONS } from '../../shared/icons';
 
 interface RepairItem {
   id: string;
@@ -16,10 +18,11 @@ interface RepairItem {
 @Component({
   selector: 'app-customer-portal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './customer-portal.component.html',
 })
 export class CustomerPortalComponent {
+  icons = ICONS;
   vehicleData = {
     plate: 'CD56 IJK',
     make: 'Mercedes',

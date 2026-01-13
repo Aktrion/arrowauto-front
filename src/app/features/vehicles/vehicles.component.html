@@ -9,15 +9,7 @@
       class="btn-premium inline-flex items-center gap-2 animate-slide-up stagger-1"
       (click)="openNewVehicleModal()"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
+      <lucide-icon [name]="icons.Plus" class="h-5 w-5"></lucide-icon>
       New Vehicle
     </button>
   </div>
@@ -27,20 +19,10 @@
     <div class="flex flex-col lg:flex-row gap-4">
       <!-- Search -->
       <div class="flex-1 relative">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
+        <lucide-icon
+          [name]="icons.Search"
           class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
+        ></lucide-icon>
         <input
           type="text"
           placeholder="Search by plate, make, model..."
@@ -195,44 +177,12 @@
             class="btn btn-ghost btn-sm flex-1 hover:bg-base-200"
             (click)="openVehicleDetail(vehicle)"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
+            <lucide-icon [name]="icons.Eye" class="h-4 w-4 mr-1"></lucide-icon>
             View
           </button>
           <a [routerLink]="['/vehicles', vehicle.id]" class="btn btn-primary btn-sm flex-1">
             Manage
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 ml-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4 ml-1"></lucide-icon>
           </a>
         </div>
       </div>
@@ -241,26 +191,7 @@
     <div class="col-span-full">
       <div class="empty-state">
         <div class="empty-state-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-10 w-10"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
-            />
-          </svg>
+          <lucide-icon [name]="icons.CircleHelp" class="h-10 w-10"></lucide-icon>
         </div>
         <h3 class="empty-state-title">No vehicles found</h3>
         <p class="empty-state-description">
@@ -281,20 +212,7 @@
 
       <div class="flex items-center gap-3 mb-6">
         <div class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
+          <lucide-icon [name]="icons.Plus" class="h-6 w-6 text-white"></lucide-icon>
         </div>
         <div>
           <h3 class="text-lg font-bold text-base-content">Register New Vehicle</h3>
@@ -318,20 +236,7 @@
           </div>
           <div class="flex items-end">
             <button class="btn btn-secondary h-12 gap-2" (click)="performHPICheck()">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+              <lucide-icon [name]="icons.Search" class="h-5 w-5"></lucide-icon>
               HPI Check
             </button>
           </div>
@@ -340,20 +245,7 @@
         @if (hpiResult()) {
         <div class="p-4 rounded-xl bg-success/10 border border-success/20 flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-success"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+            <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 text-success"></lucide-icon>
           </div>
           <div>
             <p class="font-semibold text-success">HPI Check Complete</p>
@@ -439,20 +331,7 @@
           <button class="btn btn-ghost">Cancel</button>
         </form>
         <button class="btn-premium" (click)="createVehicle()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+          <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-2"></lucide-icon>
           Create Vehicle
         </button>
       </div>

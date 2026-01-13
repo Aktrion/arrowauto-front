@@ -1,10 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+
+import { ICONS } from '../../shared/icons';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule],
   templateUrl: './shell.component.html',
   styles: [
     `
@@ -15,4 +18,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
     `,
   ],
 })
-export class ShellComponent {}
+export class ShellComponent {
+  icons = ICONS;
+}

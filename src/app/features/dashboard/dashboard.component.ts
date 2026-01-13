@@ -1,30 +1,33 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DataService } from '../../core/services/data.service';
+import { DecimalPipe } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
+import { VehicleService } from '../vehicles/services/vehicle.service';
+import { UserService } from '../../core/services/user.service';
+import { ClientService } from '../clients/services/client.service';
+import { DashboardService } from './services/dashboard.service';
+import { ICONS } from '../../shared/icons';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DecimalPipe, LucideAngularModule],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent {
-  private dataService = inject(DataService);
+  icons = ICONS;
+  private vehicleService = inject(VehicleService);
+  private userService = inject(UserService);
+  private clientService = inject(ClientService);
+  private dashboardService = inject(DashboardService);
 
-  vehicles = this.dataService.vehicles;
-  operators = this.dataService.operatorsByRole;
-
-  pendingInspections() {
-    return this.vehicles().filter((v) => v.status === 'inspection').length;
-  }
-
-  awaitingApproval() {
-    return this.vehicles().filter((v) => v.status === 'awaiting_approval').length;
-  }
+  vehicles = this.vehicleService.vehicles;
+  operators = this.userService.operatorsByRole;
+  stats = this.dashboardService.dashboardStats;
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    const client = this.dataService.getClientById(clientId);
+    const client = this.clientService.getClientById(clientId);
     return client?.name ?? 'Unknown';
   }
 

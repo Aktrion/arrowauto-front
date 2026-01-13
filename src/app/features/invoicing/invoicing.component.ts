@@ -1,17 +1,24 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DataService } from '../../core/services/data.service';
+import { VehicleService } from '../vehicles/services/vehicle.service';
+import { OperationService } from '../../shared/services/operation.service';
+import { UserService } from '../../core/services/user.service';
 import { VehicleOperation } from '../../core/models';
+import { LucideAngularModule } from 'lucide-angular';
+import { ICONS } from '../../shared/icons';
 
 @Component({
   selector: 'app-invoicing',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './invoicing.component.html',
 })
 export class InvoicingComponent {
-  private dataService = inject(DataService);
+  icons = ICONS;
+  private vehicleService = inject(VehicleService);
+  private operationService = inject(OperationService);
+  private userService = inject(UserService);
 
   searchQuery = '';
   activeTab = signal<'pending' | 'completed' | 'invoiced'>('pending');
@@ -25,11 +32,11 @@ export class InvoicingComponent {
     notes: '',
   };
 
-  operators = this.dataService.operatorsByRole;
+  operators = this.userService.operatorsByRole;
 
   allOperations = computed(() => {
-    const vehicles = this.dataService.vehicles();
-    const vehicleOps = this.dataService.vehicleOperations();
+    const vehicles = this.vehicleService.vehicles();
+    const vehicleOps = this.operationService.vehicleOperations();
 
     return vehicleOps.map((op) => ({
       op,
@@ -148,7 +155,7 @@ export class InvoicingComponent {
     const item = this.selectedItem();
     if (!item) return;
 
-    this.dataService.updateVehicleOperation(item.op.id, {
+    this.operationService.updateVehicleOperation(item.op.id, {
       status: 'completed',
       actualDuration: this.completeForm.duration,
       hourlyRate: this.completeForm.hourlyRate,
