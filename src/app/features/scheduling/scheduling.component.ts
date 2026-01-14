@@ -79,7 +79,7 @@ export class SchedulingComponent {
       .filter((vo) => vo.status === 'pending')
       .map((vo) => ({
         ...vo,
-        vehiclePlate: vehicles.find((v) => v.id === vo.vehicleId)?.plate || 'Unknown',
+        vehiclePlate: vehicles.find((v) => v.id === vo.vehicleId)?.licensePlate || 'Unknown',
       }));
   });
 

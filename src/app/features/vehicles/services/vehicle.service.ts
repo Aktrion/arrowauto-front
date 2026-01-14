@@ -15,14 +15,17 @@ export class VehicleService {
   }
 
   getVehicleByPlate(plate: string): Vehicle | undefined {
-    return this._vehicles().find((v) => v.plate.toLowerCase() === plate.toLowerCase());
+    return this._vehicles().find((v) => v.licensePlate.toLowerCase() === plate.toLowerCase());
   }
 
-  addVehicle(vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'jobNumber'>): Vehicle {
+  addVehicle(
+    vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'jobNumber' | 'status'>
+  ): Vehicle {
     const newVehicle: Vehicle = {
       ...vehicle,
       id: generateId(),
       jobNumber: generateJobNumber(),
+      status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date(),
     };

@@ -14,7 +14,7 @@
     </button>
   </div>
 
-  <!-- Filters -->
+  <!-- View Toggle & Filters -->
   <div class="card-premium rounded-xl p-4 animate-slide-up stagger-1">
     <div class="flex flex-col lg:flex-row gap-4">
       <!-- Search -->
@@ -25,76 +25,206 @@
         ></lucide-icon>
         <input
           type="text"
-          placeholder="Search by plate, make, model..."
-          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+          placeholder="Search by plate, make, model, job #..."
+          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-sm"
           [(ngModel)]="searchQuery"
           (input)="filterVehicles()"
         />
       </div>
 
-      <!-- Status Filter Chips -->
-      <div class="flex flex-wrap gap-2">
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            statusFilter === ''
-              ? 'bg-primary text-white shadow-glow-primary'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setStatusFilter('')"
-        >
-          All
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            statusFilter === 'pending'
-              ? 'bg-primary text-white shadow-glow-primary'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setStatusFilter('pending')"
-        >
-          Pending
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            statusFilter === 'inspection'
-              ? 'bg-warning text-white'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setStatusFilter('inspection')"
-        >
-          Inspection
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            statusFilter === 'in_progress'
-              ? 'bg-info text-white'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setStatusFilter('in_progress')"
-        >
-          In Progress
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            statusFilter === 'completed'
-              ? 'bg-success text-white'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setStatusFilter('completed')"
-        >
-          Completed
-        </button>
+      <!-- Filters & View Toggle -->
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Status Filter Chips -->
+        <div class="flex flex-wrap gap-2">
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            [class]="
+              statusFilter === ''
+                ? 'bg-primary text-white shadow-glow-primary'
+                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+            "
+            (click)="setStatusFilter('')"
+          >
+            All
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            [class]="
+              statusFilter === 'pending'
+                ? 'bg-primary text-white shadow-glow-primary'
+                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+            "
+            (click)="setStatusFilter('pending')"
+          >
+            Pending
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            [class]="
+              statusFilter === 'inspection'
+                ? 'bg-warning text-white'
+                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+            "
+            (click)="setStatusFilter('inspection')"
+          >
+            Inspection
+          </button>
+        </div>
+
+        <div class="divider divider-horizontal hidden lg:flex"></div>
+
+        <!-- View Switcher (Desktop Only) -->
+        <div class="join bg-base-200 p-1 rounded-xl hidden lg:flex">
+          <button
+            class="join-item btn btn-sm border-0 transition-all"
+            [class]="
+              !isTableView()
+                ? 'bg-white text-primary shadow-sm'
+                : 'bg-transparent text-base-content/50'
+            "
+            (click)="toggleView(false)"
+            title="Grid View"
+          >
+            <lucide-icon [name]="icons.LayoutGrid" class="h-4 w-4"></lucide-icon>
+          </button>
+          <button
+            class="join-item btn btn-sm border-0 transition-all"
+            [class]="
+              isTableView()
+                ? 'bg-white text-primary shadow-sm'
+                : 'bg-transparent text-base-content/50'
+            "
+            (click)="toggleView(true)"
+            title="Table View"
+          >
+            <lucide-icon [name]="icons.Table" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Vehicles Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+  <!-- Table View (Desktop Only) -->
+  @if (isTableView()) {
+  <div
+    class="hidden lg:block overflow-x-auto card-premium rounded-2xl border border-base-200 animate-slide-up"
+  >
+    <table class="table table-zebra w-full overflow-hidden">
+      <thead>
+        <tr class="bg-base-200/50 text-base-content/70 border-0">
+          <th class="pl-6 w-20">Actions</th>
+          <th>Vehicle</th>
+          <th>License Plate</th>
+          <th>Client</th>
+          <th>Job Number</th>
+          <th>Status</th>
+          <th>Progress</th>
+          <th class="pr-6">Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (vehicle of filteredVehicles(); track vehicle.id) {
+        <tr class="hover:bg-primary/5 transition-colors border-b border-base-200/50">
+          <td class="pl-6">
+            <div class="flex items-center gap-1">
+              <button
+                class="btn btn-ghost btn-xs text-primary hover:bg-primary/10"
+                (click)="openVehicleDetail(vehicle)"
+                title="View Details"
+              >
+                <lucide-icon [name]="icons.Eye" class="h-4 w-4"></lucide-icon>
+              </button>
+              <a
+                [routerLink]="['/vehicles', vehicle.id]"
+                class="btn btn-ghost btn-xs text-secondary hover:bg-secondary/10"
+                title="Manage Vehicle"
+              >
+                <lucide-icon [name]="icons.Settings" class="h-4 w-4"></lucide-icon>
+              </a>
+            </div>
+          </td>
+          <td>
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white"
+              >
+                {{ vehicle.make.charAt(0) }}
+              </div>
+              <div>
+                <div class="font-bold text-base-content">
+                  {{ vehicle.make }} {{ vehicle.model }}
+                </div>
+                <div class="text-xs text-base-content/50">
+                  {{ vehicle.year }} • {{ vehicle.colour }}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span
+              class="px-3 py-1 bg-yellow-400 text-black font-mono font-bold rounded shadow-sm border border-black/10 text-sm"
+            >
+              {{ vehicle.licensePlate }}
+            </span>
+          </td>
+          <td class="text-sm">
+            {{ getClientName(vehicle.clientId) }}
+          </td>
+          <td>
+            <code class="text-xs font-semibold text-primary/80 bg-primary/5 px-2 py-1 rounded">
+              {{ vehicle.jobNumber || 'N/A' }}
+            </code>
+          </td>
+          <td>
+            <span
+              class="status-badge text-[10px] uppercase font-bold tracking-wider"
+              [class]="getStatusBadgeClass(vehicle.status)"
+            >
+              {{ formatStatus(vehicle.status) }}
+            </span>
+          </td>
+          <td class="w-32">
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between text-[10px] font-medium text-base-content/60">
+                <span>{{ getProgressPercent(vehicle.status) }}%</span>
+              </div>
+              <div class="h-1.5 w-full bg-base-200 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-primary transition-all duration-500 rounded-full"
+                  [style.width.%]="getProgressPercent(vehicle.status)"
+                ></div>
+              </div>
+            </div>
+          </td>
+          <td class="pr-6 text-sm text-base-content/60">
+            {{ vehicle.createdAt | date : 'mediumDate' }}
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="8" class="text-center py-20">
+            <div class="flex flex-col items-center gap-3">
+              <div class="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center">
+                <lucide-icon
+                  [name]="icons.CircleHelp"
+                  class="h-8 w-8 text-base-content/20"
+                ></lucide-icon>
+              </div>
+              <p class="text-base-content/60 font-medium">No vehicles found</p>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  <!-- Cards View (Visible on mobile, or on desktop if toggled) -->
+  <div
+    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+    [class.lg:hidden]="isTableView()"
+  >
     @for (vehicle of filteredVehicles(); track vehicle.id; let i = $index) {
     <div class="vehicle-card animate-slide-up" [style.animation-delay]="i * 50 + 'ms'">
       <!-- Status Badge -->
@@ -112,7 +242,7 @@
           {{ vehicle.make.charAt(0) }}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="vehicle-plate text-base-content">{{ vehicle.plate }}</p>
+          <p class="vehicle-plate text-base-content">{{ vehicle.licensePlate }}</p>
           <p class="text-sm text-base-content/60">
             {{ vehicle.make }} {{ vehicle.model }} {{ vehicle.year }}
           </p>
@@ -155,7 +285,7 @@
           </div>
           <div>
             <span class="text-base-content/50 text-xs">Color</span>
-            <p class="font-semibold text-base-content">{{ vehicle.color }}</p>
+            <p class="font-semibold text-base-content">{{ vehicle.colour }}</p>
           </div>
           <div>
             <span class="text-base-content/50 text-xs">Mileage</span>
@@ -202,265 +332,4 @@
     </div>
     }
   </div>
-
-  <!-- New Vehicle Modal -->
-  <dialog id="new_vehicle_modal" class="modal">
-    <div class="modal-box max-w-2xl bg-white">
-      <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">✕</button>
-      </form>
-
-      <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
-          <lucide-icon [name]="icons.Plus" class="h-6 w-6 text-white"></lucide-icon>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-base-content">Register New Vehicle</h3>
-          <p class="text-sm text-base-content/60">Add a new vehicle to the system</p>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <!-- Plate & HPI Check -->
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-base-content mb-1"
-              >Registration Plate *</label
-            >
-            <input
-              type="text"
-              placeholder="e.g. AB12 CDE"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white uppercase font-mono text-lg transition-all"
-              [(ngModel)]="newVehicle.plate"
-            />
-          </div>
-          <div class="flex items-end">
-            <button class="btn btn-secondary h-12 gap-2" (click)="performHPICheck()">
-              <lucide-icon [name]="icons.Search" class="h-5 w-5"></lucide-icon>
-              HPI Check
-            </button>
-          </div>
-        </div>
-
-        @if (hpiResult()) {
-        <div class="p-4 rounded-xl bg-success/10 border border-success/20 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-            <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 text-success"></lucide-icon>
-          </div>
-          <div>
-            <p class="font-semibold text-success">HPI Check Complete</p>
-            <p class="text-sm text-base-content/60">Vehicle data imported successfully</p>
-          </div>
-        </div>
-        }
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-base-content mb-1">Make *</label>
-            <input
-              type="text"
-              placeholder="e.g. BMW"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-              [(ngModel)]="newVehicle.make"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-base-content mb-1">Model *</label>
-            <input
-              type="text"
-              placeholder="e.g. 320d"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-              [(ngModel)]="newVehicle.model"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-base-content mb-1">Year *</label>
-            <input
-              type="number"
-              placeholder="e.g. 2022"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-              [(ngModel)]="newVehicle.year"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-base-content mb-1">Color *</label>
-            <input
-              type="text"
-              placeholder="e.g. Black"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-              [(ngModel)]="newVehicle.color"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-base-content mb-1">Mileage</label>
-            <input
-              type="number"
-              placeholder="e.g. 45000"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-              [(ngModel)]="newVehicle.mileage"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-base-content mb-1">VIN</label>
-            <input
-              type="text"
-              placeholder="Vehicle Identification Number"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-              [(ngModel)]="newVehicle.vin"
-            />
-          </div>
-        </div>
-
-        <!-- Client Selection -->
-        <div>
-          <label class="block text-sm font-medium text-base-content mb-1">Assign Client</label>
-          <select
-            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-            [(ngModel)]="newVehicle.clientId"
-          >
-            <option value="">Select a client...</option>
-            @for (client of clients(); track client.id) {
-            <option [value]="client.id">{{ client.name }} - {{ client.company }}</option>
-            }
-          </select>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-base-200">
-        <form method="dialog">
-          <button class="btn btn-ghost">Cancel</button>
-        </form>
-        <button class="btn-premium" (click)="createVehicle()">
-          <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-2"></lucide-icon>
-          Create Vehicle
-        </button>
-      </div>
-    </div>
-    <form method="dialog" class="modal-backdrop bg-black/50 backdrop-blur-sm">
-      <button>close</button>
-    </form>
-  </dialog>
-
-  <!-- Vehicle Detail Modal -->
-  <dialog id="vehicle_detail_modal" class="modal">
-    <div class="modal-box max-w-4xl bg-white">
-      <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">✕</button>
-      </form>
-
-      @if (selectedVehicle()) {
-      <div class="flex items-center gap-4 mb-6">
-        <div
-          class="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg"
-        >
-          {{ selectedVehicle()!.make.charAt(0) }}
-        </div>
-        <div class="flex-1">
-          <h3 class="text-2xl font-bold text-base-content">{{ selectedVehicle()!.plate }}</h3>
-          <p class="text-base-content/60">
-            {{ selectedVehicle()!.make }} {{ selectedVehicle()!.model }}
-            {{ selectedVehicle()!.year }}
-          </p>
-        </div>
-        <span
-          class="status-badge px-4 py-2"
-          [class]="getStatusBadgeClass(selectedVehicle()!.status)"
-        >
-          {{ formatStatus(selectedVehicle()!.status) }}
-        </span>
-      </div>
-
-      <div role="tablist" class="tabs tabs-boxed bg-base-200 p-1 rounded-xl mb-6">
-        <input
-          type="radio"
-          name="vehicle_tabs"
-          role="tab"
-          class="tab"
-          aria-label="Details"
-          checked
-        />
-        <div role="tabpanel" class="tab-content py-6">
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div class="p-4 bg-base-200/50 rounded-xl">
-              <p class="text-xs text-base-content/50 uppercase tracking-wider">Job Number</p>
-              <p class="text-lg font-mono font-bold text-base-content mt-1">
-                {{ selectedVehicle()!.jobNumber }}
-              </p>
-            </div>
-            <div class="p-4 bg-base-200/50 rounded-xl">
-              <p class="text-xs text-base-content/50 uppercase tracking-wider">Color</p>
-              <p class="text-lg font-bold text-base-content mt-1">{{ selectedVehicle()!.color }}</p>
-            </div>
-            <div class="p-4 bg-base-200/50 rounded-xl">
-              <p class="text-xs text-base-content/50 uppercase tracking-wider">Mileage</p>
-              <p class="text-lg font-bold text-base-content mt-1">
-                {{ selectedVehicle()!.mileage?.toLocaleString() || 'N/A' }}
-              </p>
-            </div>
-            <div class="p-4 bg-base-200/50 rounded-xl">
-              <p class="text-xs text-base-content/50 uppercase tracking-wider">Client</p>
-              <p class="text-lg font-bold text-base-content mt-1">
-                {{ getClientName(selectedVehicle()!.clientId) }}
-              </p>
-            </div>
-            <div class="p-4 bg-base-200/50 rounded-xl">
-              <p class="text-xs text-base-content/50 uppercase tracking-wider">Created</p>
-              <p class="text-lg font-bold text-base-content mt-1">
-                {{ selectedVehicle()!.createdAt | date : 'shortDate' }}
-              </p>
-            </div>
-            <div class="p-4 bg-base-200/50 rounded-xl">
-              <p class="text-xs text-base-content/50 uppercase tracking-wider">VIN</p>
-              <p class="text-sm font-mono text-base-content mt-1">
-                {{ selectedVehicle()!.vin || 'N/A' }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <input type="radio" name="vehicle_tabs" role="tab" class="tab" aria-label="Operations" />
-        <div role="tabpanel" class="tab-content py-6">
-          <div class="flex justify-between items-center mb-4">
-            <h4 class="font-semibold text-base-content">Assigned Operations</h4>
-            <button class="btn btn-sm btn-primary">Add Operation</button>
-          </div>
-          <div class="space-y-2">
-            @for (op of getVehicleOperations(selectedVehicle()!.id); track op.id) {
-            <div class="flex items-center justify-between p-4 bg-base-200/50 rounded-xl">
-              <div>
-                <p class="font-medium text-base-content">{{ op.operation?.name }}</p>
-                <p class="text-sm text-base-content/60">
-                  {{ op.operation?.estimatedDuration }} min • £{{ op.operation?.defaultPrice }}
-                </p>
-              </div>
-              <span class="status-badge" [class]="getOperationStatusClass(op.status)">{{
-                op.status
-              }}</span>
-            </div>
-            } @empty {
-            <p class="text-center text-base-content/60 py-8">No operations assigned</p>
-            }
-          </div>
-        </div>
-
-        <input type="radio" name="vehicle_tabs" role="tab" class="tab" aria-label="History" />
-        <div role="tabpanel" class="tab-content py-6">
-          <p class="text-center text-base-content/60 py-8">Vehicle history will appear here</p>
-        </div>
-      </div>
-      }
-
-      <div class="flex justify-end gap-3 pt-4 border-t border-base-200">
-        <form method="dialog">
-          <button class="btn btn-ghost">Close</button>
-        </form>
-        <a [routerLink]="['/vehicles', selectedVehicle()?.id]" class="btn-premium">
-          Full Details
-        </a>
-      </div>
-    </div>
-    <form method="dialog" class="modal-backdrop bg-black/50 backdrop-blur-sm">
-      <button>close</button>
-    </form>
-  </dialog>
 </div>

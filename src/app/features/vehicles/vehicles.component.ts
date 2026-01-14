@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
@@ -19,30 +19,22 @@ export class VehiclesComponent {
   icons = ICONS;
   private vehicleService = inject(VehicleService);
   private clientService = inject(ClientService);
-  private operationService = inject(OperationService);
+  private router = inject(Router);
 
   vehicles = this.vehicleService.vehicles;
   clients = this.clientService.clients;
   filteredVehicles = signal<Vehicle[]>([]);
-  selectedVehicle = signal<Vehicle | null>(null);
-  hpiResult = signal(false);
+  isTableView = signal(true);
 
   searchQuery = '';
   statusFilter = '';
 
-  newVehicle = {
-    plate: '',
-    make: '',
-    model: '',
-    year: new Date().getFullYear(),
-    color: '',
-    mileage: undefined as number | undefined,
-    vin: '',
-    clientId: '',
-  };
-
   constructor() {
     this.filteredVehicles.set(this.vehicles());
+  }
+
+  toggleView(isTable: boolean): void {
+    this.isTableView.set(isTable);
   }
 
   setStatusFilter(status: string): void {
@@ -57,7 +49,7 @@ export class VehiclesComponent {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.plate.toLowerCase().includes(query) ||
+          v.licensePlate.toLowerCase().includes(query) ||
           v.make.toLowerCase().includes(query) ||
           v.model.toLowerCase().includes(query) ||
           v.jobNumber?.toLowerCase().includes(query)
@@ -72,69 +64,17 @@ export class VehiclesComponent {
   }
 
   openNewVehicleModal(): void {
-    this.resetNewVehicle();
-    (document.getElementById('new_vehicle_modal') as HTMLDialogElement)?.showModal();
+    this.router.navigate(['/vehicles/new']);
   }
 
   openVehicleDetail(vehicle: Vehicle): void {
-    this.selectedVehicle.set(vehicle);
-    (document.getElementById('vehicle_detail_modal') as HTMLDialogElement)?.showModal();
-  }
-
-  performHPICheck(): void {
-    if (!this.newVehicle.plate) return;
-
-    setTimeout(() => {
-      this.newVehicle.make = 'BMW';
-      this.newVehicle.model = '320d';
-      this.newVehicle.year = 2022;
-      this.newVehicle.color = 'Black';
-      this.newVehicle.vin = 'WBAXXXXXXXXX12345';
-      this.hpiResult.set(true);
-    }, 500);
-  }
-
-  createVehicle(): void {
-    if (!this.newVehicle.plate || !this.newVehicle.make || !this.newVehicle.model) return;
-
-    this.vehicleService.addVehicle({
-      plate: this.newVehicle.plate.toUpperCase(),
-      make: this.newVehicle.make,
-      model: this.newVehicle.model,
-      year: this.newVehicle.year,
-      color: this.newVehicle.color,
-      mileage: this.newVehicle.mileage,
-      vin: this.newVehicle.vin,
-      clientId: this.newVehicle.clientId || undefined,
-      status: 'pending',
-    });
-
-    this.filterVehicles();
-    (document.getElementById('new_vehicle_modal') as HTMLDialogElement)?.close();
-  }
-
-  resetNewVehicle(): void {
-    this.newVehicle = {
-      plate: '',
-      make: '',
-      model: '',
-      year: new Date().getFullYear(),
-      color: '',
-      mileage: undefined,
-      vin: '',
-      clientId: '',
-    };
-    this.hpiResult.set(false);
+    this.router.navigate(['/vehicles', vehicle.id]);
   }
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
     const client = this.clientService.getClientById(clientId);
     return client?.name ?? 'Unknown';
-  }
-
-  getVehicleOperations(vehicleId: string) {
-    return this.operationService.getVehicleOperations(vehicleId);
   }
 
   formatStatus(status: string): string {
@@ -150,17 +90,6 @@ export class VehiclesComponent {
       approved: 'status-completed',
       completed: 'status-completed',
       invoiced: 'status-completed',
-    };
-    return classes[status] || 'status-pending';
-  }
-
-  getOperationStatusClass(status: string): string {
-    const classes: Record<string, string> = {
-      pending: 'status-pending',
-      scheduled: 'status-in-progress',
-      in_progress: 'status-inspection',
-      completed: 'status-completed',
-      cancelled: 'status-error',
     };
     return classes[status] || 'status-pending';
   }

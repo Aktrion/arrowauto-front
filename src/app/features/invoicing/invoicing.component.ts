@@ -66,7 +66,7 @@ export class InvoicingComponent {
       ops = ops.filter(
         (item) =>
           item.vehicle?.jobNumber?.toLowerCase().includes(query) ||
-          item.vehicle?.plate?.toLowerCase().includes(query)
+          item.vehicle?.licensePlate?.toLowerCase().includes(query)
       );
     }
 

@@ -45,6 +45,8 @@ import {
   Zap,
   Lightbulb,
   ShoppingCart,
+  LayoutGrid,
+  Table,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -94,4 +96,6 @@ export const ICONS = {
   Zap,
   Lightbulb,
   ShoppingCart,
+  LayoutGrid,
+  Table,
 };
