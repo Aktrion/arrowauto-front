@@ -7,7 +7,7 @@ import { ICONS } from '../../shared/icons';
 import { VehicleService } from './services/vehicle.service';
 import { ClientService } from '../clients/services/client.service';
 import { OperationService } from '../../shared/services/operation.service';
-import { Vehicle } from '../../core/models';
+import { Product, Vehicle } from '../../core/models';
 
 @Component({
   selector: 'app-vehicles',
@@ -23,7 +23,7 @@ export class VehiclesComponent {
 
   vehicles = this.vehicleService.vehicles;
   clients = this.clientService.clients;
-  filteredVehicles = signal<Vehicle[]>([]);
+  filteredVehicles = signal<Product[]>([]);
   isTableView = signal(true);
 
   searchQuery = '';
@@ -49,10 +49,10 @@ export class VehiclesComponent {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(
         (v) =>
-          v.licensePlate.toLowerCase().includes(query) ||
-          v.make.toLowerCase().includes(query) ||
-          v.model.toLowerCase().includes(query) ||
-          v.jobNumber?.toLowerCase().includes(query)
+          v.vehicle?.licensePlate?.toLowerCase().includes(query) ||
+          v.vehicle?.make?.toLowerCase().includes(query) ||
+          v.vehicle?.model?.toLowerCase().includes(query) ||
+          v.vehicle?.jobNumber?.toLowerCase().includes(query)
       );
     }
 
@@ -67,7 +67,7 @@ export class VehiclesComponent {
     this.router.navigate(['/vehicles/new']);
   }
 
-  openVehicleDetail(vehicle: Vehicle): void {
+  openVehicleDetail(vehicle: Product): void {
     this.router.navigate(['/vehicles', vehicle.id]);
   }
 

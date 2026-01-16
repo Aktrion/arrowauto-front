@@ -1,39 +1,41 @@
 import { Injectable, signal } from '@angular/core';
-import { Vehicle } from '../models/vehicle.model';
-import { generateMockVehicles } from '../../../shared/utils/mock-data';
+import { Product, Vehicle } from '../models/vehicle.model';
+import {
+  generateMockVehicles,
+  generateMockVehiclesProducts,
+} from '../../../shared/utils/mock-data';
 import { generateId, generateJobNumber } from '../../../shared/utils/id-generator';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehicleService {
-  private _vehicles = signal<Vehicle[]>(generateMockVehicles());
+  private _vehicles = signal<Product[]>(generateMockVehiclesProducts());
   readonly vehicles = this._vehicles.asReadonly();
 
-  getVehicleById(id: string): Vehicle | undefined {
+  getVehicleById(id: string): Product | undefined {
     return this._vehicles().find((v) => v.id === id);
   }
 
-  getVehicleByPlate(plate: string): Vehicle | undefined {
-    return this._vehicles().find((v) => v.licensePlate.toLowerCase() === plate.toLowerCase());
+  getVehicleByPlate(plate: string): Product | undefined {
+    return this._vehicles().find(
+      (v) => v.vehicle?.licensePlate.toLowerCase() === plate.toLowerCase()
+    );
   }
 
-  addVehicle(
-    vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'jobNumber' | 'status'>
-  ): Vehicle {
-    const newVehicle: Vehicle = {
-      ...vehicle,
+  addVehicleProduct(
+    product: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'jobNumber' | 'status'>
+  ): Product {
+    const newProduct: Product = {
+      ...product,
       id: generateId(),
-      jobNumber: generateJobNumber(),
       status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
-    this._vehicles.update((vehicles) => [...vehicles, newVehicle]);
-    return newVehicle;
+    this._vehicles.update((vehicles) => [...vehicles, newProduct]);
+    return newProduct;
   }
 
-  updateVehicle(id: string, updates: Partial<Vehicle>): void {
+  updateVehicleProduct(id: string, updates: Partial<Product>): void {
     this._vehicles.update((vehicles) =>
       vehicles.map((v) => (v.id === id ? { ...v, ...updates, updatedAt: new Date() } : v))
     );

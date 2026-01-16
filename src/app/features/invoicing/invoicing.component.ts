@@ -23,7 +23,7 @@ export class InvoicingComponent {
   searchQuery = '';
   activeTab = signal<'pending' | 'completed' | 'invoiced'>('pending');
   selectedIds = signal<Set<string>>(new Set());
-  selectedItem = signal<{ op: VehicleOperation; vehicle: any } | null>(null);
+  selectedItem = signal<{ op: VehicleOperation; product: any } | null>(null);
 
   completeForm = {
     operatorId: '',
@@ -40,7 +40,7 @@ export class InvoicingComponent {
 
     return vehicleOps.map((op) => ({
       op,
-      vehicle: vehicles.find((v) => v.id === op.vehicleId),
+      product: vehicles.find((v) => v.id === op.vehicleId),
     }));
   });
 
@@ -65,8 +65,8 @@ export class InvoicingComponent {
       const query = this.searchQuery.toLowerCase();
       ops = ops.filter(
         (item) =>
-          item.vehicle?.jobNumber?.toLowerCase().includes(query) ||
-          item.vehicle?.licensePlate?.toLowerCase().includes(query)
+          item.product?.vehicle?.jobNumber?.toLowerCase().includes(query) ||
+          item.product?.vehicle?.licensePlate?.toLowerCase().includes(query)
       );
     }
 
@@ -135,7 +135,7 @@ export class InvoicingComponent {
     return op.operation?.defaultPrice || 0;
   }
 
-  openCompleteModal(item: { op: VehicleOperation; vehicle: any }): void {
+  openCompleteModal(item: { op: VehicleOperation; product: any }): void {
     this.selectedItem.set(item);
     this.completeForm = {
       operatorId: item.op.assignedUserId || '',

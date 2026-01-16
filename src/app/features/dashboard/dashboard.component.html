@@ -157,59 +157,61 @@
               </tr>
             </thead>
             <tbody>
-              @for (vehicle of vehicles().slice(0, 5); track vehicle.id; let i = $index) {
+              @for (product of vehicles().slice(0, 5); track product.id; let i = $index) {
               <tr class="hover:bg-base-200/30 transition-colors">
                 <td>
                   <div class="flex items-center gap-3">
                     <div
                       class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm"
                     >
-                      {{ vehicle.make.charAt(0) }}
+                      {{ product.vehicle?.make?.charAt(0) }}
                     </div>
                     <div>
-                      <p class="font-semibold text-base-content">{{ vehicle.licensePlate }}</p>
+                      <p class="font-semibold text-base-content">
+                        {{ product.vehicle?.licensePlate }}
+                      </p>
                       <p class="text-sm text-base-content/60">
-                        {{ vehicle.make }} {{ vehicle.model }}
+                        {{ product.vehicle?.make }} {{ product.vehicle?.model }}
                       </p>
                     </div>
                   </div>
                 </td>
                 <td>
                   <span class="text-sm text-base-content">{{
-                    getClientName(vehicle.clientId)
+                    getClientName(product.customerId)
                   }}</span>
                 </td>
                 <td>
-                  <span class="status-badge" [class]="getStatusBadgeClass(vehicle.status)">
-                    {{ formatStatus(vehicle.status) }}
+                  <span class="status-badge" [class]="getStatusBadgeClass(product.status)">
+                    {{ formatStatus(product.status) }}
                   </span>
                 </td>
                 <td>
                   <div class="progress-tracker w-24">
                     <div
                       class="progress-step"
-                      [class.completed]="getProgress(vehicle.status) >= 1"
+                      [class.completed]="getProgress(product.status) >= 1"
                     ></div>
                     <div
                       class="progress-step"
-                      [class.completed]="getProgress(vehicle.status) >= 2"
-                      [class.current]="getProgress(vehicle.status) === 1"
+                      [class.completed]="getProgress(product.status) >= 2"
+                      [class.current]="getProgress(product.status) === 1"
                     ></div>
                     <div
                       class="progress-step"
-                      [class.completed]="getProgress(vehicle.status) >= 3"
-                      [class.current]="getProgress(vehicle.status) === 2"
+                      [class.completed]="getProgress(product.status) >= 3"
+                      [class.current]="getProgress(product.status) === 2"
                     ></div>
                     <div
                       class="progress-step"
-                      [class.completed]="getProgress(vehicle.status) >= 4"
-                      [class.current]="getProgress(vehicle.status) === 3"
+                      [class.completed]="getProgress(product.status) >= 4"
+                      [class.current]="getProgress(product.status) === 3"
                     ></div>
                   </div>
                 </td>
                 <td>
                   <a
-                    [routerLink]="['/vehicles', vehicle.id]"
+                    [routerLink]="['/vehicles', product.id]"
                     class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
                   >
                     <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>

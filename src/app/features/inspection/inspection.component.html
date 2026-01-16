@@ -40,12 +40,14 @@
                     [class.bg-base-100]="selectedVehicleId() !== vehicle.id"
                     [class.text-base-content]="selectedVehicleId() !== vehicle.id"
                   >
-                    <span>{{ vehicle.make.charAt(0) }}</span>
+                    <span>{{ vehicle.vehicle?.make?.charAt(0) }}</span>
                   </div>
                 </div>
                 <div class="flex-1 min-w-0 z-10">
-                  <p class="font-bold text-lg truncate">{{ vehicle.licensePlate }}</p>
-                  <p class="text-sm opacity-80 truncate">{{ vehicle.make }} {{ vehicle.model }}</p>
+                  <p class="font-bold text-lg truncate">{{ vehicle.vehicle?.licensePlate }}</p>
+                  <p class="text-sm opacity-80 truncate">
+                    {{ vehicle.vehicle?.make }} {{ vehicle.vehicle?.model }}
+                  </p>
                 </div>
                 @if (selectedVehicleId() === vehicle.id) {
                 <div class="absolute right-3 top-1/2 -translate-y-1/2">

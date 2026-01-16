@@ -8,12 +8,12 @@ import { ICONS } from '../../../shared/icons';
 import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
 import { OperationService } from '../../../shared/services/operation.service';
-import { Vehicle } from '../../../core/models';
+import { Product, Vehicle } from '../models/vehicle.model';
 
 @Component({
   selector: 'app-vehicle-detail',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, DatePipe, FormsModule, RouterLink, LucideAngularModule],
   templateUrl: './vehicle-detail.component.html',
 })
 export class VehicleDetailComponent implements OnInit {
@@ -25,7 +25,10 @@ export class VehicleDetailComponent implements OnInit {
   private operationService = inject(OperationService);
 
   isNew = signal(false);
-  vehicle = signal<Partial<Vehicle>>({});
+  product = signal<Partial<Product>>({
+    vehicle: {} as Vehicle,
+    status: 'pending',
+  });
   clients = this.clientService.clients;
   activeTab = signal('details');
   hpiResult = signal(false);
@@ -35,11 +38,11 @@ export class VehicleDetailComponent implements OnInit {
       const id = params['id'];
       if (id === 'new') {
         this.isNew.set(true);
-        this.resetVehicle();
+        this.resetProduct();
       } else {
         const found = this.vehicleService.getVehicleById(id);
         if (found) {
-          this.vehicle.set({ ...found });
+          this.product.set({ ...found });
           this.isNew.set(false);
         } else {
           this.router.navigate(['/vehicles']);
@@ -48,48 +51,54 @@ export class VehicleDetailComponent implements OnInit {
     });
   }
 
-  resetVehicle() {
-    this.vehicle.set({
-      licensePlate: '',
-      make: '',
-      model: '',
-      year: new Date().getFullYear(),
-      registrationDate: '',
-      engine: '',
-      colour: '',
-      vin: '',
-      mileage: 0,
+  resetProduct() {
+    this.product.set({
+      status: 'pending',
+      vehicle: {
+        licensePlate: '',
+        make: '',
+        model: '',
+        year: new Date().getFullYear(),
+        registrationDate: '',
+        engine: '',
+        colour: '',
+        vin: '',
+        mileage: 0,
+      },
     });
   }
 
   performHPICheck() {
-    const plate = this.vehicle().licensePlate;
+    const plate = this.product().vehicle?.licensePlate;
     if (!plate) return;
 
     // Mock HPI check
     setTimeout(() => {
-      this.vehicle.update((v) => ({
-        ...v,
-        make: 'BMW',
-        model: '320d',
-        year: 2022,
-        registrationDate: '2022-01-14',
-        engine: '2.0',
-        colour: 'Black',
-        vin: 'WBAXXXXXXXXX12345',
+      this.product.update((p) => ({
+        ...p,
+        vehicle: {
+          ...p.vehicle!,
+          make: 'BMW',
+          model: '320d',
+          year: 2022,
+          registrationDate: '2022-01-14',
+          engine: '2.0',
+          colour: 'Black',
+          vin: 'WBAXXXXXXXXX12345',
+        },
       }));
       this.hpiResult.set(true);
     }, 500);
   }
 
   save() {
-    const v = this.vehicle();
-    if (!v.licensePlate || !v.make || !v.model) return;
+    const p = this.product();
+    if (!p.vehicle?.licensePlate || !p.vehicle?.make || !p.vehicle?.model) return;
 
     if (this.isNew()) {
-      this.vehicleService.addVehicle(v as any);
+      this.vehicleService.addVehicleProduct(p as any);
     } else {
-      this.vehicleService.updateVehicle(v.id!, v);
+      this.vehicleService.updateVehicleProduct(p.id!, p as any);
     }
     this.router.navigate(['/vehicles']);
   }
