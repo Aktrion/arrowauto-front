@@ -1,0 +1,178 @@
+<div class="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
+  <!-- Background video -->
+  <video
+    class="absolute inset-0 w-full h-full object-cover scale-110 blur-[10px] brightness-90 saturate-125"
+    autoplay
+    [muted]="true"
+    loop
+    playsinline
+    preload="auto"
+  >
+    <source src="assets/videos/car-video1.mp4" type="video/mp4" />
+  </video>
+
+  <!-- Primary tint overlay (más fuerte) -->
+  <div class="absolute inset-0 bg-[#9483ba]/32"></div>
+
+  <!-- Dark overlay (más suave) -->
+  <div class="absolute inset-0 bg-black/28"></div>
+
+  <!-- Vignette con primary (da profundidad) -->
+  <div
+    class="absolute inset-0"
+    style="
+      background: radial-gradient(
+        circle at center,
+        rgba(148, 131, 186, 0.45) 0%,
+        rgba(0, 0, 0, 0.35) 70%
+      );
+    "
+  ></div>
+
+  <!-- Main container -->
+  <div class="relative z-10 w-full max-w-5xl px-4 py-10 animate-fadeInUp">
+    <div
+      class="mx-auto grid w-full overflow-hidden rounded-3xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl md:grid-cols-2"
+    >
+      <!-- Left / Branding -->
+      <div class="relative hidden md:flex flex-col justify-between p-12 lg:p-14">
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"
+        ></div>
+
+        <div class="relative">
+          <div class="flex items-center gap-3 mb-8">
+            <div class="w-11 h-11 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+              <i-lucide [name]="icons.Car" class="w-5 h-5"></i-lucide>
+            </div>
+            <span class="text-2xl font-semibold text-white tracking-wide">ArrowAuto</span>
+          </div>
+
+          <h1 class="text-4xl font-semibold text-white leading-tight">
+            Manage your <br />
+            <span class="text-white/90">fleet</span> like a Pro.
+          </h1>
+
+          <p class="mt-4 text-base text-white/70 leading-relaxed max-w-sm">
+            Streamline operations, track inventory, and boost efficiency with our next-gen platform.
+          </p>
+
+          <!-- Mini features -->
+          <div class="mt-10 space-y-3 text-sm text-white/70">
+            <div class="flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
+              Real-time tracking & insights
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
+              Secure access & role management
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
+              Faster workflow for teams
+            </div>
+          </div>
+        </div>
+
+        <div class="relative text-xs text-white/50">&copy; 2026 Aktrion Group.</div>
+      </div>
+
+      <!-- Right / Form -->
+      <div class="bg-white/95 dark:bg-slate-950/70 p-8 sm:p-10 lg:p-12">
+        <div class="mb-8">
+          <h2 class="text-3xl font-semibold text-gray-900 dark:text-white">Login</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Please enter your credentials.
+          </p>
+        </div>
+
+        <form class="space-y-5">
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email Address
+            </label>
+
+            <div
+              class="relative rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950/40 focus-within:ring-2 focus-within:ring-[#9483ba]/40 transition"
+            >
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <lucide-icon [name]="icons.Mail" class="w-5 h-5"></lucide-icon>
+              </div>
+
+              <input
+                type="email"
+                placeholder="you@example.com"
+                class="w-full pl-10 pr-4 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
+              />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Password
+            </label>
+
+            <div
+              class="relative rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950/40 focus-within:ring-2 focus-within:ring-[#9483ba]/40 transition"
+            >
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <lucide-icon [name]="icons.Lock" class="w-5 h-5"></lucide-icon>
+              </div>
+
+              <input
+                type="password"
+                placeholder="Enter your password"
+                class="w-full pl-10 pr-12 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
+              />
+
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#9483ba] transition"
+              >
+                <lucide-icon [name]="icons.Eye" class="w-5 h-5"></lucide-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember + forgot -->
+          <div class="flex items-center justify-between pt-1">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                class="w-4 h-4 rounded border-gray-300 accent-[#9483ba] focus:ring-[#9483ba]"
+              />
+              <span class="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+            </label>
+
+            <a href="#" class="text-sm font-medium text-[#9483ba] hover:text-[#8573ad] transition">
+              Forgot password?
+            </a>
+          </div>
+
+          <!-- CTA -->
+          <button
+            type="button"
+            [routerLink]="['/dashboard']"
+            class="w-full mt-2 py-3.5 rounded-xl bg-[var(--color-primary-darkest)] hover:bg-[var(--color-primary-darker)] text-white font-semibold shadow-lg shadow-[var(--color-primary)]/25 transition active:scale-[0.99] cursor-pointer"
+          >
+            Sign In
+          </button>
+
+          <!-- Divider -->
+          <div class="relative py-3">
+            <div class="h-px bg-gray-200 dark:bg-slate-700"></div>
+          </div>
+        </form>
+
+        <div class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          Don't have an account?
+          <a href="#" class="ml-1 font-medium text-[#9483ba] hover:text-[#8573ad] transition">
+            Register
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

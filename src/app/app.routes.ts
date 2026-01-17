@@ -7,6 +7,10 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'login',
+    loadComponent: () => import('./auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
     path: '',
     loadComponent: () => import('./layout/shell/shell.component').then((m) => m.ShellComponent),
     children: [
@@ -24,7 +28,7 @@ export const routes: Routes = [
         path: 'vehicles/:id',
         loadComponent: () =>
           import('./features/vehicles/vehicle-detail/vehicle-detail.component').then(
-            (m) => m.VehicleDetailComponent
+            (m) => m.VehicleDetailComponent,
           ),
       },
       {
@@ -58,7 +62,7 @@ export const routes: Routes = [
     path: 'customer-portal',
     loadComponent: () =>
       import('./features/customer-portal/customer-portal.component').then(
-        (m) => m.CustomerPortalComponent
+        (m) => m.CustomerPortalComponent,
       ),
   },
   {

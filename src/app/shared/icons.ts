@@ -47,6 +47,7 @@ import {
   ShoppingCart,
   LayoutGrid,
   Table,
+  Lock,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -98,4 +99,5 @@ export const ICONS = {
   ShoppingCart,
   LayoutGrid,
   Table,
+  Lock,
 };
