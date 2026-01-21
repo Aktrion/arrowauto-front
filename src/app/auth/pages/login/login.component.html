@@ -42,10 +42,6 @@
 
         <div class="relative">
           <div class="flex items-center gap-3 mb-8">
-            <!-- <div class="w-11 h-11 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-              <i-lucide [name]="icons.Car" class="w-5 h-5"></i-lucide>
-            </div>
-            <span class="text-2xl font-semibold text-white tracking-wide">ArrowAuto</span> -->
             <img src="assets/img/logo/arrow-logo.png" alt="" />
           </div>
 
@@ -103,8 +99,9 @@
               </div>
 
               <input
-                type="email"
-                placeholder="you@example.com"
+                type="text"
+                formControlName="userName"
+                placeholder="Username or email"
                 class="w-full pl-10 pr-4 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
               />
             </div>
@@ -125,6 +122,7 @@
 
               <input
                 type="password"
+                formControlName="password"
                 placeholder="Enter your password"
                 class="w-full pl-10 pr-12 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
               />
@@ -143,6 +141,7 @@
             <label class="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
+                formControlName="remember"
                 class="w-4 h-4 rounded border-gray-300 accent-[#9483ba] focus:ring-[#9483ba]"
               />
               <span class="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
@@ -156,7 +155,7 @@
           <!-- CTA -->
           <button
             type="button"
-            [routerLink]="['/dashboard']"
+            (click)="login()"
             class="w-full mt-2 py-3.5 rounded-xl bg-[var(--color-primary-darkest)] hover:bg-[var(--color-primary-darker)] text-white font-semibold shadow-lg shadow-[var(--color-primary)]/25 transition active:scale-[0.99] cursor-pointer"
           >
             Sign In

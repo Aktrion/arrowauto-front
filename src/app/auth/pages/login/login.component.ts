@@ -1,13 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../shared/icons';
+import { ICONS } from '../../../shared/icons';
+import { AuthService } from '../../service/auth.service';
+import { FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './login.component.html',
   styles: [
     `
@@ -48,6 +50,22 @@ import { ICONS } from '../../shared/icons';
 })
 export class LoginComponent {
   icons = ICONS;
-  // Logic for login (form handling) would go here
-  // For now it's just frontend visuals
+  private authService = inject(AuthService);
+  public router = inject(Router);
+  private formBuilder = inject(FormBuilder);
+  public form = this.formBuilder.group({
+    userName: ['', Validators.required],
+    password: ['', Validators.required],
+    remember: [false],
+    recover: [''],
+  });
+  public recover = false;
+  public isLoading = false;
+  public showPassword = false;
+
+  login() {
+    const { userName, password } = this.form.value;
+    this.authService.login(userName as string, password as string);
+    // this.router.navigate(['/dashboard']);
+  }
 }
