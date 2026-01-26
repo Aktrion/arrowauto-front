@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../../shared/icons';
 import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
@@ -13,7 +14,7 @@ import { Product, Vehicle } from '../models/vehicle.model';
 @Component({
   selector: 'app-vehicle-detail',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, DatePipe, FormsModule, RouterLink, LucideAngularModule, TranslateModule],
   templateUrl: './vehicle-detail.component.html',
 })
 export class VehicleDetailComponent implements OnInit {

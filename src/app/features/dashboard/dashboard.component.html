@@ -2,15 +2,15 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div class="animate-slide-up">
-      <h1 class="text-2xl font-bold text-base-content">Dashboard</h1>
-      <p class="text-base-content/60">Welcome back! Here's what's happening today.</p>
+      <h1 class="text-2xl font-bold text-base-content">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+      <p class="text-base-content/60">{{ 'DASHBOARD.WELCOME' | translate }}</p>
     </div>
     <a
       routerLink="/vehicles"
       class="btn-premium inline-flex items-center gap-2 animate-slide-up stagger-1"
     >
       <lucide-icon [name]="icons.Plus" class="h-5 w-5"></lucide-icon>
-      New Vehicle
+      {{ 'DASHBOARD.NEW_VEHICLE' | translate }}
     </a>
   </div>
 
@@ -20,7 +20,9 @@
     <div class="stat-card animate-slide-up stagger-1">
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-base-content/60">Active Vehicles</p>
+          <p class="text-sm font-medium text-base-content/60">
+            {{ 'DASHBOARD.STATS.ACTIVE_VEHICLES' | translate }}
+          </p>
           <p class="text-3xl font-bold text-base-content mt-1">{{ stats().activeVehicles }}</p>
         </div>
         <div class="stat-icon stat-icon-primary">
@@ -32,7 +34,9 @@
           <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
           <span>+12%</span>
         </div>
-        <span class="text-xs text-base-content/50">from yesterday</span>
+        <span class="text-xs text-base-content/50">{{
+          'DASHBOARD.STATS.FROM_YESTERDAY' | translate
+        }}</span>
       </div>
       <!-- Mini sparkline -->
       <div class="mt-3 flex items-end gap-0.5 h-8">
@@ -50,7 +54,9 @@
     <div class="stat-card animate-slide-up stagger-2">
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-base-content/60">Pending Inspections</p>
+          <p class="text-sm font-medium text-base-content/60">
+            {{ 'DASHBOARD.STATS.PENDING_INSPECTIONS' | translate }}
+          </p>
           <p class="text-3xl font-bold text-base-content mt-1">{{ stats().pendingInspections }}</p>
         </div>
         <div class="stat-icon stat-icon-warning">
@@ -58,7 +64,9 @@
         </div>
       </div>
       <div class="mt-4">
-        <span class="text-sm text-warning font-medium">⚡ Requires attention</span>
+        <span class="text-sm text-warning font-medium"
+          >⚡ {{ 'DASHBOARD.STATS.REQUIRES_ATTENTION' | translate }}</span
+        >
       </div>
       <div class="mt-3 flex items-end gap-0.5 h-8">
         <div class="flex-1 bg-warning/20 rounded-t" style="height: 30%"></div>
@@ -75,7 +83,9 @@
     <div class="stat-card animate-slide-up stagger-3">
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-base-content/60">Awaiting Approval</p>
+          <p class="text-sm font-medium text-base-content/60">
+            {{ 'DASHBOARD.STATS.AWAITING_APPROVAL' | translate }}
+          </p>
           <p class="text-3xl font-bold text-base-content mt-1">{{ stats().awaitingApproval }}</p>
         </div>
         <div class="stat-icon stat-icon-info">
@@ -83,7 +93,9 @@
         </div>
       </div>
       <div class="mt-4">
-        <span class="text-sm text-info font-medium">📧 Customer response pending</span>
+        <span class="text-sm text-info font-medium"
+          >📧 {{ 'DASHBOARD.STATS.CUSTOMER_RESPONSE_PENDING' | translate }}</span
+        >
       </div>
       <div class="mt-3 flex items-end gap-0.5 h-8">
         <div class="flex-1 bg-info/20 rounded-t" style="height: 60%"></div>
@@ -100,9 +112,11 @@
     <div class="stat-card animate-slide-up stagger-4">
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-base-content/60">Revenue Today</p>
+          <p class="text-sm font-medium text-base-content/60">
+            {{ 'DASHBOARD.STATS.REVENUE_TODAY' | translate }}
+          </p>
           <p class="text-3xl font-bold text-base-content mt-1">
-            £{{ stats().totalRevenue | number : '1.0-0' }}
+            £{{ stats().totalRevenue | number: '1.0-0' }}
           </p>
         </div>
         <div class="stat-icon stat-icon-success">
@@ -114,7 +128,9 @@
           <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
           <span>+8%</span>
         </div>
-        <span class="text-xs text-base-content/50">from last week</span>
+        <span class="text-xs text-base-content/50">{{
+          'DASHBOARD.STATS.FROM_LAST_WEEK' | translate
+        }}</span>
       </div>
       <div class="mt-3 flex items-end gap-0.5 h-8">
         <div class="flex-1 bg-success/20 rounded-t" style="height: 50%"></div>
@@ -136,11 +152,15 @@
         <div class="p-6 border-b border-base-200">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold text-base-content">Recent Vehicles</h2>
-              <p class="text-sm text-base-content/60">Latest vehicles in the system</p>
+              <h2 class="text-lg font-semibold text-base-content">
+                {{ 'DASHBOARD.RECENT_VEHICLES.TITLE' | translate }}
+              </h2>
+              <p class="text-sm text-base-content/60">
+                {{ 'DASHBOARD.RECENT_VEHICLES.SUBTITLE' | translate }}
+              </p>
             </div>
             <a routerLink="/vehicles" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10">
-              View All
+              {{ 'DASHBOARD.RECENT_VEHICLES.VIEW_ALL' | translate }}
               <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
             </a>
           </div>
@@ -149,75 +169,75 @@
           <table class="table-premium">
             <thead>
               <tr>
-                <th class="text-left">Vehicle</th>
-                <th class="text-left">Client</th>
-                <th class="text-left">Status</th>
-                <th class="text-left">Progress</th>
+                <th class="text-left">{{ 'DASHBOARD.TABLE.VEHICLE' | translate }}</th>
+                <th class="text-left">{{ 'DASHBOARD.TABLE.CLIENT' | translate }}</th>
+                <th class="text-left">{{ 'DASHBOARD.TABLE.STATUS' | translate }}</th>
+                <th class="text-left">{{ 'DASHBOARD.TABLE.PROGRESS' | translate }}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               @for (product of vehicles().slice(0, 5); track product.id; let i = $index) {
-              <tr class="hover:bg-base-200/30 transition-colors">
-                <td>
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm"
+                <tr class="hover:bg-base-200/30 transition-colors">
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm"
+                      >
+                        {{ product.vehicle?.make?.charAt(0) }}
+                      </div>
+                      <div>
+                        <p class="font-semibold text-base-content">
+                          {{ product.vehicle?.licensePlate }}
+                        </p>
+                        <p class="text-sm text-base-content/60">
+                          {{ product.vehicle?.make }} {{ product.vehicle?.model }}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-sm text-base-content">{{
+                      getClientName(product.customerId)
+                    }}</span>
+                  </td>
+                  <td>
+                    <span class="status-badge" [class]="getStatusBadgeClass(product.status)">
+                      {{ formatStatus(product.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="progress-tracker w-24">
+                      <div
+                        class="progress-step"
+                        [class.completed]="getProgress(product.status) >= 1"
+                      ></div>
+                      <div
+                        class="progress-step"
+                        [class.completed]="getProgress(product.status) >= 2"
+                        [class.current]="getProgress(product.status) === 1"
+                      ></div>
+                      <div
+                        class="progress-step"
+                        [class.completed]="getProgress(product.status) >= 3"
+                        [class.current]="getProgress(product.status) === 2"
+                      ></div>
+                      <div
+                        class="progress-step"
+                        [class.completed]="getProgress(product.status) >= 4"
+                        [class.current]="getProgress(product.status) === 3"
+                      ></div>
+                    </div>
+                  </td>
+                  <td>
+                    <a
+                      [routerLink]="['/vehicles', product.id]"
+                      class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
                     >
-                      {{ product.vehicle?.make?.charAt(0) }}
-                    </div>
-                    <div>
-                      <p class="font-semibold text-base-content">
-                        {{ product.vehicle?.licensePlate }}
-                      </p>
-                      <p class="text-sm text-base-content/60">
-                        {{ product.vehicle?.make }} {{ product.vehicle?.model }}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <span class="text-sm text-base-content">{{
-                    getClientName(product.customerId)
-                  }}</span>
-                </td>
-                <td>
-                  <span class="status-badge" [class]="getStatusBadgeClass(product.status)">
-                    {{ formatStatus(product.status) }}
-                  </span>
-                </td>
-                <td>
-                  <div class="progress-tracker w-24">
-                    <div
-                      class="progress-step"
-                      [class.completed]="getProgress(product.status) >= 1"
-                    ></div>
-                    <div
-                      class="progress-step"
-                      [class.completed]="getProgress(product.status) >= 2"
-                      [class.current]="getProgress(product.status) === 1"
-                    ></div>
-                    <div
-                      class="progress-step"
-                      [class.completed]="getProgress(product.status) >= 3"
-                      [class.current]="getProgress(product.status) === 2"
-                    ></div>
-                    <div
-                      class="progress-step"
-                      [class.completed]="getProgress(product.status) >= 4"
-                      [class.current]="getProgress(product.status) === 3"
-                    ></div>
-                  </div>
-                </td>
-                <td>
-                  <a
-                    [routerLink]="['/vehicles', product.id]"
-                    class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
-                  >
-                    <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
-                  </a>
-                </td>
-              </tr>
+                      <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
+                    </a>
+                  </td>
+                </tr>
               }
             </tbody>
           </table>
@@ -229,31 +249,41 @@
     <div class="space-y-6">
       <!-- Quick Actions -->
       <div class="card-premium rounded-xl p-6 animate-slide-up stagger-3">
-        <h2 class="text-lg font-semibold text-base-content mb-4">Quick Actions</h2>
+        <h2 class="text-lg font-semibold text-base-content mb-4">
+          {{ 'DASHBOARD.QUICK_ACTIONS.TITLE' | translate }}
+        </h2>
         <div class="grid grid-cols-2 gap-3">
           <a routerLink="/vehicles" class="action-card">
             <div class="action-card-icon">
               <lucide-icon [name]="icons.Plus" class="h-6 w-6"></lucide-icon>
             </div>
-            <span class="text-sm font-medium text-base-content">New Vehicle</span>
+            <span class="text-sm font-medium text-base-content">{{
+              'DASHBOARD.NEW_VEHICLE' | translate
+            }}</span>
           </a>
           <a routerLink="/inspection" class="action-card">
             <div class="action-card-icon" style="background: var(--gradient-warning)">
               <lucide-icon [name]="icons.ClipboardCheck" class="h-6 w-6"></lucide-icon>
             </div>
-            <span class="text-sm font-medium text-base-content">Inspection</span>
+            <span class="text-sm font-medium text-base-content">{{
+              'DASHBOARD.QUICK_ACTIONS.INSPECTION' | translate
+            }}</span>
           </a>
           <a routerLink="/scheduling" class="action-card">
             <div class="action-card-icon" style="background: var(--gradient-info)">
               <lucide-icon [name]="icons.Calendar" class="h-6 w-6"></lucide-icon>
             </div>
-            <span class="text-sm font-medium text-base-content">Schedule</span>
+            <span class="text-sm font-medium text-base-content">{{
+              'DASHBOARD.QUICK_ACTIONS.SCHEDULE' | translate
+            }}</span>
           </a>
           <a routerLink="/invoicing" class="action-card">
             <div class="action-card-icon" style="background: var(--gradient-success)">
               <lucide-icon [name]="icons.FileText" class="h-6 w-6"></lucide-icon>
             </div>
-            <span class="text-sm font-medium text-base-content">Invoice</span>
+            <span class="text-sm font-medium text-base-content">{{
+              'DASHBOARD.QUICK_ACTIONS.INVOICE' | translate
+            }}</span>
           </a>
         </div>
       </div>
@@ -261,33 +291,39 @@
       <!-- Available Operators -->
       <div class="card-premium rounded-xl p-6 animate-slide-up stagger-4">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-base-content">Operators</h2>
+          <h2 class="text-lg font-semibold text-base-content">
+            {{ 'DASHBOARD.OPERATORS.TITLE' | translate }}
+          </h2>
           <span class="px-2 py-1 text-xs font-semibold rounded-full bg-success/20 text-success">
-            {{ operators().length }} online
+            {{ operators().length }} {{ 'DASHBOARD.OPERATORS.ONLINE' | translate }}
           </span>
         </div>
         <div class="space-y-3">
           @for (operator of operators().slice(0, 4); track operator.id) {
-          <div class="user-card">
-            <div class="user-avatar">
-              <div
-                class="w-10 h-10 rounded-xl bg-gradient-secondary flex items-center justify-center text-white font-semibold text-sm"
-              >
-                {{ getInitials(operator.name) }}
+            <div class="user-card">
+              <div class="user-avatar">
+                <div
+                  class="w-10 h-10 rounded-xl bg-gradient-secondary flex items-center justify-center text-white font-semibold text-sm"
+                >
+                  {{ getInitials(operator.name) }}
+                </div>
+                <div class="user-status online"></div>
               </div>
-              <div class="user-status online"></div>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-base-content truncate">{{ operator.name }}</p>
-              <p class="text-xs text-base-content/50">Available</p>
-            </div>
-            <div class="w-16">
-              <div class="h-1.5 bg-base-200 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-success rounded-full" style="width: 30%"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-base-content truncate">{{ operator.name }}</p>
+                <p class="text-xs text-base-content/50">
+                  {{ 'DASHBOARD.OPERATORS.AVAILABLE' | translate }}
+                </p>
               </div>
-              <p class="text-xs text-base-content/50 mt-1">30% busy</p>
+              <div class="w-16">
+                <div class="h-1.5 bg-base-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-success rounded-full" style="width: 30%"></div>
+                </div>
+                <p class="text-xs text-base-content/50 mt-1">
+                  30% {{ 'DASHBOARD.OPERATORS.BUSY' | translate }}
+                </p>
+              </div>
             </div>
-          </div>
           }
         </div>
       </div>

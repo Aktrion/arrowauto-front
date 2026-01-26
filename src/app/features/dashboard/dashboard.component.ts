@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { UserService } from '../../core/services/user.service';
 import { ClientService } from '../clients/services/client.service';
@@ -11,7 +12,7 @@ import { ICONS } from '../../shared/icons';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, LucideAngularModule],
+  imports: [RouterLink, DecimalPipe, LucideAngularModule, TranslateModule],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent {

@@ -2,15 +2,15 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div class="animate-slide-up">
-      <h1 class="text-2xl font-bold text-base-content">Clients</h1>
-      <p class="text-base-content/60">Manage your customer database</p>
+      <h1 class="text-2xl font-bold text-base-content">{{ 'CLIENTS.TITLE' | translate }}</h1>
+      <p class="text-base-content/60">{{ 'CLIENTS.SUBTITLE' | translate }}</p>
     </div>
     <button
       class="btn-premium inline-flex items-center gap-2 animate-slide-up stagger-1"
       (click)="openNewClientModal()"
     >
       <lucide-icon [name]="icons.Plus" class="h-5 w-5"></lucide-icon>
-      Add Client
+      {{ 'CLIENTS.ADD_CLIENT' | translate }}
     </button>
   </div>
 
@@ -24,7 +24,7 @@
         ></lucide-icon>
         <input
           type="text"
-          placeholder="Search by name, company, email..."
+          [placeholder]="'CLIENTS.SEARCH_PLACEHOLDER' | translate"
           class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
           [(ngModel)]="searchQuery"
           (input)="filterClients()"
@@ -40,7 +40,7 @@
           "
           (click)="setTypeFilter('')"
         >
-          All
+          {{ 'CLIENTS.FILTER.ALL' | translate }}
         </button>
         <button
           class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
@@ -51,7 +51,7 @@
           "
           (click)="setTypeFilter('company')"
         >
-          Companies
+          {{ 'CLIENTS.FILTER.COMPANIES' | translate }}
         </button>
         <button
           class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
@@ -62,7 +62,7 @@
           "
           (click)="setTypeFilter('individual')"
         >
-          Individuals
+          {{ 'CLIENTS.FILTER.INDIVIDUALS' | translate }}
         </button>
       </div>
     </div>
@@ -73,7 +73,7 @@
     <div class="stat-card">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-base-content/60">Total Clients</p>
+          <p class="text-sm text-base-content/60">{{ 'CLIENTS.STATS.TOTAL' | translate }}</p>
           <p class="text-3xl font-bold text-base-content mt-1">{{ clients().length }}</p>
         </div>
         <div class="stat-icon stat-icon-primary">
@@ -84,7 +84,7 @@
     <div class="stat-card">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-base-content/60">Companies</p>
+          <p class="text-sm text-base-content/60">{{ 'CLIENTS.STATS.COMPANIES' | translate }}</p>
           <p class="text-3xl font-bold text-base-content mt-1">{{ getCompanyCount() }}</p>
         </div>
         <div class="stat-icon stat-icon-info">
@@ -95,7 +95,7 @@
     <div class="stat-card">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-base-content/60">Individuals</p>
+          <p class="text-sm text-base-content/60">{{ 'CLIENTS.STATS.INDIVIDUALS' | translate }}</p>
           <p class="text-3xl font-bold text-base-content mt-1">{{ getIndividualCount() }}</p>
         </div>
         <div class="stat-icon stat-icon-success">
@@ -108,68 +108,74 @@
   <!-- Clients Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
     @for (client of filteredClients(); track client.id; let i = $index) {
-    <div
-      class="card-premium rounded-xl overflow-hidden animate-slide-up"
-      [style.animation-delay]="i * 50 + 'ms'"
-    >
-      <div class="p-6">
-        <div class="flex items-start gap-4">
-          <div
-            class="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold text-xl shadow-lg"
-          >
-            {{ getInitials(client.name) }}
-          </div>
-          <div class="flex-1 min-w-0">
-            <h3 class="font-semibold text-base-content text-lg truncate">{{ client.name }}</h3>
-            @if (client.company) {
-            <p class="text-sm text-base-content/60 truncate">{{ client.company }}</p>
-            }
-            <span
-              class="inline-block px-2 py-0.5 text-xs font-medium rounded-full mt-2"
-              [class]="
-                client.type === 'company' ? 'bg-info/20 text-info' : 'bg-success/20 text-success'
-              "
+      <div
+        class="card-premium rounded-xl overflow-hidden animate-slide-up"
+        [style.animation-delay]="i * 50 + 'ms'"
+      >
+        <div class="p-6">
+          <div class="flex items-start gap-4">
+            <div
+              class="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold text-xl shadow-lg"
             >
-              {{ client.type === 'company' ? 'Company' : 'Individual' }}
-            </span>
+              {{ getInitials(client.name) }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-base-content text-lg truncate">{{ client.name }}</h3>
+              @if (client.company) {
+                <p class="text-sm text-base-content/60 truncate">{{ client.company }}</p>
+              }
+              <span
+                class="inline-block px-2 py-0.5 text-xs font-medium rounded-full mt-2"
+                [class]="
+                  client.type === 'company' ? 'bg-info/20 text-info' : 'bg-success/20 text-success'
+                "
+              >
+                {{
+                  client.type === 'company'
+                    ? ('CLIENTS.CARD.COMPANY' | translate)
+                    : ('CLIENTS.CARD.INDIVIDUAL' | translate)
+                }}
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div class="mt-4 space-y-2">
-          <div class="flex items-center gap-2 text-sm text-base-content/70">
-            <lucide-icon [name]="icons.Mail" class="h-4 w-4"></lucide-icon>
-            <span class="truncate">{{ client.email }}</span>
-          </div>
-          <div class="flex items-center gap-2 text-sm text-base-content/70">
-            <lucide-icon [name]="icons.Phone" class="h-4 w-4"></lucide-icon>
-            <span>{{ client.phone }}</span>
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center gap-2 text-sm text-base-content/70">
+              <lucide-icon [name]="icons.Mail" class="h-4 w-4"></lucide-icon>
+              <span class="truncate">{{ client.email }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-base-content/70">
+              <lucide-icon [name]="icons.Phone" class="h-4 w-4"></lucide-icon>
+              <span>{{ client.phone }}</span>
+            </div>
           </div>
         </div>
+        <div class="px-6 py-4 bg-base-200/30 border-t border-base-200 flex gap-2">
+          <button class="btn btn-ghost btn-sm flex-1">
+            <lucide-icon [name]="icons.Eye" class="h-4 w-4 mr-1"></lucide-icon>
+            {{ 'CLIENTS.BUTTON.VIEW' | translate }}
+          </button>
+          <button class="btn btn-ghost btn-sm flex-1">
+            <lucide-icon [name]="icons.Pencil" class="h-4 w-4 mr-1"></lucide-icon>
+            {{ 'CLIENTS.BUTTON.EDIT' | translate }}
+          </button>
+        </div>
       </div>
-      <div class="px-6 py-4 bg-base-200/30 border-t border-base-200 flex gap-2">
-        <button class="btn btn-ghost btn-sm flex-1">
-          <lucide-icon [name]="icons.Eye" class="h-4 w-4 mr-1"></lucide-icon>
-          View
-        </button>
-        <button class="btn btn-ghost btn-sm flex-1">
-          <lucide-icon [name]="icons.Pencil" class="h-4 w-4 mr-1"></lucide-icon>
-          Edit
-        </button>
-      </div>
-    </div>
     } @empty {
-    <div class="col-span-full">
-      <div class="empty-state">
-        <div class="empty-state-icon">
-          <lucide-icon [name]="icons.Users" class="h-10 w-10"></lucide-icon>
+      <div class="col-span-full">
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <lucide-icon [name]="icons.Users" class="h-10 w-10"></lucide-icon>
+          </div>
+          <h3 class="empty-state-title">{{ 'CLIENTS.EMPTY.TITLE' | translate }}</h3>
+          <p class="empty-state-description">
+            {{ 'CLIENTS.EMPTY.DESCRIPTION' | translate }}
+          </p>
+          <button class="btn-premium mt-4" (click)="openNewClientModal()">
+            {{ 'CLIENTS.EMPTY.BUTTON' | translate }}
+          </button>
         </div>
-        <h3 class="empty-state-title">No clients found</h3>
-        <p class="empty-state-description">
-          Get started by adding your first client to the system.
-        </p>
-        <button class="btn-premium mt-4" (click)="openNewClientModal()">Add First Client</button>
       </div>
-    </div>
     }
   </div>
 
@@ -185,14 +191,18 @@
           <lucide-icon [name]="icons.UserPlus" class="h-6 w-6 text-white"></lucide-icon>
         </div>
         <div>
-          <h3 class="text-lg font-bold text-base-content">Add New Client</h3>
-          <p class="text-sm text-base-content/60">Create a new customer record</p>
+          <h3 class="text-lg font-bold text-base-content">
+            {{ 'CLIENTS.MODAL.TITLE' | translate }}
+          </h3>
+          <p class="text-sm text-base-content/60">{{ 'CLIENTS.MODAL.SUBTITLE' | translate }}</p>
         </div>
       </div>
 
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-base-content mb-1">Client Type</label>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.TYPE' | translate
+          }}</label>
           <div class="flex gap-2">
             <button
               type="button"
@@ -204,7 +214,7 @@
               "
               (click)="newClient.type = 'individual'"
             >
-              Individual
+              {{ 'CLIENTS.CARD.INDIVIDUAL' | translate }}
             </button>
             <button
               type="button"
@@ -216,13 +226,15 @@
               "
               (click)="newClient.type = 'company'"
             >
-              Company
+              {{ 'CLIENTS.CARD.COMPANY' | translate }}
             </button>
           </div>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-base-content mb-1">Full Name *</label>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.FULL_NAME' | translate
+          }}</label>
           <input
             type="text"
             placeholder="John Smith"
@@ -232,19 +244,23 @@
         </div>
 
         @if (newClient.type === 'company') {
-        <div>
-          <label class="block text-sm font-medium text-base-content mb-1">Company Name</label>
-          <input
-            type="text"
-            placeholder="Acme Corp Ltd"
-            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
-            [(ngModel)]="newClient.company"
-          />
-        </div>
+          <div>
+            <label class="block text-sm font-medium text-base-content mb-1">{{
+              'CLIENTS.MODAL.COMPANY_NAME' | translate
+            }}</label>
+            <input
+              type="text"
+              placeholder="Acme Corp Ltd"
+              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              [(ngModel)]="newClient.company"
+            />
+          </div>
         }
 
         <div>
-          <label class="block text-sm font-medium text-base-content mb-1">Email *</label>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.EMAIL' | translate
+          }}</label>
           <input
             type="email"
             placeholder="john@example.com"
@@ -254,7 +270,9 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-base-content mb-1">Phone *</label>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.PHONE' | translate
+          }}</label>
           <input
             type="tel"
             placeholder="+44 7700 900000"
@@ -264,7 +282,9 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-base-content mb-1">Address</label>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.ADDRESS' | translate
+          }}</label>
           <textarea
             placeholder="123 Main Street, London, UK"
             rows="2"
@@ -276,11 +296,11 @@
 
       <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-base-200">
         <form method="dialog">
-          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-ghost">{{ 'CLIENTS.MODAL.CANCEL' | translate }}</button>
         </form>
         <button class="btn-premium" (click)="createClient()">
           <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-2"></lucide-icon>
-          Create Client
+          {{ 'CLIENTS.MODAL.CREATE' | translate }}
         </button>
       </div>
     </div>

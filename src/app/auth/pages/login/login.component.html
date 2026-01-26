@@ -21,11 +21,7 @@
   <div
     class="absolute inset-0"
     style="
-      background: radial-gradient(
-        circle at center,
-        rgba(148, 131, 186, 0.45) 0%,
-        rgba(0, 0, 0, 0.35) 70%
-      );
+      background: radial-gradient(circle at center, rgba(148, 131, 186, 0.15) 0%, transparent 80%);
     "
   ></div>
 
@@ -46,49 +42,50 @@
           </div>
 
           <h1 class="text-4xl font-semibold text-white leading-tight">
-            Manage your
-            <span class="text-white/90">fleet</span>
+            {{ 'LOGIN.TITLE_PART_1' | translate }}
+            <span class="text-white/90">{{ 'LOGIN.TITLE_PART_2' | translate }}</span>
           </h1>
 
           <p class="mt-4 text-base text-white/70 leading-relaxed max-w-sm">
-            Streamline operations, track car inspections, and boost efficiency with our next-gen
-            platform.
+            {{ 'LOGIN.DESCRIPTION' | translate }}
           </p>
 
           <!-- Mini features -->
           <div class="mt-10 space-y-3 text-sm text-white/70">
             <div class="flex items-center gap-2">
               <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
-              Real-time tracking & insights
+              {{ 'LOGIN.FEATURE.REAL_TIME' | translate }}
             </div>
             <div class="flex items-center gap-2">
               <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
-              Secure access & role management
+              {{ 'LOGIN.FEATURE.SECURE' | translate }}
             </div>
             <div class="flex items-center gap-2">
               <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
-              Faster workflow for teams
+              {{ 'LOGIN.FEATURE.WORKFLOW' | translate }}
             </div>
           </div>
         </div>
 
-        <div class="relative text-xs text-white/50">&copy; 2026 Aktrion Group.</div>
+        <div class="relative text-xs text-white/50">{{ 'LOGIN.COPYRIGHT' | translate }}</div>
       </div>
 
       <!-- Right / Form -->
       <div class="bg-white/95 dark:bg-slate-950/70 p-8 sm:p-10 lg:p-12">
         <div class="mb-8">
-          <h2 class="text-3xl font-semibold text-gray-900 dark:text-white">Login</h2>
+          <h2 class="text-3xl font-semibold text-gray-900 dark:text-white">
+            {{ 'LOGIN.FORM.TITLE' | translate }}
+          </h2>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Please enter your credentials.
+            {{ 'LOGIN.FORM.SUBTITLE' | translate }}
           </p>
         </div>
 
-        <form class="space-y-5">
+        <form class="space-y-5" [formGroup]="form">
           <!-- Email -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Email Address
+              {{ 'LOGIN.FORM.EMAIL_LABEL' | translate }}
             </label>
 
             <div
@@ -101,7 +98,7 @@
               <input
                 type="text"
                 formControlName="userName"
-                placeholder="Username or email"
+                [placeholder]="'LOGIN.FORM.EMAIL_PLACEHOLDER' | translate"
                 class="w-full pl-10 pr-4 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
               />
             </div>
@@ -110,7 +107,7 @@
           <!-- Password -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Password
+              {{ 'LOGIN.FORM.PASSWORD_LABEL' | translate }}
             </label>
 
             <div
@@ -123,7 +120,7 @@
               <input
                 type="password"
                 formControlName="password"
-                placeholder="Enter your password"
+                [placeholder]="'LOGIN.FORM.PASSWORD_PLACEHOLDER' | translate"
                 class="w-full pl-10 pr-12 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
               />
 
@@ -144,11 +141,13 @@
                 formControlName="remember"
                 class="w-4 h-4 rounded border-gray-300 accent-[#9483ba] focus:ring-[#9483ba]"
               />
-              <span class="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{
+                'LOGIN.FORM.REMEMBER_ME' | translate
+              }}</span>
             </label>
 
             <a href="#" class="text-sm font-medium text-[#9483ba] hover:text-[#8573ad] transition">
-              Forgot password?
+              {{ 'LOGIN.FORM.FORGOT_PASSWORD' | translate }}
             </a>
           </div>
 
@@ -158,7 +157,7 @@
             (click)="login()"
             class="w-full mt-2 py-3.5 rounded-xl bg-[var(--color-primary-darkest)] hover:bg-[var(--color-primary-darker)] text-white font-semibold shadow-lg shadow-[var(--color-primary)]/25 transition active:scale-[0.99] cursor-pointer"
           >
-            Sign In
+            {{ 'LOGIN.FORM.SIGN_IN' | translate }}
           </button>
 
           <!-- Divider -->
@@ -168,12 +167,17 @@
         </form>
 
         <div class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?
+          {{ 'LOGIN.FORM.NO_ACCOUNT' | translate }}
           <a href="#" class="ml-1 font-medium text-[#9483ba] hover:text-[#8573ad] transition">
-            Register
+            {{ 'LOGIN.FORM.REGISTER' | translate }}
           </a>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Language Switcher -->
+  <div class="fixed top-6 right-6 z-[100]">
+    <app-language-switcher></app-language-switcher>
   </div>
 </div>

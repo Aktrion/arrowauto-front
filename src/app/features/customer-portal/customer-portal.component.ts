@@ -1,6 +1,7 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
 
 interface RepairItem {
@@ -18,7 +19,7 @@ interface RepairItem {
 @Component({
   selector: 'app-customer-portal',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslateModule],
   templateUrl: './customer-portal.component.html',
 })
 export class CustomerPortalComponent {

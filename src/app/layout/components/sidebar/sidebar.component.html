@@ -1,0 +1,349 @@
+<aside
+  class="h-full bg-white border-r border-base-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
+  [class.w-72]="!collapsed"
+  [class.w-20]="collapsed"
+>
+  <!-- Logo Section -->
+  <div
+    class="px-6 flex items-center gap-3 transition-all duration-300 ease-in-out shrink-0"
+    [class.py-6]="!collapsed"
+    [class.py-8]="collapsed"
+    [class.justify-center]="collapsed"
+  >
+    <div
+      class="w-11 h-11 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow-primary shrink-0 transition-transform duration-300"
+      [class.scale-95]="collapsed"
+    >
+      <lucide-icon [name]="icons.Car" class="h-6 w-6 text-white"></lucide-icon>
+    </div>
+    <div
+      class="transition-all duration-300 origin-left"
+      [class.opacity-0]="collapsed"
+      [class.w-0]="collapsed"
+      [class.hidden]="collapsed"
+    >
+      <h1 class="text-xl font-bold tracking-tight">ArrowAuto</h1>
+      <p class="text-[10px] text-base-content/50 uppercase tracking-widest leading-none">
+        {{ 'SHELL.LOGO.SUBTITLE' | translate }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav
+    class="flex-1 px-4 pb-4 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300"
+    [class.space-y-6]="!collapsed"
+    [class.space-y-1]="collapsed"
+  >
+    <!-- Main Section -->
+    <div class="flex flex-col" [class.space-y-1]="collapsed">
+      <div
+        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
+        [class.opacity-0]="collapsed"
+        [class.h-0]="collapsed"
+        [class.mb-0]="collapsed"
+      >
+        <span
+          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+        >
+          {{ 'SHELL.SIDEBAR.MAIN' | translate }}
+        </span>
+      </div>
+      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
+        <li>
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.DASHBOARD' | translate) : ''"
+          >
+            <lucide-icon
+              [name]="icons.LayoutDashboard"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.DASHBOARD' | translate }}
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            routerLink="/vehicles"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.VEHICLES' | translate) : ''"
+          >
+            <lucide-icon
+              [name]="icons.Car"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.VEHICLES' | translate }}
+            </span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Operations Section -->
+    <div class="flex flex-col" [class.space-y-1]="collapsed">
+      <div
+        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
+        [class.opacity-0]="collapsed"
+        [class.h-0]="collapsed"
+        [class.mb-0]="collapsed"
+      >
+        <span
+          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+        >
+          {{ 'SHELL.SIDEBAR.OPERATIONS' | translate }}
+        </span>
+      </div>
+      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
+        <li>
+          <a
+            routerLink="/inspection"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.INSPECTION' | translate) : ''"
+          >
+            <div class="relative">
+              <lucide-icon
+                [name]="icons.ClipboardCheck"
+                class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+              ></lucide-icon>
+              <span
+                *ngIf="collapsed"
+                class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-warning text-[8px] flex items-center justify-center rounded-full text-white font-bold ring-2 ring-white"
+                >3</span
+              >
+            </div>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap overflow-hidden"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.INSPECTION' | translate }}
+            </span>
+            <span
+              *ngIf="!collapsed"
+              class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-lg bg-warning/20 text-warning"
+              >3</span
+            >
+          </a>
+        </li>
+        <li>
+          <a
+            routerLink="/scheduling"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.SCHEDULING' | translate) : ''"
+          >
+            <lucide-icon
+              [name]="icons.Calendar"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.SCHEDULING' | translate }}
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            routerLink="/invoicing"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.INVOICING' | translate) : ''"
+          >
+            <lucide-icon
+              [name]="icons.FileText"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.INVOICING' | translate }}
+            </span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Customer Section -->
+    <div class="flex flex-col" [class.space-y-1]="collapsed">
+      <div
+        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
+        [class.opacity-0]="collapsed"
+        [class.h-0]="collapsed"
+        [class.mb-0]="collapsed"
+      >
+        <span
+          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+        >
+          {{ 'SHELL.SIDEBAR.CUSTOMER' | translate }}
+        </span>
+      </div>
+      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
+        <li>
+          <a
+            routerLink="/customer-portal"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.CUSTOMER_PORTAL' | translate) : ''"
+          >
+            <div class="relative">
+              <lucide-icon
+                [name]="icons.User"
+                class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+              ></lucide-icon>
+              <span
+                *ngIf="collapsed"
+                class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-error text-[8px] flex items-center justify-center rounded-full text-white font-bold ring-2 ring-white"
+                >2</span
+              >
+            </div>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap overflow-hidden"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.CUSTOMER_PORTAL' | translate }}
+            </span>
+            <span
+              *ngIf="!collapsed"
+              class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-lg bg-error/20 text-error"
+              >2</span
+            >
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="flex flex-col" [class.space-y-1]="collapsed">
+      <div
+        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
+        [class.opacity-0]="collapsed"
+        [class.h-0]="collapsed"
+        [class.mb-0]="collapsed"
+      >
+        <span
+          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+        >
+          {{ 'SHELL.SIDEBAR.SETTINGS_HEADER' | translate }}
+        </span>
+      </div>
+      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
+        <li>
+          <a
+            routerLink="/clients"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.CLIENTS' | translate) : ''"
+          >
+            <lucide-icon
+              [name]="icons.Users"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.CLIENTS' | translate }}
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            routerLink="/settings"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.SETTINGS_LINK' | translate) : ''"
+          >
+            <lucide-icon
+              [name]="icons.Settings"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.SETTINGS_LINK' | translate }}
+            </span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- User Section -->
+  <div class="p-4 border-t border-base-200 bg-base-50/50 shrink-0">
+    <div
+      class="flex items-center gap-3 transition-all duration-300 ease-in-out"
+      [class.justify-center]="collapsed"
+    >
+      <div class="user-avatar relative shrink-0">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-focus flex items-center justify-center text-white font-bold shadow-sm transition-transform duration-300"
+          [class.scale-95]="collapsed"
+        >
+          AU
+        </div>
+        <div
+          class="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full ring-2 ring-white shadow-sm transition-all duration-300"
+          [class.bottom-1]="collapsed"
+          [class.right-0.5]="collapsed"
+        ></div>
+      </div>
+      <div
+        class="flex-1 min-w-0 transition-all duration-300 origin-left"
+        [class.opacity-0]="collapsed"
+        [class.w-0]="collapsed"
+        [class.hidden]="collapsed"
+      >
+        <p class="text-sm font-bold text-base-content truncate">Admin User</p>
+        <p class="text-[10px] text-base-content/50 truncate font-medium">admin&#64;arrowauto.com</p>
+      </div>
+      <button
+        class="btn btn-ghost btn-xs btn-square hover:bg-base-200 transition-all duration-300"
+        [class.hidden]="collapsed"
+        [class.opacity-0]="collapsed"
+      >
+        <lucide-icon [name]="icons.LogOut" class="h-4 w-4 text-base-content/40"></lucide-icon>
+      </button>
+    </div>
+  </div>
+</aside>

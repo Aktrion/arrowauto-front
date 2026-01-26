@@ -1,0 +1,261 @@
+{
+  "SHELL": {
+    "LOGO": {
+      "SUBTITLE": "Gestión de Vehículos"
+    },
+    "SIDEBAR": {
+      "MAIN": "Principal",
+      "DASHBOARD": "Panel de Control",
+      "VEHICLES": "Vehículos",
+      "OPERATIONS": "Operaciones",
+      "INSPECTION": "Inspección",
+      "SCHEDULING": "Programación",
+      "INVOICING": "Facturación",
+      "CUSTOMER": "Cliente",
+      "CUSTOMER_PORTAL": "Portal de Clientes",
+      "SETTINGS_HEADER": "Configuración",
+      "CLIENTS": "Clientes",
+      "SETTINGS_LINK": "Configuración"
+    }
+  },
+  "LOGIN": {
+    "TITLE_PART_1": "Gestiona tu",
+    "TITLE_PART_2": "flota",
+    "DESCRIPTION": "Optimiza operaciones, rastrea inspecciones y mejora la eficiencia con nuestra plataforma de próxima generación.",
+    "FEATURE": {
+      "REAL_TIME": "Rastreo e información en tiempo real",
+      "SECURE": "Acceso seguro y gestión de roles",
+      "WORKFLOW": "Flujo de trabajo más rápido para equipos"
+    },
+    "COPYRIGHT": "© 2026 Aktrion Group.",
+    "FORM": {
+      "TITLE": "Iniciar Sesión",
+      "SUBTITLE": "Por favor ingresa tus credenciales.",
+      "EMAIL_LABEL": "Correo Electrónico",
+      "EMAIL_PLACEHOLDER": "Usuario o correo",
+      "PASSWORD_LABEL": "Contraseña",
+      "PASSWORD_PLACEHOLDER": "Ingresa tu contraseña",
+      "REMEMBER_ME": "Recuérdame",
+      "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
+      "SIGN_IN": "Ingresar",
+      "NO_ACCOUNT": "¿No tienes una cuenta?",
+      "REGISTER": "Regístrate"
+    }
+  },
+  "DASHBOARD": {
+    "TITLE": "Panel de Control",
+    "WELCOME": "¡Bienvenido de nuevo! Esto es lo que está pasando hoy.",
+    "NEW_VEHICLE": "Nuevo Vehículo",
+    "STATS": {
+      "ACTIVE_VEHICLES": "Vehículos Activos",
+      "FROM_YESTERDAY": "desde ayer",
+      "PENDING_INSPECTIONS": "Inspecciones Pendientes",
+      "REQUIRES_ATTENTION": "Requiere atención",
+      "AWAITING_APPROVAL": "Esperando Aprobación",
+      "CUSTOMER_RESPONSE_PENDING": "Respuesta del cliente pendiente",
+      "REVENUE_TODAY": "Ingresos Hoy",
+      "FROM_LAST_WEEK": "desde la semana pasada"
+    },
+    "RECENT_VEHICLES": {
+      "TITLE": "Vehículos Recientes",
+      "SUBTITLE": "Últimos vehículos en el sistema",
+      "VIEW_ALL": "Ver Todos"
+    },
+    "TABLE": {
+      "VEHICLE": "Vehículo",
+      "CLIENT": "Cliente",
+      "STATUS": "Estado",
+      "PROGRESS": "Progreso"
+    },
+    "QUICK_ACTIONS": {
+      "TITLE": "Acciones Rápidas",
+      "INSPECTION": "Inspección",
+      "SCHEDULE": "Agendar",
+      "INVOICE": "Facturar"
+    },
+    "OPERATORS": {
+      "TITLE": "Operadores",
+      "ONLINE": "en línea",
+      "AVAILABLE": "Disponible",
+      "BUSY": "ocupado"
+    }
+  },
+  "CLIENTS": {
+    "TITLE": "Clientes",
+    "SUBTITLE": "Gestiona tu base de datos de clientes",
+    "ADD_CLIENT": "Agregar Cliente",
+    "SEARCH_PLACEHOLDER": "Buscar por nombre, empresa, correo...",
+    "FILTER": {
+      "ALL": "Todos",
+      "COMPANIES": "Empresas",
+      "INDIVIDUALS": "Particulares"
+    },
+    "STATS": {
+      "TOTAL": "Total de Clientes",
+      "COMPANIES": "Empresas",
+      "INDIVIDUALS": "Particulares"
+    },
+    "CARD": {
+      "COMPANY": "Empresa",
+      "INDIVIDUAL": "Particular"
+    },
+    "BUTTON": {
+      "VIEW": "Ver",
+      "EDIT": "Editar"
+    },
+    "EMPTY": {
+      "TITLE": "No se encontraron clientes",
+      "DESCRIPTION": "Comienza agregando tu primer cliente al sistema.",
+      "BUTTON": "Agregar Primer Cliente"
+    },
+    "MODAL": {
+      "TITLE": "Agregar Nuevo Cliente",
+      "SUBTITLE": "Crear un nuevo registro de cliente",
+      "TYPE": "Tipo de Cliente",
+      "FULL_NAME": "Nombre Completo",
+      "COMPANY_NAME": "Nombre de la Empresa",
+      "EMAIL": "Correo",
+      "PHONE": "Teléfono",
+      "ADDRESS": "Dirección",
+      "CANCEL": "Cancelar",
+      "CREATE": "Crear Cliente"
+    }
+  },
+  "PORTAL": {
+    "TITLE": "Informe de Inspección del Vehículo",
+    "SUBTITLE": "Revise y apruebe las reparaciones recomendadas",
+    "ATTENTION": {
+      "TITLE": "Artículos que Requieren Atención",
+      "DESC": "Hemos identificado los siguientes problemas que requieren su atención. Seleccione los artículos con los que desea proceder."
+    },
+    "ESTIMATED_COST": "Costo Estimado",
+    "EVIDENCE_PHOTOS": "Fotos de Evidencia",
+    "COST_DETAILS": {
+      "VIEW": "Ver detalles del costo",
+      "PARTS": "Repuestos",
+      "LABOR": "Mano de Obra"
+    },
+    "FULL_SUMMARY": "Resumen Completo de Inspección",
+    "SUMMARY": {
+      "DESC": "Desglose detallado de todos los puntos inspeccionados",
+      "STATUS": "Estado"
+    },
+    "SELECTION": {
+      "TITLE": "Su Selección"
+    },
+    "TOTALS": {
+      "VAT": "IVA (20%)",
+      "TOTAL": "Total"
+    },
+    "APPROVE_BUTTON": "Aprobar Reparaciones",
+    "DISCLAIMER": "Al aprobar, aceptas nuestros términos de servicio y autorizas el inicio del trabajo.",
+    "EMPTY": {
+      "TITLE": "No hay artículos seleccionados",
+      "DESC": "Por favor seleccione las reparaciones con las que desea proceder."
+    },
+    "REQUEST_CALL": "¿Tiene preguntas? Solicite una llamada",
+    "MODAL": {
+      "TITLE": "Confirmar Aprobación",
+      "DESC_1": "Está a punto de aprobar",
+      "DESC_2": "reparaciones.",
+      "NOTE": "Comenzaremos a trabajar en estos artículos de inmediato. Se le notificará cuando su vehículo esté listo.",
+      "GO_BACK": "Volver",
+      "YES_APPROVE": "Sí, Aprobar Trabajo"
+    },
+    "SUCCESS": {
+      "TOAST": "¡Éxito! Su aprobación ha sido recibida."
+    }
+  },
+  "VEHICLES": {
+    "TITLE": "Vehículos",
+    "SUBTITLE": "Gestiona todos los vehículos en el recinto",
+    "NEW_VEHICLE": "Nuevo Vehículo",
+    "SEARCH_PLACEHOLDER": "Buscar por placa, marca, modelo...",
+    "FILTER": {
+      "ALL": "Todos",
+      "PENDING": "Pendiente",
+      "INSPECTION": "Inspección"
+    },
+    "TABLE": {
+      "ACTIONS": "Acciones",
+      "VEHICLE": "Vehículo",
+      "LICENSE_PLATE": "Matrícula",
+      "CLIENT": "Cliente",
+      "JOB_NUMBER": "Nº Trabajo",
+      "STATUS": "Estado",
+      "PROGRESS": "Progreso",
+      "CREATED": "Creado"
+    },
+    "EMPTY": {
+      "TITLE": "No se encontraron vehículos",
+      "DESCRIPTION": "Intenta ajustar tu búsqueda o filtros para encontrar lo que buscas.",
+      "BUTTON": "Agregar Primer Vehículo"
+    },
+    "CARD": {
+      "PROGRESS": "Progreso",
+      "JOB_NUMBER": "Nº Trabajo",
+      "COLOR": "Color",
+      "MILEAGE": "Millaje",
+      "CLIENT": "Cliente",
+      "VIEW": "Ver",
+      "MANAGE": "Gestionar"
+    }
+  },
+  "VEHICLE": {
+    "DETAIL": {
+      "TITLE_NEW": "Registro de Nuevo Vehículo",
+      "TITLE_EDIT": "Detalles del Vehículo",
+      "SUBTITLE_NEW": "Registrar un nuevo vehículo en el recinto",
+      "SUBTITLE_EDIT": "Ver y actualizar información del vehículo",
+      "CANCEL": "Cancelar",
+      "CREATE": "Crear",
+      "SAVE_CHANGES": "Guardar Cambios",
+      "JOB_NUMBER": "Nº Trabajo",
+      "ENTRY_DATE": "Fecha de Entrada",
+      "QUICK_ACTIONS": "Acciones Rápidas",
+      "GENERATE_REPORT": "Generar Informe",
+      "ADD_PARTS": "Agregar Repuestos",
+      "ARCHIVE": "Archivar Vehículo",
+      "TABS": {
+        "GENERAL": "Información General",
+        "OPERATIONS": "Operaciones",
+        "HISTORY": "Historial de Actividad"
+      },
+      "IDENTIFICATION": {
+        "TITLE": "Identificación del Vehículo",
+        "PLATE": "Matrícula",
+        "HPI_CHECK": "Chequeo HPI",
+        "HPI_FOUND": "Datos de Vehículo Verificados",
+        "HPI_NOTE": "Campos poblados automáticamente desde la base de datos.",
+        "MAKE": "Marca",
+        "MODEL": "Modelo"
+      },
+      "SPECS": {
+        "TITLE": "Especificaciones Técnicas",
+        "YEAR": "Año",
+        "COLOUR": "Color",
+        "MILEAGE": "Millaje",
+        "ENGINE": "Motor",
+        "VIN": "Número VIN",
+        "NEXT_MOT": "Próxima ITV / Entrada"
+      },
+      "ASSIGNMENT": {
+        "TITLE": "Cliente y Asignación",
+        "ASSIGN_CLIENT": "Asignar Cliente",
+        "SELECT_CLIENT": "Seleccione un cliente..."
+      },
+      "OPERATIONS": {
+        "TITLE": "Operaciones Programadas",
+        "SUBTITLE": "Servicios e inspecciones asignados a este vehículo",
+        "ADD": "Agregar Operación",
+        "EMPTY": {
+          "TITLE": "No hay operaciones asignadas actualmente"
+        }
+      },
+      "HISTORY": {
+        "TITLE": "Línea de Tiempo de Actividad",
+        "DESC": "Los registros de movimiento y transiciones de fase se mostrarán aquí automáticamente."
+      }
+    }
+  }
+}

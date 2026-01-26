@@ -3,12 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { ClientService } from './services/client.service';
 import { Client } from '../../core/models';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
 
 @Component({
   selector: 'app-clients',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, TranslateModule],
   templateUrl: './clients.component.html',
 })
 export class ClientsComponent {
@@ -48,7 +49,7 @@ export class ClientsComponent {
         (c) =>
           c.name.toLowerCase().includes(query) ||
           c.email.toLowerCase().includes(query) ||
-          c.company?.toLowerCase().includes(query)
+          c.company?.toLowerCase().includes(query),
       );
     }
 

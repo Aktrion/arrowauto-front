@@ -1,15 +1,23 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../../shared/icons';
 import { AuthService } from '../../service/auth.service';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { LanguageSwitcherComponent } from '../../../shared/components/language-switcher/language-switcher.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [
+    CommonModule,
+    LucideAngularModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    LanguageSwitcherComponent,
+  ],
   templateUrl: './login.component.html',
   styles: [
     `

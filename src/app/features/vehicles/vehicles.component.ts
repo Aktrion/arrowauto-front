@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
 import { VehicleService } from './services/vehicle.service';
 import { ClientService } from '../clients/services/client.service';
@@ -12,7 +13,7 @@ import { Product, Vehicle } from '../../core/models';
 @Component({
   selector: 'app-vehicles',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule],
+  imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule, TranslateModule],
   templateUrl: './vehicles.component.html',
 })
 export class VehiclesComponent {
@@ -52,7 +53,7 @@ export class VehiclesComponent {
           v.vehicle?.licensePlate?.toLowerCase().includes(query) ||
           v.vehicle?.make?.toLowerCase().includes(query) ||
           v.vehicle?.model?.toLowerCase().includes(query) ||
-          v.vehicle?.jobNumber?.toLowerCase().includes(query)
+          v.vehicle?.jobNumber?.toLowerCase().includes(query),
       );
     }
 

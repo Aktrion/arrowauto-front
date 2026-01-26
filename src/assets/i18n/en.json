@@ -1,0 +1,261 @@
+{
+  "SHELL": {
+    "LOGO": {
+      "SUBTITLE": "Vehicle Management"
+    },
+    "SIDEBAR": {
+      "MAIN": "Main",
+      "DASHBOARD": "Dashboard",
+      "VEHICLES": "Vehicles",
+      "OPERATIONS": "Operations",
+      "INSPECTION": "Inspection",
+      "SCHEDULING": "Scheduling",
+      "INVOICING": "Invoicing",
+      "CUSTOMER": "Customer",
+      "CUSTOMER_PORTAL": "Customer Portal",
+      "SETTINGS_HEADER": "Settings",
+      "CLIENTS": "Clients",
+      "SETTINGS_LINK": "Settings"
+    }
+  },
+  "LOGIN": {
+    "TITLE_PART_1": "Manage your",
+    "TITLE_PART_2": "fleet",
+    "DESCRIPTION": "Streamline operations, track car inspections, and boost efficiency with our next-gen platform.",
+    "FEATURE": {
+      "REAL_TIME": "Real-time tracking & insights",
+      "SECURE": "Secure access & role management",
+      "WORKFLOW": "Faster workflow for teams"
+    },
+    "COPYRIGHT": "© 2026 Aktrion Group.",
+    "FORM": {
+      "TITLE": "Login",
+      "SUBTITLE": "Please enter your credentials.",
+      "EMAIL_LABEL": "Email Address",
+      "EMAIL_PLACEHOLDER": "Username or email",
+      "PASSWORD_LABEL": "Password",
+      "PASSWORD_PLACEHOLDER": "Enter your password",
+      "REMEMBER_ME": "Remember me",
+      "FORGOT_PASSWORD": "Forgot password?",
+      "SIGN_IN": "Sign In",
+      "NO_ACCOUNT": "Don't have an account?",
+      "REGISTER": "Register"
+    }
+  },
+  "DASHBOARD": {
+    "TITLE": "Dashboard",
+    "WELCOME": "Welcome back! Here's what's happening today.",
+    "NEW_VEHICLE": "New Vehicle",
+    "STATS": {
+      "ACTIVE_VEHICLES": "Active Vehicles",
+      "FROM_YESTERDAY": "from yesterday",
+      "PENDING_INSPECTIONS": "Pending Inspections",
+      "REQUIRES_ATTENTION": "Requires attention",
+      "AWAITING_APPROVAL": "Awaiting Approval",
+      "CUSTOMER_RESPONSE_PENDING": "Customer response pending",
+      "REVENUE_TODAY": "Revenue Today",
+      "FROM_LAST_WEEK": "from last week"
+    },
+    "RECENT_VEHICLES": {
+      "TITLE": "Recent Vehicles",
+      "SUBTITLE": "Latest vehicles in the system",
+      "VIEW_ALL": "View All"
+    },
+    "TABLE": {
+      "VEHICLE": "Vehicle",
+      "CLIENT": "Client",
+      "STATUS": "Status",
+      "PROGRESS": "Progress"
+    },
+    "QUICK_ACTIONS": {
+      "TITLE": "Quick Actions",
+      "INSPECTION": "Inspection",
+      "SCHEDULE": "Schedule",
+      "INVOICE": "Invoice"
+    },
+    "OPERATORS": {
+      "TITLE": "Operators",
+      "ONLINE": "online",
+      "AVAILABLE": "Available",
+      "BUSY": "busy"
+    }
+  },
+  "CLIENTS": {
+    "TITLE": "Clients",
+    "SUBTITLE": "Manage your customer database",
+    "ADD_CLIENT": "Add Client",
+    "SEARCH_PLACEHOLDER": "Search by name, company, email...",
+    "FILTER": {
+      "ALL": "All",
+      "COMPANIES": "Companies",
+      "INDIVIDUALS": "Individuals"
+    },
+    "STATS": {
+      "TOTAL": "Total Clients",
+      "COMPANIES": "Companies",
+      "INDIVIDUALS": "Individuals"
+    },
+    "CARD": {
+      "COMPANY": "Company",
+      "INDIVIDUAL": "Individual"
+    },
+    "BUTTON": {
+      "VIEW": "View",
+      "EDIT": "Edit"
+    },
+    "EMPTY": {
+      "TITLE": "No clients found",
+      "DESCRIPTION": "Get started by adding your first client to the system.",
+      "BUTTON": "Add First Client"
+    },
+    "MODAL": {
+      "TITLE": "Add New Client",
+      "SUBTITLE": "Create a new customer record",
+      "TYPE": "Client Type",
+      "FULL_NAME": "Full Name",
+      "COMPANY_NAME": "Company Name",
+      "EMAIL": "Email",
+      "PHONE": "Phone",
+      "ADDRESS": "Address",
+      "CANCEL": "Cancel",
+      "CREATE": "Create Client"
+    }
+  },
+  "PORTAL": {
+    "TITLE": "Vehicle Inspection Report",
+    "SUBTITLE": "Review and approve recommended repairs",
+    "ATTENTION": {
+      "TITLE": "Items Requiring Attention",
+      "DESC": "We've identified the following issues that require your attention. Select the items you wish to proceed with."
+    },
+    "ESTIMATED_COST": "Estimated Cost",
+    "EVIDENCE_PHOTOS": "Evidence Photos",
+    "COST_DETAILS": {
+      "VIEW": "View cost details",
+      "PARTS": "Parts",
+      "LABOR": "Labor"
+    },
+    "FULL_SUMMARY": "Full Inspection Summary",
+    "SUMMARY": {
+      "DESC": "Detailed breakdown of all inspected points",
+      "STATUS": "Status"
+    },
+    "SELECTION": {
+      "TITLE": "Your Selection"
+    },
+    "TOTALS": {
+      "VAT": "VAT (20%)",
+      "TOTAL": "Total"
+    },
+    "APPROVE_BUTTON": "Approve Repairs",
+    "DISCLAIMER": "By approving, you agree to our terms of service and authorize the work to commence.",
+    "EMPTY": {
+      "TITLE": "No items selected",
+      "DESC": "Please select the repairs you would like to proceed with."
+    },
+    "REQUEST_CALL": "Have questions? Request a Call",
+    "MODAL": {
+      "TITLE": "Confirm Approval",
+      "DESC_1": "You are about to approve",
+      "DESC_2": "repairs.",
+      "NOTE": "We will begin work on these items immediately. You'll be notified when your vehicle is ready.",
+      "GO_BACK": "Go Back",
+      "YES_APPROVE": "Yes, Approve Work"
+    },
+    "SUCCESS": {
+      "TOAST": "Success! Your approval has been received."
+    }
+  },
+  "VEHICLES": {
+    "TITLE": "Vehicles",
+    "SUBTITLE": "Manage all vehicles in the compound",
+    "NEW_VEHICLE": "New Vehicle",
+    "SEARCH_PLACEHOLDER": "Search by plate, make, model, job #...",
+    "FILTER": {
+      "ALL": "All",
+      "PENDING": "Pending",
+      "INSPECTION": "Inspection"
+    },
+    "TABLE": {
+      "ACTIONS": "Actions",
+      "VEHICLE": "Vehicle",
+      "LICENSE_PLATE": "License Plate",
+      "CLIENT": "Client",
+      "JOB_NUMBER": "Job Number",
+      "STATUS": "Status",
+      "PROGRESS": "Progress",
+      "CREATED": "Created"
+    },
+    "EMPTY": {
+      "TITLE": "No vehicles found",
+      "DESCRIPTION": "Try adjusting your search or filters to find what you're looking for.",
+      "BUTTON": "Add First Vehicle"
+    },
+    "CARD": {
+      "PROGRESS": "Progress",
+      "JOB_NUMBER": "Job Number",
+      "COLOR": "Color",
+      "MILEAGE": "Mileage",
+      "CLIENT": "Client",
+      "VIEW": "View",
+      "MANAGE": "Manage"
+    }
+  },
+  "VEHICLE": {
+    "DETAIL": {
+      "TITLE_NEW": "New Vehicle Registration",
+      "TITLE_EDIT": "Vehicle Details",
+      "SUBTITLE_NEW": "Register a new vehicle in the compound",
+      "SUBTITLE_EDIT": "View and update vehicle information",
+      "CANCEL": "Cancel",
+      "CREATE": "Create",
+      "SAVE_CHANGES": "Save Changes",
+      "JOB_NUMBER": "Job Number",
+      "ENTRY_DATE": "Entry Date",
+      "QUICK_ACTIONS": "Quick Actions",
+      "GENERATE_REPORT": "Generate Report",
+      "ADD_PARTS": "Add Parts",
+      "ARCHIVE": "Archive Vehicle",
+      "TABS": {
+        "GENERAL": "General Information",
+        "OPERATIONS": "Operations",
+        "HISTORY": "Activity History"
+      },
+      "IDENTIFICATION": {
+        "TITLE": "Vehicle Identification",
+        "PLATE": "Registration Plate",
+        "HPI_CHECK": "HPI Check",
+        "HPI_FOUND": "Verified Vehicle Data Found",
+        "HPI_NOTE": "Fields populated automatically from DVLA database.",
+        "MAKE": "Make",
+        "MODEL": "Model"
+      },
+      "SPECS": {
+        "TITLE": "Technical Specifications",
+        "YEAR": "Year",
+        "COLOUR": "Colour",
+        "MILEAGE": "Mileage",
+        "ENGINE": "Engine",
+        "VIN": "VIN Number",
+        "NEXT_MOT": "Next MOT / Entry"
+      },
+      "ASSIGNMENT": {
+        "TITLE": "Customer & Assignment",
+        "ASSIGN_CLIENT": "Assign Client",
+        "SELECT_CLIENT": "Select a client..."
+      },
+      "OPERATIONS": {
+        "TITLE": "Scheduled Operations",
+        "SUBTITLE": "Services and inspections assigned to this vehicle",
+        "ADD": "Add Operation",
+        "EMPTY": {
+          "TITLE": "No operations currently assigned"
+        }
+      },
+      "HISTORY": {
+        "TITLE": "Activity Timeline",
+        "DESC": "Movement logs and phase transitions will be displayed here automatically as they occur."
+      }
+    }
+  }
+}
