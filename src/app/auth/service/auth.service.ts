@@ -10,7 +10,10 @@ export class AuthService {
 
   constructor() {}
 
-  login(email: string, password: string) {
-    return this.http.post(`${this.API_URL}/login`, { email, password });
+  login(userName: string, password: string) {
+    return this.http.post<{ user: any; token: string }>(`${this.API_URL}/auth/login`, {
+      userName,
+      password,
+    });
   }
 }

@@ -38,7 +38,69 @@
     <!-- Breadcrumbs or Page Title could go here in future -->
   </div>
 
-  <div class="flex-none flex items-center gap-3">
-    <app-language-switcher></app-language-switcher>
+  <div class="flex-none flex items-center gap-6">
+    <div class="z-50 relative">
+      <app-language-switcher></app-language-switcher>
+    </div>
+
+    <!-- User Dropdown -->
+    <div class="dropdown dropdown-end" *ngIf="user() as currentUser">
+      <div
+        tabindex="0"
+        role="button"
+        class="btn btn-ghost btn-circle avatar online placeholder ring-2 ring-transparent hover:ring-primary/20 transition-all duration-300"
+      >
+        <div
+          class="w-10 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2"
+        >
+          @if (currentUser.avatar) {
+            <img [src]="currentUser.avatar" [alt]="currentUser.name" />
+          } @else {
+            <span class="text-xl font-bold">{{ currentUser.name | slice: 0 : 2 | uppercase }}</span>
+          }
+        </div>
+      </div>
+      <ul
+        tabindex="0"
+        class="mt-3 z-[1] p-2 shadow-xl border border-white/5 menu menu-sm dropdown-content bg-base-100 rounded-2xl w-64 gap-1 transform origin-top-right transition-all duration-200"
+      >
+        <li class="menu-title px-4 py-3 border-b border-base-200/50 mb-2">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider opacity-50"
+              >Signed in as</span
+            >
+            <span class="font-bold text-base-content text-sm truncate">{{ currentUser.name }}</span>
+          </div>
+        </li>
+        <li>
+          <button
+            type="button"
+            (click)="editProfile()"
+            class="group flex items-center gap-3 px-4 py-3 hover:bg-primary/5 hover:text-primary transition-colors text-base-content/80 font-medium"
+          >
+            <lucide-icon
+              [name]="icons.Settings"
+              class="w-4 h-4 transition-transform group-hover:rotate-45"
+            ></lucide-icon>
+            Configuration
+          </button>
+        </li>
+        <li class="mt-1 border-t border-base-200/50"></li>
+        <li>
+          <button
+            type="button"
+            (click)="logout()"
+            class="group flex items-center gap-3 px-4 py-3 hover:bg-error/5 hover:text-error transition-colors text-error font-medium"
+          >
+            <lucide-icon
+              [name]="icons.LogOut"
+              class="w-4 h-4 transition-transform group-hover:-translate-x-1"
+            ></lucide-icon>
+            Logout
+          </button>
+        </li>
+      </ul>
+    </div>
   </div>
 </header>
+<app-user-config-modal #userConfigModal></app-user-config-modal>

@@ -9,7 +9,7 @@ import { ICONS } from '../../icons';
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   template: `
-    <div class="fixed top-2 right-2 z-50 dropdown dropdown-end">
+    <div class="dropdown dropdown-end">
       <div
         tabindex="0"
         role="button"

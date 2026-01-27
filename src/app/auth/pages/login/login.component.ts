@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../../shared/icons';
-import { AuthService } from '../../service/auth.service';
+// import { AuthService } from '../../service/auth.service'; // Removed unused
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageSwitcherComponent } from '../../../shared/components/language-switcher/language-switcher.component';
+import { Store } from '@ngxs/store';
+import { Login } from '../../store/auth.actions';
 
 @Component({
   selector: 'app-login',
@@ -58,7 +60,8 @@ import { LanguageSwitcherComponent } from '../../../shared/components/language-s
 })
 export class LoginComponent {
   icons = ICONS;
-  private authService = inject(AuthService);
+  // private authService = inject(AuthService); // Removed
+  private store = inject(Store);
   public router = inject(Router);
   private formBuilder = inject(FormBuilder);
   public form = this.formBuilder.group({
@@ -72,8 +75,19 @@ export class LoginComponent {
   public showPassword = false;
 
   login() {
+    if (this.form.invalid) return;
     const { userName, password } = this.form.value;
-    this.authService.login(userName as string, password as string);
-    // this.router.navigate(['/dashboard']);
+    this.isLoading = true;
+    this.store
+      .dispatch(new Login({ userName: userName as string, password: password as string }))
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+        },
+        error: (err) => {
+          this.isLoading = false;
+          console.error('Login failed', err);
+        },
+      });
   }
 }
