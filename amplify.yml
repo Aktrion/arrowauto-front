@@ -3,6 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
+        - nvm use 20
         - npm ci
     build:
       commands:
@@ -11,7 +12,7 @@ frontend:
       commands:
         - echo "Build completed on `date`"
   artifacts:
-    baseDirectory: dist/arrowauto-front
+    baseDirectory: dist/arrowauto/browser
     files:
       - '**/*'
   cache:
