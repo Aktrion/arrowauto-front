@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:3000';
+  private readonly API_URL = 'https://wr9wfpyr2j.eu-west-1.awsapprunner.com';
   private http = inject(HttpClient);
 
   constructor() {}
