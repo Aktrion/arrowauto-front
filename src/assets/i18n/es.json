@@ -38,6 +38,7 @@
       "REMEMBER_ME": "Recuérdame",
       "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
       "SIGN_IN": "Ingresar",
+      "SIGN_OUT": "Cerrar Sesión",
       "NO_ACCOUNT": "¿No tienes una cuenta?",
       "REGISTER": "Regístrate"
     }
@@ -256,6 +257,34 @@
         "TITLE": "Línea de Tiempo de Actividad",
         "DESC": "Los registros de movimiento y transiciones de fase se mostrarán aquí automáticamente."
       }
+    }
+  },
+  "PROFILE": {
+    "MODAL": {
+      "TITLE": "Configuración de Perfil",
+      "GENERAL_INFO": "Información General",
+
+      "FULL_NAME": "Nombre Completo",
+      "USERNAME": "Nombre de Usuario",
+      "EMAIL": "Correo Electrónico",
+      "EMAILS_HINT": "Separa varios correos con comas",
+      "LANGUAGE": "Idioma Preferido",
+      "COUNTRY": "País",
+      "SELECT_COUNTRY": "Selecciona tu país",
+      "TIMEZONE": "Zona Horaria",
+      "ROLE": "Rol",
+      "SECURITY": {
+        "TITLE": "Seguridad",
+        "CHANGE_PASSWORD": "Cambiar Contraseña",
+        "CANCEL_CHANGE": "Cancelar Cambio",
+        "CURRENT_PASSWORD": "Contraseña Actual",
+        "NEW_PASSWORD": "Nueva Contraseña",
+        "CONFIRM_PASSWORD": "Confirmar Nueva Contraseña",
+        "MIN_LENGTH": "Se requieren mínimo 8 caracteres",
+        "MISMATCH": "Las contraseñas no coinciden"
+      },
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar Cambios"
     }
   }
 }

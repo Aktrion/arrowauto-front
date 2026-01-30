@@ -4,7 +4,7 @@
   <!-- Main Content -->
   <div class="drawer-content flex flex-col min-h-screen bg-base-200">
     <!-- Header -->
-    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+    <app-header [collapsed]="isSidebarCollapsed()" (toggleSidebar)="toggleSidebar()"></app-header>
 
     <!-- Page Content -->
     <main class="flex-1 p-4 lg:p-6 animate-fade-in relative">

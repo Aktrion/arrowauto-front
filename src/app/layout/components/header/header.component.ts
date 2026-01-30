@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, inject, ViewChild } from '@angular/core';
+import { Component, Output, EventEmitter, inject, ViewChild, input } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
@@ -7,18 +7,27 @@ import { ICONS } from '../../../shared/icons';
 import { Store } from '@ngxs/store';
 import { AuthState } from '../../../auth/store/auth.state';
 import { Logout } from '../../../auth/store/auth.actions';
-import { User } from '../../../auth/models/user.model';
 import { UserConfigModalComponent } from '../user-config-modal/user-config-modal.component';
+import { User } from '../../../core/models';
+
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, LanguageSwitcherComponent, UserConfigModalComponent],
+  imports: [
+    CommonModule,
+    LucideAngularModule,
+    LanguageSwitcherComponent,
+    UserConfigModalComponent,
+    TranslateModule,
+  ],
 
   templateUrl: './header.component.html',
 })
 export class HeaderComponent {
   @Output() toggleSidebar = new EventEmitter<void>();
+  collapsed = input<boolean>(false);
   icons = ICONS;
 
   private store = inject(Store);

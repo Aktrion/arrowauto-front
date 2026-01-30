@@ -48,6 +48,11 @@ import {
   LayoutGrid,
   Table,
   Lock,
+  Globe,
+  AtSign,
+  EyeOff,
+  KeyRound,
+  MapPin,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -100,4 +105,9 @@ export const ICONS = {
   LayoutGrid,
   Table,
   Lock,
+  Globe,
+  AtSign,
+  EyeOff,
+  KeyRound,
+  MapPin,
 };

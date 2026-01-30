@@ -7,7 +7,10 @@
     </div>
     <div class="flex items-center gap-2">
       <div class="form-control relative group">
-        <lucide-icon [name]="icons.Search" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors"></lucide-icon>
+        <lucide-icon
+          [name]="icons.Search"
+          class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors"
+        ></lucide-icon>
         <input
           type="text"
           placeholder="Search job number..."
@@ -24,10 +27,16 @@
     <div class="card card-premium group hover:-translate-y-1 transition-transform duration-300">
       <div class="card-body p-5 flex flex-row items-center justify-between">
         <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">Pending</div>
-          <div class="text-3xl font-black text-warning group-hover:drop-shadow-sm transition-all">{{ pendingCount() }}</div>
+          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+            Pending
+          </div>
+          <div class="text-3xl font-black text-warning group-hover:drop-shadow-sm transition-all">
+            {{ pendingCount() }}
+          </div>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-colors duration-300">
+        <div
+          class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-colors duration-300"
+        >
           <lucide-icon [name]="icons.Clock" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
@@ -37,10 +46,16 @@
     <div class="card card-premium group hover:-translate-y-1 transition-transform duration-300">
       <div class="card-body p-5 flex flex-row items-center justify-between">
         <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">Ready</div>
-          <div class="text-3xl font-black text-info group-hover:drop-shadow-sm transition-all">{{ readyToInvoiceCount() }}</div>
+          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+            Ready
+          </div>
+          <div class="text-3xl font-black text-info group-hover:drop-shadow-sm transition-all">
+            {{ readyToInvoiceCount() }}
+          </div>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center text-info group-hover:bg-info group-hover:text-info-content transition-colors duration-300">
+        <div
+          class="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center text-info group-hover:bg-info group-hover:text-info-content transition-colors duration-300"
+        >
           <lucide-icon [name]="icons.CircleCheckBig" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
@@ -50,34 +65,52 @@
     <div class="card card-premium group hover:-translate-y-1 transition-transform duration-300">
       <div class="card-body p-5 flex flex-row items-center justify-between">
         <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">Invoiced</div>
-          <div class="text-3xl font-black text-success group-hover:drop-shadow-sm transition-all">{{ invoicedTodayCount() }}</div>
+          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+            Invoiced
+          </div>
+          <div class="text-3xl font-black text-success group-hover:drop-shadow-sm transition-all">
+            {{ invoicedTodayCount() }}
+          </div>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-colors duration-300">
+        <div
+          class="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-colors duration-300"
+        >
           <lucide-icon [name]="icons.ClipboardList" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
     </div>
 
     <!-- Revenue -->
-    <div class="card card-premium group hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden">
+    <div
+      class="card card-premium group hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden"
+    >
       <div class="card-body p-5 flex flex-row items-center justify-between relative z-10">
         <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">Revenue Today</div>
-          <div class="text-3xl font-black text-primary group-hover:drop-shadow-sm transition-all">£{{ totalRevenueToday().toLocaleString() }}</div>
+          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+            Revenue Today
+          </div>
+          <div class="text-3xl font-black text-primary group-hover:drop-shadow-sm transition-all">
+            £{{ totalRevenueToday().toLocaleString() }}
+          </div>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-content transition-colors duration-300">
+        <div
+          class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-content transition-colors duration-300"
+        >
           <lucide-icon [name]="icons.CreditCard" class="h-6 w-6"></lucide-icon>
         </div>
       </div>
-      <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+      ></div>
     </div>
   </div>
 
   <!-- Operations Table -->
   <div class="card card-premium overflow-hidden">
     <div class="card-body p-0 sm:p-5">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 sm:p-0">
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 sm:p-0"
+      >
         <h2 class="card-title text-xl">Operations</h2>
         <div class="tabs tabs-boxed bg-base-200/50 p-1 rounded-xl">
           <button
@@ -137,91 +170,110 @@
             </thead>
             <tbody class="text-sm">
               @for (item of filteredOperations(); track item.op.id) {
-              <tr
-                class="hover group transition-colors border-b border-base-100 last:border-none"
-                [class.bg-primary/5]="isSelected(item.op.id)"
-              >
-                <td class="text-center">
-                  <label>
-                    <input
-                      type="checkbox"
-                      class="checkbox checkbox-sm rounded-md checkbox-primary"
-                      [checked]="isSelected(item.op.id)"
-                      (change)="toggleSelect(item.op.id)"
-                    />
-                  </label>
-                </td>
-                <td>
-                  <span class="font-mono text-xs font-bold bg-base-200 px-2 py-1 rounded">{{ item.product?.vehicle?.jobNumber }}</span>
-                </td>
-                <td>
-                  <div class="flex items-center gap-3">
-                    <div class="avatar placeholder">
-                      <div class="bg-base-200 text-base-content rounded-lg w-10 h-10 font-bold border border-base-300">
-                        <span>{{ item.product?.vehicle?.make?.charAt(0) || '?' }}</span>
+                <tr
+                  class="hover group transition-colors border-b border-base-100 last:border-none"
+                  [class.bg-primary/5]="isSelected(item.op.id)"
+                >
+                  <td class="text-center">
+                    <label>
+                      <input
+                        type="checkbox"
+                        class="checkbox checkbox-sm rounded-md checkbox-primary"
+                        [checked]="isSelected(item.op.id)"
+                        (change)="toggleSelect(item.op.id)"
+                      />
+                    </label>
+                  </td>
+                  <td>
+                    <span class="font-mono text-xs font-bold bg-base-200 px-2 py-1 rounded">{{
+                      item.product?.vehicle?.jobNumber
+                    }}</span>
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-3">
+                      <div class="avatar placeholder">
+                        <div
+                          class="bg-base-200 text-base-content rounded-lg w-10 h-10 font-bold border border-base-300"
+                        >
+                          <span>{{ item.product?.vehicle?.make?.charAt(0) || '?' }}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p class="font-bold">{{ item.product?.vehicle?.licensePlate }}</p>
+                        <p class="text-[10px] text-base-content/60 uppercase tracking-wide">
+                          {{ item.product?.vehicle?.make }} {{ item.product?.vehicle?.model }}
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <p class="font-bold">{{ item.product?.vehicle?.licensePlate }}</p>
-                      <p class="text-[10px] text-base-content/60 uppercase tracking-wide">
-                        {{ item.product?.vehicle?.make }} {{ item.product?.vehicle?.model }}
+                  </td>
+                  <td>
+                    <p class="font-medium">{{ item.op.operation?.name }}</p>
+                    <p class="text-xs text-base-content/50 font-mono">
+                      {{ item.op.operation?.code }}
+                    </p>
+                  </td>
+                  <td>
+                    @if (item.op.actualDuration) {
+                      <div class="badge badge-sm badge-ghost gap-1">
+                        <lucide-icon [name]="icons.Clock" class="h-4 w-4"></lucide-icon>
+                        {{ item.op.actualDuration }}m
+                      </div>
+                    } @else {
+                      <span class="text-base-content/40 text-xs italic"
+                        >{{ item.op.operation?.estimatedDuration }}m est.</span
+                      >
+                    }
+                  </td>
+                  <td>
+                    @if (item.op.hourlyRate) {
+                      <span class="text-xs">£{{ item.op.hourlyRate }}/hr</span>
+                    } @else {
+                      <span class="text-base-content/40">-</span>
+                    }
+                  </td>
+                  <td>
+                    <span class="font-bold text-primary"
+                      >£{{ calculateTotal(item.op).toFixed(2) }}</span
+                    >
+                  </td>
+                  <td>
+                    <span
+                      class="badge badge-sm border-0 font-medium bg-opacity-15 text-xs py-2"
+                      [class]="getStatusClass(item.op.status)"
+                    >
+                      {{ item.op.status.replace('_', ' ') }}
+                    </span>
+                  </td>
+                  <td class="text-right">
+                    <div
+                      class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      @if (item.op.status !== 'completed') {
+                        <button class="btn btn-primary btn-xs" (click)="openCompleteModal(item)">
+                          Complete
+                        </button>
+                      }
+                      @if (item.op.status === 'completed') {
+                        <button class="btn btn-outline btn-primary btn-xs">Invoice</button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="9" class="text-center py-16 bg-base-50/50">
+                    <div class="flex flex-col items-center justify-center dashed-border">
+                      <lucide-icon
+                        [name]="icons.ChartBarBig"
+                        class="h-12 w-12 text-base-content/20 mb-3"
+                      ></lucide-icon>
+                      <p class="font-medium text-base-content/60">No operations found</p>
+                      <p class="text-xs text-base-content/40">
+                        Try adjusting your filters or search query
                       </p>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <p class="font-medium">{{ item.op.operation?.name }}</p>
-                  <p class="text-xs text-base-content/50 font-mono">{{ item.op.operation?.code }}</p>
-                </td>
-                <td>
-                  @if (item.op.actualDuration) {
-                  <div class="badge badge-sm badge-ghost gap-1">
-                    <lucide-icon [name]="icons.Clock" class="h-4 w-4"></lucide-icon>
-                    {{ item.op.actualDuration }}m
-                  </div>
-                  } @else {
-                  <span class="text-base-content/40 text-xs italic"
-                    >{{ item.op.operation?.estimatedDuration }}m est.</span
-                  >
-                  }
-                </td>
-                <td>
-                  @if (item.op.hourlyRate) {
-                  <span class="text-xs">£{{ item.op.hourlyRate }}/hr</span>
-                  } @else {
-                  <span class="text-base-content/40">-</span>
-                  }
-                </td>
-                <td>
-                  <span class="font-bold text-primary">£{{ calculateTotal(item.op).toFixed(2) }}</span>
-                </td>
-                <td>
-                  <span class="badge badge-sm border-0 font-medium bg-opacity-15 text-xs py-2" [class]="getStatusClass(item.op.status)">
-                    {{ item.op.status.replace('_', ' ') }}
-                  </span>
-                </td>
-                <td class="text-right">
-                  <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                    @if (item.op.status !== 'completed') {
-                    <button class="btn btn-primary btn-xs" (click)="openCompleteModal(item)">
-                      Complete
-                    </button>
-                    } @if (item.op.status === 'completed') {
-                    <button class="btn btn-outline btn-primary btn-xs">Invoice</button>
-                    }
-                  </div>
-                </td>
-              </tr>
-              } @empty {
-              <tr>
-                <td colspan="9" class="text-center py-16 bg-base-50/50">
-                  <div class="flex flex-col items-center justify-center dashed-border">
-                    <lucide-icon [name]="icons.ChartBarBig" class="h-12 w-12 text-base-content/20 mb-3"></lucide-icon>
-                    <p class="font-medium text-base-content/60">No operations found</p>
-                    <p class="text-xs text-base-content/40">Try adjusting your filters or search query</p>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
               }
             </tbody>
           </table>
@@ -230,21 +282,25 @@
 
       <!-- Bulk Actions Sticky Footer -->
       @if (selectedIds().size > 0) {
-      <div class="sticky bottom-4 mx-4 mt-6 z-20 animate-fade-in-up">
-        <div class="flex items-center justify-between p-4 bg-base-100 rounded-xl shadow-lg border border-primary/20 ring-1 ring-primary/5">
-          <div class="flex items-center gap-3">
-            <div class="badge badge-primary badge-lg">{{ selectedIds().size }}</div>
-            <span class="font-medium">operations selected</span>
-          </div>
-          <div class="flex gap-2">
-            <button class="btn btn-sm btn-ghost hover:bg-base-200" (click)="clearSelection()">Cancel</button>
-            <button class="btn btn-sm btn-primary shadow-lg shadow-primary/20">
-              <lucide-icon [name]="icons.FileText" class="h-4 w-4 ml-1"></lucide-icon>
-              Generate Invoice
-            </button>
+        <div class="sticky bottom-4 mx-4 mt-6 z-20 animate-fade-in-up">
+          <div
+            class="flex items-center justify-between p-4 bg-base-100 rounded-xl shadow-lg border border-primary/20 ring-1 ring-primary/5"
+          >
+            <div class="flex items-center gap-3">
+              <div class="badge badge-primary badge-lg">{{ selectedIds().size }}</div>
+              <span class="font-medium">operations selected</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-ghost hover:bg-base-200" (click)="clearSelection()">
+                Cancel
+              </button>
+              <button class="btn btn-sm btn-primary shadow-lg shadow-primary/20">
+                <lucide-icon [name]="icons.FileText" class="h-4 w-4 ml-1"></lucide-icon>
+                Generate Invoice
+              </button>
+            </div>
           </div>
         </div>
-      </div>
       }
     </div>
   </div>
@@ -261,86 +317,114 @@
       </h3>
 
       @if (selectedItem()) {
-      <div class="space-y-6">
-        <div class="alert bg-base-200/50 border border-base-200 shadow-sm rounded-xl">
-          <div>
-            <p class="font-bold text-lg text-primary">{{ selectedItem()!.op.operation?.name }}</p>
-            <div class="flex items-center gap-2 text-sm opacity-70 mt-1">
-              <span class="font-mono bg-base-300 px-1 rounded text-xs">{{ selectedItem()!.product?.vehicle?.jobNumber }}</span>
-              <span>•</span>
-              <span class="font-semibold">{{ selectedItem()!.product?.vehicle?.licensePlate }}</span>
+        <div class="space-y-6">
+          <div class="alert bg-base-200/50 border border-base-200 shadow-sm rounded-xl">
+            <div>
+              <p class="font-bold text-lg text-primary">{{ selectedItem()!.op.operation?.name }}</p>
+              <div class="flex items-center gap-2 text-sm opacity-70 mt-1">
+                <span class="font-mono bg-base-300 px-1 rounded text-xs">{{
+                  selectedItem()!.product?.vehicle?.jobNumber
+                }}</span>
+                <span>•</span>
+                <span class="font-semibold">{{
+                  selectedItem()!.product?.vehicle?.licensePlate
+                }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Assigned Operator</span>
-          </label>
-          <select class="select select-bordered w-full h-11 focus:border-primary focus:ring-1 focus:ring-primary/20" [(ngModel)]="completeForm.operatorId">
-            <option value="">Select operator...</option>
-            @for (op of operators(); track op.id) {
-            <option [value]="op.id">{{ op.name }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Actual Duration (min)</span>
+              <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+                >Assigned Operator</span
+              >
             </label>
-            <div class="relative">
-              <input
-                type="number"
-                class="input input-bordered w-full h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
-                [(ngModel)]="completeForm.duration"
-                [placeholder]="selectedItem()!.op.operation?.estimatedDuration"
-              />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-50 font-medium pointer-events-none">MIN</span>
+            <select
+              class="select select-bordered w-full h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
+              [(ngModel)]="completeForm.operatorId"
+            >
+              <option value="">Select operator...</option>
+              @for (op of operators(); track op.id!) {
+                <option [value]="op.id">{{ op.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+                  >Actual Duration (min)</span
+                >
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  class="input input-bordered w-full h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
+                  [(ngModel)]="completeForm.duration"
+                  [placeholder]="selectedItem()!.op.operation?.estimatedDuration"
+                />
+                <span
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-50 font-medium pointer-events-none"
+                  >MIN</span
+                >
+              </div>
+            </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+                  >Hourly Rate (£)</span
+                >
+              </label>
+              <div class="relative">
+                <span
+                  class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 font-medium pointer-events-none"
+                  >£</span
+                >
+                <input
+                  type="number"
+                  class="input input-bordered w-full pl-7 h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
+                  [(ngModel)]="completeForm.hourlyRate"
+                  placeholder="45.00"
+                />
+              </div>
             </div>
           </div>
+
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Hourly Rate (£)</span>
+              <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+                >Technician Notes</span
+              >
             </label>
-             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 font-medium pointer-events-none">£</span>
-              <input
-                type="number"
-                class="input input-bordered w-full pl-7 h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
-                [(ngModel)]="completeForm.hourlyRate"
-                placeholder="45.00"
-              />
+            <textarea
+              class="textarea textarea-bordered h-24 focus:border-primary focus:ring-1 focus:ring-primary/20"
+              [(ngModel)]="completeForm.notes"
+              placeholder="Add any observations or comments..."
+            ></textarea>
+          </div>
+
+          <div class="bg-base-100 p-4 rounded-xl border border-base-200/80 mt-2">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium opacity-60 uppercase tracking-wide"
+                >Calculated Total</span
+              >
+              <span class="text-2xl font-black text-primary"
+                >£{{ calculateCompleteTotal().toFixed(2) }}</span
+              >
             </div>
           </div>
         </div>
-
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70">Technician Notes</span>
-          </label>
-          <textarea
-            class="textarea textarea-bordered h-24 focus:border-primary focus:ring-1 focus:ring-primary/20"
-            [(ngModel)]="completeForm.notes"
-            placeholder="Add any observations or comments..."
-          ></textarea>
-        </div>
-
-        <div class="bg-base-100 p-4 rounded-xl border border-base-200/80 mt-2">
-          <div class="flex justify-between items-center">
-            <span class="text-sm font-medium opacity-60 uppercase tracking-wide">Calculated Total</span>
-            <span class="text-2xl font-black text-primary">£{{ calculateCompleteTotal().toFixed(2) }}</span>
-          </div>
-        </div>
-      </div>
       }
 
       <div class="modal-action mt-8">
         <form method="dialog">
           <button class="btn btn-ghost hover:bg-base-200">Cancel</button>
         </form>
-        <button class="btn btn-success shadow-lg shadow-success/20 px-6 text-white" (click)="completeOperation()">
+        <button
+          class="btn btn-success shadow-lg shadow-success/20 px-6 text-white"
+          (click)="completeOperation()"
+        >
           <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-1"></lucide-icon>
           Mark Complete
         </button>

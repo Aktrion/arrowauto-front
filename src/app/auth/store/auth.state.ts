@@ -1,11 +1,11 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { Injectable, inject } from '@angular/core';
-import { Login, Logout } from './auth.actions';
+import { Login, Logout, UpdateUser } from './auth.actions';
 import { AuthService } from '../service/auth.service';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
-import { User } from '../models/user.model';
+import { User } from '../../core/models';
 
 export interface AuthStateModel {
   token: string | null;
@@ -52,6 +52,19 @@ export class AuthState {
         this.router.navigate(['/dashboard']);
       }),
     );
+  }
+
+  @Action(UpdateUser)
+  updateUser(ctx: StateContext<AuthStateModel>, action: UpdateUser) {
+    const state = ctx.getState();
+    if (state.user) {
+      ctx.patchState({
+        user: {
+          ...state.user,
+          ...action.payload,
+        },
+      });
+    }
   }
 
   @Action(Logout)

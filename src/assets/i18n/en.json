@@ -38,6 +38,7 @@
       "REMEMBER_ME": "Remember me",
       "FORGOT_PASSWORD": "Forgot password?",
       "SIGN_IN": "Sign In",
+      "SIGN_OUT": "Logout",
       "NO_ACCOUNT": "Don't have an account?",
       "REGISTER": "Register"
     }
@@ -256,6 +257,34 @@
         "TITLE": "Activity Timeline",
         "DESC": "Movement logs and phase transitions will be displayed here automatically as they occur."
       }
+    }
+  },
+  "PROFILE": {
+    "MODAL": {
+      "TITLE": "Profile Settings",
+      "GENERAL_INFO": "General Information",
+
+      "FULL_NAME": "Full Name",
+      "USERNAME": "Username",
+      "EMAIL": "Email Address",
+      "EMAILS_HINT": "Separate multiple emails with commas",
+      "LANGUAGE": "Preferred Language",
+      "COUNTRY": "Country",
+      "SELECT_COUNTRY": "Select your country",
+      "TIMEZONE": "Timezone",
+      "ROLE": "Role",
+      "SECURITY": {
+        "TITLE": "Security",
+        "CHANGE_PASSWORD": "Change Password",
+        "CANCEL_CHANGE": "Cancel Change",
+        "CURRENT_PASSWORD": "Current Password",
+        "NEW_PASSWORD": "New Password",
+        "CONFIRM_PASSWORD": "Confirm New Password",
+        "MIN_LENGTH": "Min 8 characters required",
+        "MISMATCH": "Passwords do not match"
+      },
+      "CANCEL": "Cancel",
+      "SAVE": "Save Changes"
     }
   }
 }

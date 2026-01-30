@@ -9,7 +9,9 @@ export class UserService {
   private _users = signal<User[]>(generateMockUsers());
   readonly users = this._users.asReadonly();
 
-  readonly operatorsByRole = computed(() => this._users().filter((u) => u.role === 'operator'));
+  readonly operatorsByRole = computed(() =>
+    this._users().filter((u) => u.role?.name === 'operator'),
+  );
 
   getOperators(): User[] {
     return this.operatorsByRole();

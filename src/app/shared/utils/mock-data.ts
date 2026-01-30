@@ -3,11 +3,11 @@ import {
   Vehicle,
   Operation,
   VehicleOperation,
-  User,
   InspectionPoint,
   VehicleStatus,
   Product,
 } from '../../core/models';
+import { User } from '../models/user.model';
 
 export function generateMockClients(): Client[] {
   return [
@@ -351,47 +351,57 @@ export function generateMockUsers(): User[] {
     {
       id: '1',
       name: 'Admin User',
-      email: 'admin@arrowauto.com',
-      role: 'admin',
-      roles: ['admin'],
-      status: 'online',
-      avatar: '',
+      userName: 'admin',
+      emails: ['admin@arrowauto.com'],
+      role: {
+        name: 'admin',
+      },
+      enabled: true,
+      imageUrl: '',
     },
     {
       id: '2',
       name: 'Dave Lee',
-      email: 'dave@arrowauto.com',
-      role: 'operator',
-      roles: ['operator'],
-      status: 'online',
-      avatar: '',
+      userName: 'dave',
+      emails: ['dave@arrowauto.com'],
+      role: {
+        name: 'operator',
+      },
+      enabled: true,
+      imageUrl: '',
     },
     {
       id: '3',
       name: 'Tom Harris',
-      email: 'tom@arrowauto.com',
-      role: 'operator',
-      roles: ['operator'],
-      status: 'online',
-      avatar: '',
+      userName: 'tom',
+      emails: ['tom@arrowauto.com'],
+      role: {
+        name: 'operator',
+      },
+      enabled: true,
+      imageUrl: '',
     },
     {
       id: '4',
       name: 'Lisa Chen',
-      email: 'lisa@arrowauto.com',
-      role: 'operator',
-      roles: ['operator'],
-      status: 'online',
-      avatar: '',
+      userName: 'lisa',
+      emails: ['lisa@arrowauto.com'],
+      role: {
+        name: 'operator',
+      },
+      enabled: true,
+      imageUrl: '',
     },
     {
       id: '5',
       name: 'Mark Taylor',
-      email: 'mark@arrowauto.com',
-      role: 'supervisor',
-      roles: ['supervisor', 'operator'],
-      status: 'busy',
-      avatar: '',
+      userName: 'mark',
+      emails: ['mark@arrowauto.com'],
+      role: {
+        name: 'supervisor',
+      },
+      enabled: true,
+      imageUrl: '',
     },
   ];
 }

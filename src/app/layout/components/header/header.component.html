@@ -17,7 +17,7 @@
       title="Toggle Sidebar"
     >
       <lucide-icon
-        [name]="icons.Menu"
+        [name]="collapsed() ? icons.ChevronRight : icons.ChevronLeft"
         class="w-6 h-6 transition-transform group-hover:scale-110"
       ></lucide-icon>
     </button>
@@ -53,10 +53,10 @@
         <div
           class="w-10 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2"
         >
-          @if (currentUser.avatar) {
-            <img [src]="currentUser.avatar" [alt]="currentUser.name" />
+          @if (currentUser.imageUrl) {
+            <img [src]="currentUser.imageUrl" [alt]="currentUser.userName" />
           } @else {
-            <span class="text-xl font-bold">{{ currentUser.name | slice: 0 : 2 | uppercase }}</span>
+            <img src="assets/img/icons/user.png" alt="" />
           }
         </div>
       </div>
@@ -82,7 +82,7 @@
               [name]="icons.Settings"
               class="w-4 h-4 transition-transform group-hover:rotate-45"
             ></lucide-icon>
-            Configuration
+            {{ 'SHELL.SIDEBAR.SETTINGS_LINK' | translate }}
           </button>
         </li>
         <li class="mt-1 border-t border-base-200/50"></li>
@@ -96,7 +96,7 @@
               [name]="icons.LogOut"
               class="w-4 h-4 transition-transform group-hover:-translate-x-1"
             ></lucide-icon>
-            Logout
+            {{ 'LOGIN.FORM.SIGN_OUT' | translate }}
           </button>
         </li>
       </ul>
