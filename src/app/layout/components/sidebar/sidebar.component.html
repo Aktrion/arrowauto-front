@@ -5,22 +5,30 @@
 >
   <!-- Logo Section -->
   <div
-    class="px-6 flex items-center gap-3 transition-all duration-300 ease-in-out shrink-0"
+    class="px-6 flex items-center transition-all duration-300 ease-in-out relative"
     [class.py-6]="!collapsed"
     [class.py-8]="collapsed"
     [class.justify-center]="collapsed"
   >
-    @if (collapsed) {
-      <div
-        class="w-11 h-11 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow-primary shrink-0 transition-transform duration-300"
-        [class.scale-95]="collapsed"
-      >
-        <img src="assets/img/logo/AKTRION_AEROSPACE_LOGO_FINAL_AUTOMOTIVE_WHITE_ICON.png" alt="" />
-        <!-- <lucide-icon [name]="icons.Car" class="h-6 w-6 text-white"></lucide-icon> -->
-      </div>
-    }
+    <!-- Collapsed: short logo (icon) -->
+    <div
+      class="rounded-xl bg-white flex items-center justify-center transition-opacity duration-200 ease-in-out absolute"
+      [class.opacity-100]="collapsed"
+      [class.opacity-0]="!collapsed"
+      [class.pointer-events-none]="!collapsed"
+    >
+      <img src="assets/img/logo/arrow-short-transparent.png" alt="" />
+    </div>
 
-    <div [class.opacity-0]="collapsed" [class.w-0]="collapsed" [class.hidden]="collapsed">
+    <!-- Expanded: full logo with subtle fade-in animation -->
+    <div
+      class="transition-all duration-200 ease-in-out"
+      [class.opacity-100]="!collapsed"
+      [class.translate-y-0]="!collapsed"
+      [class.opacity-0]="collapsed"
+      [class.translate-y-1]="collapsed"
+      [class.pointer-events-none]="collapsed"
+    >
       <img class="h-11 w-50" src="assets/img/logo/arrow-black-logo.png" alt="" />
     </div>
   </div>
