@@ -1,5 +1,5 @@
 <aside
-  class="h-full bg-white border-r border-base-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
+  class="h-full bg-white shadow-[4px_0_6px_-1px_rgba(0,0,0,0.08)] border-r border-base-200 flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
   [class.w-72]="!collapsed"
   [class.w-20]="collapsed"
 >
@@ -20,23 +20,14 @@
       </div>
     }
 
-    <div
-      class="transition-all duration-300 origin-left"
-      [class.opacity-0]="collapsed"
-      [class.w-0]="collapsed"
-      [class.hidden]="collapsed"
-    >
+    <div [class.opacity-0]="collapsed" [class.w-0]="collapsed" [class.hidden]="collapsed">
       <img class="h-11 w-50" src="assets/img/logo/arrow-black-logo.png" alt="" />
-      <!-- <h1 class="text-xl font-bold tracking-tight">ArrowAuto</h1>
-      <p class="text-[10px] text-base-content/50 uppercase tracking-widest leading-none">
-        {{ 'SHELL.LOGO.SUBTITLE' | translate }}
-      </p> -->
     </div>
   </div>
 
   <!-- Navigation Menu -->
   <nav
-    class="flex-1 px-4 pb-4 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300"
+    class="flex-1 px-4 pb-4 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300 shadow-sm"
     [class.space-y-6]="!collapsed"
     [class.space-y-1]="collapsed"
   >
