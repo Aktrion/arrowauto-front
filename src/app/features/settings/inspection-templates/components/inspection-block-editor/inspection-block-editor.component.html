@@ -1,0 +1,149 @@
+<div
+  class="card bg-base-100 shadow-sm border border-base-200 overflow-visible transition-all hover:shadow-md"
+>
+  <!-- Block Header -->
+  <div class="p-4 flex items-center gap-4 border-b border-base-200/50">
+    <div
+      class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm"
+    >
+      {{ block.order }}
+    </div>
+
+    <div class="flex-1 form-control">
+      <input
+        type="text"
+        [(ngModel)]="block.name"
+        (blur)="updateBlock()"
+        class="input input-ghost font-bold text-lg w-full focus:bg-base-200/50 px-2 -ml-2 rounded-lg"
+        placeholder="Block Name"
+      />
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label class="cursor-pointer label">
+        <span class="label-text mr-2 text-xs font-medium opacity-60">Active</span>
+        <input
+          type="checkbox"
+          [(ngModel)]="block.active"
+          (change)="updateBlock()"
+          class="toggle toggle-xs toggle-primary"
+        />
+      </label>
+      <div class="dropdown dropdown-end">
+        <button tabindex="0" class="btn btn-ghost btn-sm btn-square text-base-content/40">
+          <lucide-icon [name]="icons.MoreVertical" class="h-4 w-4"></lucide-icon>
+        </button>
+        <ul
+          tabindex="0"
+          class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52"
+        >
+          <li>
+            <button class="text-error" (click)="deleteBlock.emit(block._id)">
+              <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
+              <!-- Tasks for sorting and workflow -->
+              <!-- - [ ] Backend: Sort inspection templates by creation date (newest first) -->
+              <!-- - [ ] Frontend: Update template creation workflow to stay in editor -->
+              <!-- - [/] Fix UI Aesthetics (Completed) -->
+              Delete Block
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Points List -->
+  <div class="p-2 bg-base-50/50 min-h-[100px]">
+    @if (points().length > 0) {
+      <div class="space-y-2 p-2">
+        @for (point of points(); track point._id) {
+          <div
+            class="group flex items-center gap-4 p-3 bg-white rounded-xl border border-base-200 shadow-sm hover:border-primary/20 hover:shadow-md transition-all cursor-pointer"
+            (click)="editPoint(point)"
+          >
+            <!-- Drag Handle (Visual only for now) -->
+            <div class="text-base-content/20 group-hover:text-base-content/40">
+              <lucide-icon [name]="icons.GripVertical" class="h-4 w-4"></lucide-icon>
+            </div>
+
+            <!-- Icon/Type -->
+            <div
+              class="w-10 h-10 rounded-lg flex items-center justify-center"
+              [ngClass]="
+                point.type === 'tyre'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'bg-blue-100 text-blue-600'
+              "
+            >
+              <lucide-icon
+                [name]="point.type === 'tyre' ? icons.Disc : icons.CheckCircle2"
+                class="h-5 w-5"
+              ></lucide-icon>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1">
+              <div class="font-semibold text-base-content">{{ point.name }}</div>
+              <div class="flex items-center gap-2 text-xs text-base-content/50 mt-0.5">
+                <span class="uppercase tracking-wider font-bold">{{ point.type }}</span>
+                @if (point.mandatory) {
+                  <span class="w-1 h-1 rounded-full bg-base-300"></span>
+                  <span class="text-error font-medium">Mandatory</span>
+                }
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div
+              class="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity"
+            >
+              <button
+                class="btn btn-ghost btn-xs text-error"
+                (click)="$event.stopPropagation(); deletePoint(point._id)"
+              >
+                <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
+              </button>
+              <button class="btn btn-ghost btn-xs">
+                <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div
+        class="flex flex-col items-center justify-center py-12 text-base-content/40 border-2 border-dashed border-base-200 rounded-xl m-2"
+      >
+        <lucide-icon [name]="icons.List" class="h-8 w-8 mb-2 opacity-50"></lucide-icon>
+        <p class="text-sm font-medium">No inspection points yet</p>
+        <p class="text-xs">Add points to define this inspection block</p>
+      </div>
+    }
+
+    <!-- Add Point Button -->
+    <button
+      class="btn btn-ghost btn-block border-2 border-dashed border-base-200 text-base-content/60 hover:border-primary hover:text-primary hover:bg-primary/5 mt-2 transition-all gap-2"
+      (click)="addPoint()"
+    >
+      <lucide-icon [name]="icons.Plus" class="h-4 w-4"></lucide-icon>
+      Add Inspection Point
+    </button>
+  </div>
+</div>
+
+<!-- Point Editor Modal -->
+@if (showPointEditor) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+  >
+    <app-inspection-point-editor
+      class="w-full max-w-2xl animate-in zoom-in-95 duration-200"
+      [point]="selectedPoint"
+      [blockId]="block._id"
+      [blockName]="block.name"
+      [order]="points().length + 1"
+      (cancel)="showPointEditor = false"
+      (saved)="onPointSaved()"
+    ></app-inspection-point-editor>
+  </div>
+}

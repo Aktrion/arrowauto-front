@@ -5,11 +5,12 @@ import { InspectionService } from '../inspection/services/inspection.service';
 import { UserService } from '../../core/services/user.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../shared/icons';
+import { InspectionTemplatesListComponent } from './inspection-templates/inspection-templates-list/inspection-templates-list.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, InspectionTemplatesListComponent],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
@@ -20,7 +21,7 @@ export class SettingsComponent {
 
   activeSection = signal('general');
   operations = this.operationService.operations;
-  inspectionPoints = this.inspectionService.inspectionPoints;
+  // inspectionPoints = this.inspectionService.inspectionPoints; // Deprecated
   users = this.userService.users;
 
   sections = [
@@ -35,9 +36,9 @@ export class SettingsComponent {
       icon: this.icons.Briefcase,
     },
     {
-      id: 'inspection',
-      name: 'Inspection Points',
-      icon: this.icons.ClipboardCheck,
+      id: 'inspection-templates',
+      name: 'Inspection Templates',
+      icon: this.icons.FileText,
     },
     {
       id: 'users',
@@ -50,14 +51,6 @@ export class SettingsComponent {
       icon: this.icons.CreditCard,
     },
   ];
-
-  inspectionCategories() {
-    return [...new Set(this.inspectionPoints().map((p) => p.category))];
-  }
-
-  getPointsByCategory(category: string) {
-    return this.inspectionPoints().filter((p) => p.category === category);
-  }
 
   getInitials(name: string): string {
     return name

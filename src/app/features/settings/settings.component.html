@@ -6,14 +6,14 @@
   </div>
 
   <!-- Settings Layout -->
-  <div class="flex flex-col lg:flex-row gap-6">
-    <!-- Sidebar Navigation -->
-    <div class="lg:w-64 flex-shrink-0">
-      <div class="card-premium rounded-xl p-2 animate-slide-up stagger-1">
-        <nav class="space-y-1">
+  <div class="flex flex-col gap-6">
+    <!-- Top Navigation -->
+    <div class="w-full">
+      <div class="card-premium rounded-xl p-2 animate-slide-up stagger-1 overflow-x-auto">
+        <nav class="flex items-center gap-2 min-w-max">
           @for (section of sections; track section.id) {
             <button
-              class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all"
+              class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
               [class]="
                 activeSection() === section.id
                   ? 'bg-gradient-primary text-white shadow-glow-primary'
@@ -22,7 +22,7 @@
               (click)="activeSection.set(section.id)"
             >
               <lucide-icon [name]="section.icon" class="w-5 h-5"></lucide-icon>
-              <span class="font-medium">{{ section.name }}</span>
+              <span class="font-medium whitespace-nowrap">{{ section.name }}</span>
             </button>
           }
         </nav>
@@ -168,46 +168,9 @@
         </div>
       }
 
-      <!-- Inspection Points -->
-      @if (activeSection() === 'inspection') {
-        <div class="form-section">
-          <div class="flex items-center justify-between mb-6">
-            <div>
-              <h3 class="form-section-title">Inspection Points</h3>
-              <p class="form-section-description">Define checklist items for vehicle inspections</p>
-            </div>
-            <button class="btn-premium">
-              <lucide-icon [name]="icons.Plus" class="h-5 w-5 mr-2"></lucide-icon>
-              Add Category
-            </button>
-          </div>
-
-          <div class="space-y-4">
-            @for (category of inspectionCategories(); track category) {
-              <div class="p-4 bg-base-200/50 rounded-xl">
-                <div class="flex items-center justify-between mb-3">
-                  <h4 class="font-semibold text-base-content">{{ category }}</h4>
-                  <button class="btn btn-ghost btn-xs text-primary">+ Add Point</button>
-                </div>
-                <div class="space-y-2">
-                  @for (point of getPointsByCategory(category); track point.id) {
-                    <div class="flex items-center gap-3 p-3 bg-white rounded-lg">
-                      <span
-                        class="w-6 h-6 rounded-full bg-base-200 flex items-center justify-center text-xs font-medium"
-                      >
-                        {{ point.code }}
-                      </span>
-                      <span class="flex-1 text-sm text-base-content">{{ point.name }}</span>
-                      <button class="btn btn-ghost btn-xs btn-square">
-                        <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
-                      </button>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        </div>
+      <!-- Inspection Templates -->
+      @if (activeSection() === 'inspection-templates') {
+        <app-inspection-templates-list></app-inspection-templates-list>
       }
 
       <!-- Users & Operators -->
@@ -351,12 +314,15 @@
       }
 
       <!-- Save Button -->
-      <div class="flex justify-end mt-6">
-        <button class="btn-premium">
-          <lucide-icon [name]="icons.Check" class="h-5 w-5 mr-2"></lucide-icon>
-          Save Changes
-        </button>
-      </div>
+      <!-- Save Button -->
+      @if (activeSection() !== 'inspection-templates') {
+        <div class="flex justify-end mt-6">
+          <button class="btn-premium">
+            <lucide-icon [name]="icons.Check" class="h-5 w-5 mr-2"></lucide-icon>
+            Save Changes
+          </button>
+        </div>
+      }
     </div>
   </div>
 </div>

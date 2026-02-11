@@ -645,6 +645,9 @@ body {
   border-radius: 0.75rem;
   box-shadow: var(--shadow-md);
   transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-premium:hover {

@@ -1,0 +1,70 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center gap-4">
+    <button class="btn btn-ghost btn-sm btn-square" (click)="cancel.emit()">
+      <lucide-icon [name]="icons.ChevronLeft" class="h-5 w-5"></lucide-icon>
+    </button>
+    <div>
+      <h3 class="text-lg font-bold text-base-content">
+        {{ templateId ? 'Edit Template' : 'New Template' }}
+      </h3>
+      <p class="text-sm text-base-content/60">
+        {{ templateId ? 'Update existing template details' : 'Create a new inspection template' }}
+      </p>
+    </div>
+    <div class="ml-auto flex gap-2">
+      <button class="btn btn-primary btn-sm" (click)="saveTemplate()">
+        <lucide-icon [name]="icons.Check" class="h-4 w-4 mr-2"></lucide-icon>
+        Save
+      </button>
+    </div>
+  </div>
+
+  <!-- Template Details -->
+  <div class="card bg-base-100 shadow-sm p-4 space-y-4">
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text font-medium">Template Name</span>
+      </label>
+      <input
+        type="text"
+        [(ngModel)]="name"
+        class="input input-bordered w-full"
+        placeholder="e.g. Standard Service Inspection"
+      />
+    </div>
+
+    <div class="form-control">
+      <label class="label cursor-pointer justify-start gap-4">
+        <span class="label-text font-medium">Active</span>
+        <input type="checkbox" [(ngModel)]="active" class="toggle toggle-primary" />
+      </label>
+    </div>
+  </div>
+
+  <!-- Blocks Section (Only if template exists) -->
+  @if (templateId) {
+    <div class="flex items-center justify-between mt-6">
+      <h4 class="font-bold text-base-content">Inspection Blocks</h4>
+      <button class="btn btn-sm btn-ghost text-primary" (click)="addBlock()">
+        <lucide-icon [name]="icons.Plus" class="h-4 w-4 mr-1"></lucide-icon>
+        Add Block
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      @for (block of blocks(); track block._id) {
+        <app-inspection-block-editor
+          [block]="block"
+          (deleteBlock)="deleteBlock($event)"
+          (updated)="loadBlocks(templateId!)"
+        ></app-inspection-block-editor>
+      }
+      @if (blocks().length === 0) {
+        <div class="text-center py-4 text-base-content/60 bg-base-200/30 rounded-xl">
+          No blocks defined. Add one to start.
+        </div>
+      }
+    </div>
+  }
+</div>

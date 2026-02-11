@@ -1,0 +1,112 @@
+<div class="card bg-base-100 shadow-2xl p-0 overflow-hidden border border-base-200">
+  <!-- Header -->
+  <div class="bg-base-200/50 p-4 border-b border-base-200 flex items-center justify-between">
+    <div>
+      <h3 class="font-bold text-lg">{{ point ? 'Edit Point' : 'New Point' }}</h3>
+      <p class="text-xs text-base-content/60">
+        {{ blockName ? 'Adding to: ' + blockName : 'Configure inspection point details' }}
+      </p>
+    </div>
+    <button class="btn btn-ghost btn-sm btn-square rounded-full" (click)="cancel.emit()">
+      <lucide-icon [name]="icons.X" class="h-5 w-5"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+    <!-- Name -->
+    <div class="form-control md:col-span-2">
+      <label class="label"><span class="label-text">Name</span></label>
+      <input
+        type="text"
+        [(ngModel)]="name"
+        class="input input-bordered w-full"
+        placeholder="e.g. Brake Pads"
+      />
+    </div>
+
+    <!-- Type -->
+    <div class="form-control">
+      <label class="label"><span class="label-text">Type</span></label>
+      <select [(ngModel)]="type" class="select select-bordered w-full">
+        <option value="standard">Standard</option>
+        <option value="tyre">Tyre</option>
+      </select>
+    </div>
+
+    <!-- Active -->
+    <div class="form-control">
+      <label class="label cursor-pointer justify-start gap-3 mt-8">
+        <span class="label-text font-medium">Active</span>
+        <input type="checkbox" [(ngModel)]="active" class="toggle toggle-primary" />
+      </label>
+    </div>
+
+    <!-- Tyre Config -->
+    @if (type === 'tyre') {
+      <div class="form-control">
+        <label class="label"><span class="label-text">Tyre Configuration</span></label>
+        <select [(ngModel)]="tyreConfigurationId" class="select select-bordered w-full">
+          <option [ngValue]="null">Select Configuration</option>
+          @for (config of tyreConfigs(); track config._id) {
+            <option [value]="config._id">{{ config.code }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-control">
+        <label class="label"><span class="label-text">Tyre Position</span></label>
+        <select [(ngModel)]="tyrePosition" class="select select-bordered w-full">
+          <option value="Front Left">Front Left</option>
+          <option value="Front Right">Front Right</option>
+          <option value="Rear Left">Rear Left</option>
+          <option value="Rear Right">Rear Right</option>
+          <option value="Spare">Spare</option>
+        </select>
+      </div>
+    }
+
+    <!-- Mandatory Settings -->
+    <div class="form-control">
+      <label class="label cursor-pointer justify-start gap-3">
+        <input type="checkbox" [(ngModel)]="mandatory" class="checkbox checkbox-primary" />
+        <span class="label-text">Mandatory Check</span>
+      </label>
+    </div>
+
+    <div class="form-control">
+      <label class="label"><span class="label-text">Mandatory Media</span></label>
+      <select [(ngModel)]="mandatoryMedia" class="select select-bordered w-full">
+        <option value="optional">Optional</option>
+        <option value="required">Required</option>
+        <option value="requiredIfNok">Required if Not OK</option>
+      </select>
+    </div>
+
+    <div class="form-control">
+      <label class="label"><span class="label-text">Mandatory Comment</span></label>
+      <select [(ngModel)]="mandatoryComment" class="select select-bordered w-full">
+        <option value="optional">Optional</option>
+        <option value="required">Required</option>
+        <option value="requiredIfNok">Required if Not OK</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Scripted Comments -->
+  <div class="form-control px-6">
+    <label class="label"><span class="label-text">Scripted Comments (one per line)</span></label>
+    <textarea
+      [(ngModel)]="scriptedCommentsText"
+      class="textarea textarea-bordered h-24"
+      placeholder="Enter predefined comments..."
+    ></textarea>
+  </div>
+
+  <div class="p-4 bg-base-200/30 border-t border-base-200 flex justify-end gap-2 mt-4">
+    <button class="btn btn-ghost" (click)="cancel.emit()">Cancel</button>
+    <button class="btn btn-primary px-8" (click)="save()" [disabled]="!name">
+      <lucide-icon [name]="icons.Check" class="h-4 w-4 mr-2"></lucide-icon>
+      Save Point
+    </button>
+  </div>
+</div>

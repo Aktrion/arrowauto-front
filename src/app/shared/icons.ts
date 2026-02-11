@@ -53,6 +53,10 @@ import {
   EyeOff,
   KeyRound,
   MapPin,
+  List,
+  MoreVertical,
+  GripVertical,
+  CheckCircle2,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -110,4 +114,8 @@ export const ICONS = {
   EyeOff,
   KeyRound,
   MapPin,
+  List,
+  MoreVertical,
+  GripVertical,
+  CheckCircle2,
 };
