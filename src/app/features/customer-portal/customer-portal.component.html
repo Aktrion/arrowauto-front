@@ -395,13 +395,4 @@
     </form>
   </dialog>
 
-  <!-- Success Toast -->
-  @if (showSuccess()) {
-    <div class="toast toast-top toast-center z-50 animate-fade-in-down">
-      <div class="alert alert-success shadow-lg shadow-success/20 text-white border-none">
-        <lucide-icon [name]="icons.CircleCheckBig" class="shrink-0 h-6 w-6"></lucide-icon>
-        <span class="font-bold">{{ 'PORTAL.SUCCESS.TOAST' | translate }}</span>
-      </div>
-    </div>
-  }
 </div>

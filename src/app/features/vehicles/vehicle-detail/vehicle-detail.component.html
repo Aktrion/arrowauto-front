@@ -117,10 +117,7 @@
             <p class="text-[9px] text-base-content/40 uppercase font-bold tracking-widest mb-1.5">
               {{ 'VEHICLES.TABLE.STATUS' | translate }}
             </p>
-            <select
-              class="w-full px-2.5 py-1.5 bg-base-100 border border-base-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-primary/20"
-              [(ngModel)]="product().status"
-            >
+            <select class="select select-bordered select-sm w-full bg-base-100 font-semibold" [(ngModel)]="product().status">
               @for (status of statusOptions; track status) {
                 <option [ngValue]="status">
                   {{ formatStatus(status) }}
@@ -128,29 +125,6 @@
               }
             </select>
           </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="flex items-center gap-1.5 shrink-0">
-          <button
-            class="btn btn-ghost btn-sm gap-2 hover:bg-base-200 rounded-lg tooltip tooltip-bottom"
-            [attr.data-tip]="'VEHICLE.DETAIL.GENERATE_REPORT' | translate"
-          >
-            <lucide-icon [name]="icons.FileText" class="h-4 w-4"></lucide-icon>
-          </button>
-          <button
-            class="btn btn-ghost btn-sm gap-2 hover:bg-base-200 rounded-lg tooltip tooltip-bottom"
-            [attr.data-tip]="'VEHICLE.DETAIL.ADD_PARTS' | translate"
-          >
-            <lucide-icon [name]="icons.ShoppingCart" class="h-4 w-4"></lucide-icon>
-          </button>
-          <div class="w-px h-6 bg-base-200 mx-1"></div>
-          <button
-            class="btn btn-ghost btn-sm gap-2 text-error hover:bg-error/10 rounded-lg tooltip tooltip-bottom"
-            [attr.data-tip]="'VEHICLE.DETAIL.ARCHIVE' | translate"
-          >
-            <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
-          </button>
         </div>
       </div>
     </div>
@@ -222,14 +196,14 @@
                   <input
                     type="text"
                     placeholder="e.g. AB12 CDE"
-                    class="w-full px-5 py-3.5 bg-base-200 border-2 border-transparent rounded-2xl focus:border-primary focus:bg-base-100 transition-all uppercase font-mono text-xl text-primary font-bold shadow-inner"
+                    class="input input-bordered input-sm w-full bg-base-200 uppercase font-mono font-semibold text-base text-primary"
                     [(ngModel)]="product().vehicle!.licensePlate"
                   />
                 </div>
               }
               <button
                 (click)="performHPICheck()"
-                class="h-14 px-6 bg-secondary text-white font-bold rounded-2xl shadow-glow-secondary hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
+                class="btn btn-secondary btn-sm h-9 px-4 rounded-lg flex items-center gap-2"
               >
                 <lucide-icon [name]="icons.Search" class="h-5 w-5"></lucide-icon>
                 <span class="hidden sm:inline">{{
@@ -267,7 +241,7 @@
                 <input
                   type="text"
                   placeholder="e.g. BMW"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
+                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
                   [(ngModel)]="product().vehicle!.make"
                 />
               </div>
@@ -280,7 +254,7 @@
                 <input
                   type="text"
                   placeholder="e.g. 320d M Sport"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
+                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
                   [(ngModel)]="product().vehicle!.model"
                 />
               </div>
@@ -310,7 +284,7 @@
                 >
                 <input
                   type="number"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
+                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
                   [(ngModel)]="product().vehicle!.year"
                 />
               </div>
@@ -322,7 +296,7 @@
                 <input
                   type="text"
                   placeholder="e.g. Black"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
+                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
                   [(ngModel)]="product().vehicle!.colour"
                 />
               </div>
@@ -334,7 +308,7 @@
                 <div class="relative">
                   <input
                     type="number"
-                    class="w-full px-4 py-3 pr-12 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
+                    class="input input-bordered input-sm w-full pr-11 bg-base-200 font-semibold"
                     [(ngModel)]="product().vehicle!.mileage"
                   />
                   <span
@@ -351,7 +325,7 @@
                 <input
                   type="text"
                   placeholder="e.g. 2.0L"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
+                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
                   [(ngModel)]="product().vehicle!.engine"
                 />
               </div>
@@ -363,7 +337,7 @@
                 <input
                   type="text"
                   placeholder="Vehicle Identification Number"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-mono font-medium"
+                  class="input input-bordered input-sm w-full bg-base-200 font-mono font-medium"
                   [(ngModel)]="product().vehicle!.vin"
                 />
               </div>
@@ -374,7 +348,7 @@
                 >
                 <input
                   type="date"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
+                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
                   [(ngModel)]="product().vehicle!.next_entry"
                 />
               </div>
@@ -400,10 +374,7 @@
               class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
               >{{ 'VEHICLE.DETAIL.ASSIGNMENT.ASSIGN_CLIENT' | translate }}</label
             >
-            <select
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
-              [(ngModel)]="product().customerId"
-            >
+            <select class="select select-bordered select-sm w-full bg-base-200 font-semibold" [(ngModel)]="product().customerId">
               <option value="">
                 {{ 'VEHICLE.DETAIL.ASSIGNMENT.SELECT_CLIENT' | translate }}
               </option>
@@ -432,10 +403,6 @@
               {{ 'VEHICLE.DETAIL.OPERATIONS.SUBTITLE' | translate }}
             </p>
           </div>
-          <button class="btn btn-primary shadow-glow-primary rounded-xl px-6">
-            <lucide-icon [name]="icons.Plus" class="h-4 w-4 mr-2"></lucide-icon>
-            {{ 'VEHICLE.DETAIL.OPERATIONS.ADD' | translate }}
-          </button>
         </div>
 
         <div class="space-y-3">

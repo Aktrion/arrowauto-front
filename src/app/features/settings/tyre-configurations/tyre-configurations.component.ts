@@ -8,6 +8,7 @@ import {
   TyreConfiguration,
   TyreConfigurationsService,
 } from '../inspection-templates/services/tyre-configurations.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-tyre-configurations',
@@ -127,6 +128,7 @@ import {
 export class TyreConfigurationsComponent {
   icons = ICONS;
   service = inject(TyreConfigurationsService);
+  private notificationService = inject(NotificationService);
 
   saving = signal(false);
   editingId = signal<string | null>(null);
@@ -164,11 +166,15 @@ export class TyreConfigurationsComponent {
 
     request$.subscribe({
       next: () => {
+        this.notificationService.success(
+          this.editingId() ? 'Tyre configuration updated successfully.' : 'Tyre configuration created successfully.',
+        );
         this.resetForm();
         this.saving.set(false);
       },
       error: () => {
         this.error.set('Failed to save tyre configuration.');
+        this.notificationService.error('Failed to save tyre configuration.');
         this.saving.set(false);
       },
     });
@@ -193,7 +199,10 @@ export class TyreConfigurationsComponent {
 
   remove(id: string) {
     if (!confirm('Delete this tyre configuration?')) return;
-    this.service.delete(id).subscribe();
+    this.service.delete(id).subscribe({
+      next: () => this.notificationService.success('Tyre configuration deleted successfully.'),
+      error: () => this.notificationService.error('Failed to delete tyre configuration.'),
+    });
     if (this.editingId() === id) {
       this.resetForm();
     }

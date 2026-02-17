@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { InspectionService } from '../inspection/services/inspection.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface RepairItem {
   id: string;
@@ -30,6 +31,7 @@ export class CustomerPortalComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly vehicleService = inject(VehicleService);
   private readonly inspectionService = inject(InspectionService);
+  private readonly notificationService = inject(NotificationService);
 
   vehicleData = {
     plate: '-',
@@ -51,7 +53,6 @@ export class CustomerPortalComponent implements OnInit {
   }> = [];
 
   cartIds = signal<Set<string>>(new Set());
-  showSuccess = signal(false);
   isSubmittingApproval = signal(false);
   private currentVehicleId = signal<string | null>(null);
   private currentProductId = signal<string | null>(null);
@@ -133,11 +134,11 @@ export class CustomerPortalComponent implements OnInit {
       .subscribe({
         next: () => {
           (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
-          this.showSuccess.set(true);
+          this.notificationService.success('Repairs approved successfully.');
           this.isSubmittingApproval.set(false);
-          setTimeout(() => this.showSuccess.set(false), 3000);
         },
         error: () => {
+          this.notificationService.error('Failed to submit approval.');
           this.isSubmittingApproval.set(false);
         },
       });

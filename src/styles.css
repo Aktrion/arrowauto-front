@@ -1133,6 +1133,40 @@ body {
   gap: 1rem;
 }
 
+.inspection-view-switch {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--inspection-border);
+  background: color-mix(in oklab, var(--color-base-100) 85%, transparent);
+}
+
+.inspection-switch-btn {
+  border: 0;
+  background: transparent;
+  border-radius: 0.7rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+  transition: all var(--transition-fast);
+}
+
+.inspection-switch-btn:hover {
+  color: var(--color-primary-darkest);
+  background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+}
+
+.inspection-switch-btn.active {
+  color: var(--color-primary-darkest);
+  background: color-mix(in oklab, var(--color-primary) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-primary) 30%, transparent);
+}
+
 .inspection-sidebar {
   display: flex;
   flex-direction: column;
@@ -1392,21 +1426,57 @@ body {
 }
 
 .inspection-point-row {
+  list-style: none;
   border-top: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
   border-radius: 0;
   background: transparent;
 }
 
-.inspection-point-row .collapse-title {
-  min-height: 3.3rem;
+.inspection-point-row > summary {
+  list-style: none;
+}
+
+.inspection-point-row > summary::-webkit-details-marker {
+  display: none;
+}
+
+.inspection-point-row > summary::marker {
+  content: '';
+}
+
+.inspection-point-row[open] {
+  background: color-mix(in oklab, var(--color-primary) 3%, transparent);
 }
 
 .inspection-point-title {
+  min-height: 3.3rem;
+  cursor: pointer;
   padding: 0.65rem 2.9rem 0.65rem 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.6rem;
   justify-content: space-between;
+  position: relative;
+}
+
+.inspection-point-title::after {
+  content: '';
+  position: absolute;
+  right: 0.9rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  border-bottom: 2px solid color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  transform: rotate(45deg);
+  transition: transform var(--transition-fast);
+}
+
+.inspection-point-row[open] .inspection-point-title::after {
+  transform: rotate(-135deg);
+}
+
+.inspection-point-content {
+  padding: 0 0.75rem 0.55rem;
 }
 
 .inspection-point-left {
@@ -1498,6 +1568,48 @@ body {
   margin-top: 0.45rem;
   max-width: 42ch;
   color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+}
+
+.inspection-history-panel {
+  min-height: 40vh;
+}
+
+.inspection-history-loading,
+.inspection-history-error {
+  border-radius: 0.8rem;
+  border: 1px dashed var(--inspection-border);
+  padding: 1rem;
+  font-size: 0.86rem;
+}
+
+.inspection-history-error {
+  color: var(--color-error);
+}
+
+.inspection-history-table-wrap {
+  overflow: auto;
+  border-radius: 0.8rem;
+  border: 1px solid var(--inspection-border);
+}
+
+.inspection-history-table-wrap table thead th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+  background: color-mix(in oklab, var(--color-base-200) 75%, transparent);
+}
+
+.inspection-history-table-wrap table tbody td {
+  vertical-align: middle;
+  font-size: 0.84rem;
+}
+
+.inspection-history-status {
+  display: inline-flex;
+  gap: 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 @media (max-width: 1260px) {

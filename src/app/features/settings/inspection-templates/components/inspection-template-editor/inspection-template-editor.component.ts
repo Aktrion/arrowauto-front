@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import {
   InspectionTemplateStructure,
   InspectionTemplatesService,
@@ -9,6 +10,7 @@ import {
 } from '../../services/inspection-templates.service';
 import { TyreConfigurationsService } from '../../services/tyre-configurations.service';
 import { ICONS } from '../../../../../shared/icons';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 type RequirementMode = 'required' | 'requiredIfNok' | 'optional';
 type PointType = 'standard' | 'tyre';
@@ -62,7 +64,7 @@ const newBlock = (): EditorBlock => ({
 @Component({
   selector: 'app-inspection-template-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './inspection-template-editor.component.html',
 })
 export class InspectionTemplateEditorComponent implements OnChanges {
@@ -75,6 +77,7 @@ export class InspectionTemplateEditorComponent implements OnChanges {
 
   private templatesService = inject(InspectionTemplatesService);
   private tyreConfigsService = inject(TyreConfigurationsService);
+  private notificationService = inject(NotificationService);
 
   tyreConfigs = this.tyreConfigsService.configurations;
   tyreCodeOptions = [
@@ -120,6 +123,7 @@ export class InspectionTemplateEditorComponent implements OnChanges {
       },
       error: () => {
         this.error.set('Failed to load template');
+        this.notificationService.error('Failed to load template.');
         this.loading.set(false);
       },
     });
@@ -184,6 +188,7 @@ export class InspectionTemplateEditorComponent implements OnChanges {
       },
       error: () => {
         this.error.set('Failed to save template');
+        this.notificationService.error('Failed to save template.');
         this.saving.set(false);
       },
     });
@@ -283,6 +288,20 @@ export class InspectionTemplateEditorComponent implements OnChanges {
 
   isPointCollapsed(blockLocalId: string, pointLocalId: string) {
     return this.collapsedPointKeys().has(this.getPointKey(blockLocalId, pointLocalId));
+  }
+
+  reorderPoints(blockLocalId: string, event: CdkDragDrop<EditorPoint[]>) {
+    if (event.previousIndex === event.currentIndex) return;
+
+    this.draft.update((state) => ({
+      ...state,
+      blocks: state.blocks.map((block) => {
+        if (block.localId !== blockLocalId) return block;
+        const nextPoints = [...block.points];
+        moveItemInArray(nextPoints, event.previousIndex, event.currentIndex);
+        return { ...block, points: nextPoints };
+      }),
+    }));
   }
 
   private getPointKey(blockLocalId: string, pointLocalId: string) {

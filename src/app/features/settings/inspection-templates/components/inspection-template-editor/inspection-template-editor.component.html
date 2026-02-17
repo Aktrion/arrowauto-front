@@ -1,5 +1,5 @@
-<div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
-  <div class="p-5 border-b border-base-200 flex items-center gap-4">
+<div class="card bg-base-100/90 border border-base-300 shadow-md overflow-hidden">
+  <div class="p-5 border-b border-base-300 bg-base-200/60 flex items-center gap-4">
     <button class="btn btn-ghost btn-sm btn-square" (click)="cancel.emit()">
       <lucide-icon [name]="icons.ChevronLeft" class="h-5 w-5"></lucide-icon>
     </button>
@@ -19,7 +19,7 @@
     </div>
   </div>
 
-  <div class="p-5 space-y-5">
+  <div class="p-5 space-y-5 bg-base-200/30">
     @if (error()) {
       <div class="alert alert-error text-sm">
         <lucide-icon [name]="icons.CircleAlert" class="h-4 w-4"></lucide-icon>
@@ -32,7 +32,7 @@
         Loading template...
       </div>
     } @else {
-      <div class="rounded-xl border border-base-200 p-4 bg-base-200/30">
+      <div class="rounded-xl border border-base-300 p-4 bg-base-100/70 shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div class="md:col-span-3">
             <label class="label">
@@ -70,8 +70,8 @@
 
       <div class="space-y-4">
         @for (block of draft().blocks; track block.localId; let blockIndex = $index) {
-          <div class="rounded-xl border border-base-200 bg-base-200/20">
-            <div class="p-4 border-b border-base-200 flex flex-col gap-3 md:flex-row md:items-center">
+          <div class="rounded-xl border border-base-300 bg-base-100/70 shadow-sm">
+            <div class="p-4 border-b border-base-300 bg-base-200/30 flex flex-col gap-3 md:flex-row md:items-center">
               <div
                 class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-sm font-bold"
               >
@@ -107,9 +107,18 @@
                 </div>
               }
 
+              <div
+                class="space-y-3 rounded-xl border border-base-300/70 bg-base-200/30 p-2"
+                cdkDropList
+                [cdkDropListData]="block.points"
+                (cdkDropListDropped)="reorderPoints(block.localId, $event)"
+              >
               @for (point of block.points; track point.localId; let pointIndex = $index) {
-                <div class="rounded-xl border border-base-300 bg-base-100">
+                <div class="rounded-xl border border-base-300 bg-base-100 shadow-sm" cdkDrag>
                   <div class="p-3 flex items-center gap-2 border-b border-base-200">
+                    <button class="btn btn-ghost btn-xs btn-square cursor-grab active:cursor-grabbing" cdkDragHandle title="Drag to reorder">
+                      <lucide-icon [name]="icons.GripVertical" class="h-4 w-4"></lucide-icon>
+                    </button>
                     <button
                       class="btn btn-ghost btn-xs btn-square"
                       (click)="togglePointCollapsed(block.localId, point.localId)"
@@ -276,6 +285,7 @@
                   }
                 </div>
               }
+              </div>
 
               <button
                 class="btn btn-ghost btn-sm w-full border border-dashed border-base-300"

@@ -7,6 +7,10 @@ async function globalSetup(_config: FullConfig) {
   execSync('npm run seed', {
     cwd: backDir,
     stdio: 'inherit',
+    env: {
+      ...process.env,
+      NODE_ENV: 'test',
+    },
   });
 }
 

@@ -1,12 +1,16 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ToastStackComponent } from './shared/components/toast-stack/toast-stack.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: `<router-outlet />`,
+  imports: [RouterOutlet, ToastStackComponent],
+  template: `
+    <router-outlet />
+    <app-toast-stack />
+  `,
   styles: [
     `
       :host {

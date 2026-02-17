@@ -30,7 +30,11 @@ export default defineConfig({
       command: 'npm run dev',
       cwd: backDir,
       port: 3000,
-      reuseExistingServer: true,
+      reuseExistingServer: false,
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+      },
       timeout: 120000,
     },
     {

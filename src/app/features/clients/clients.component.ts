@@ -5,6 +5,7 @@ import { Client } from '../../core/models';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-clients',
@@ -15,6 +16,7 @@ import { ICONS } from '../../shared/icons';
 export class ClientsComponent {
   icons = ICONS;
   private clientService = inject(ClientService);
+  private notificationService = inject(NotificationService);
 
   clients = this.clientService.clients;
   filteredClients = signal<Client[]>([]);
@@ -103,7 +105,9 @@ export class ClientsComponent {
         next: () => {
           this.filterClients();
           (document.getElementById('new_client_modal') as HTMLDialogElement)?.close();
+          this.notificationService.success('Client created successfully.');
         },
+        error: () => this.notificationService.error('Failed to create client.'),
       });
   }
 

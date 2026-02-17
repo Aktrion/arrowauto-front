@@ -11,6 +11,7 @@ import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
 import { OperationService } from '../../../shared/services/operation.service';
 import { Product, Vehicle, VehicleStatus } from '../models/vehicle.model';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-vehicle-detail',
@@ -25,6 +26,7 @@ export class VehicleDetailComponent implements OnInit {
   private vehicleService = inject(VehicleService);
   private clientService = inject(ClientService);
   private operationService = inject(OperationService);
+  private notificationService = inject(NotificationService);
 
   isNew = signal(false);
   product = signal<Partial<Product>>({
@@ -123,7 +125,11 @@ export class VehicleDetailComponent implements OnInit {
 
     if (this.isNew()) {
       this.vehicleService.addVehicleProduct(p as any).subscribe({
-        next: () => this.router.navigate(['/vehicles']),
+        next: () => {
+          this.notificationService.success('Vehicle created successfully.');
+          this.router.navigate(['/vehicles']);
+        },
+        error: () => this.notificationService.error('Failed to create vehicle.'),
       });
     } else {
       this.vehicleService
@@ -137,7 +143,11 @@ export class VehicleDetailComponent implements OnInit {
           }),
         )
         .subscribe({
-          next: () => this.router.navigate(['/vehicles']),
+          next: () => {
+            this.notificationService.success('Vehicle updated successfully.');
+            this.router.navigate(['/vehicles']);
+          },
+          error: () => this.notificationService.error('Failed to update vehicle.'),
         });
     }
   }

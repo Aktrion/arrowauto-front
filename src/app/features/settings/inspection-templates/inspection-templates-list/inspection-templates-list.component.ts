@@ -5,6 +5,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../../../shared/icons';
 import { InspectionTemplate, InspectionTemplatesService } from '../services/inspection-templates.service';
 import { InspectionTemplateEditorComponent } from '../components/inspection-template-editor/inspection-template-editor.component';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-inspection-templates-list',
@@ -119,6 +120,7 @@ import { InspectionTemplateEditorComponent } from '../components/inspection-temp
 export class InspectionTemplatesListComponent {
   icons = ICONS;
   private service = inject(InspectionTemplatesService);
+  private notificationService = inject(NotificationService);
 
   templates = signal<InspectionTemplate[]>([]);
   loading = signal(false);
@@ -158,6 +160,7 @@ export class InspectionTemplatesListComponent {
           this.total.set(0);
           this.totalPages.set(1);
           this.loading.set(false);
+          this.notificationService.error('Failed to load templates.');
         },
       });
   }
@@ -195,11 +198,15 @@ export class InspectionTemplatesListComponent {
 
   deleteTemplate(id: string) {
     if (confirm('Are you sure you want to delete this template?')) {
-      this.service.delete(id).subscribe(() => {
-        if (this.templates().length === 1 && this.page() > 1) {
-          this.page.update((p) => p - 1);
-        }
-        this.loadTemplates();
+      this.service.delete(id).subscribe({
+        next: () => {
+          if (this.templates().length === 1 && this.page() > 1) {
+            this.page.update((p) => p - 1);
+          }
+          this.loadTemplates();
+          this.notificationService.success('Template deleted successfully.');
+        },
+        error: () => this.notificationService.error('Failed to delete template.'),
       });
     }
   }
@@ -207,10 +214,12 @@ export class InspectionTemplatesListComponent {
   onSaved() {
     this.view.set('list');
     this.loadTemplates();
+    this.notificationService.success('Template updated successfully.');
   }
 
   onCreated(id: string) {
     this.selectedTemplateId.set(id);
     this.loadTemplates();
+    this.notificationService.success('Template created successfully.');
   }
 }
