@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { UserService } from '../../core/services/user.service';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { OperationService } from '../../shared/services/operation.service';
@@ -23,7 +24,7 @@ interface TimeSlot {
 @Component({
   selector: 'app-scheduling',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './scheduling.component.html',
 })
 export class SchedulingComponent {
@@ -37,21 +38,28 @@ export class SchedulingComponent {
   selectedDay = signal(new Date());
   selectedOperatorId = signal<string | null>(null);
   selectedSlotTime = signal<string>('');
+  selectedPendingOperationId = signal<string>('');
 
   weekDays = computed((): DaySlot[] => {
     const days: DaySlot[] = [];
     const start = this.currentWeekStart();
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const pendingCount = this.pendingOperations().length;
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(start);
       date.setDate(start.getDate() + i);
+      const totalHours = 8 * this.operators().length;
+      const scheduledHours = Math.min(
+        totalHours,
+        Math.ceil((pendingCount / 7) * 0.75) + (i % 2),
+      );
       days.push({
         date,
         dayName: dayNames[date.getDay()],
         dayNumber: date.getDate(),
-        totalHours: 8 * this.operators().length, // 8 hours per operator
-        scheduledHours: Math.floor(Math.random() * 4 * this.operators().length), // Simulated
+        totalHours,
+        scheduledHours,
       });
     }
     return days;
@@ -82,6 +90,16 @@ export class SchedulingComponent {
         vehiclePlate:
           vehicles.find((v) => v.id === vo.vehicleId)?.vehicle?.licensePlate || 'Unknown',
       }));
+  });
+
+  scheduledOperations = computed(() => {
+    const selectedDay = this.selectedDay().toDateString();
+    return this.operationService
+      .vehicleOperations()
+      .filter((op) => op.status !== 'pending' && !!op.assignedUserId && !!op.scheduledTime)
+      .filter((op) =>
+        op.scheduledDate ? new Date(op.scheduledDate).toDateString() === selectedDay : true,
+      );
   });
 
   selectedOperatorName = computed(() => {
@@ -162,72 +180,40 @@ export class SchedulingComponent {
     operatorId: string,
     time: string
   ): { code: string; name: string; status: string } | null {
-    // Simulate some scheduled tasks
-    const scheduled = [
-      {
-        operatorId: '2',
-        time: '09:00',
-        code: 'LTI',
-        name: 'Light Tunnel Inspection',
-        status: 'completed',
-      },
-      {
-        operatorId: '2',
-        time: '09:15',
-        code: 'LTI',
-        name: 'Light Tunnel Inspection',
-        status: 'completed',
-      },
-      {
-        operatorId: '2',
-        time: '09:30',
-        code: 'VHC',
-        name: 'Vehicle Health Check',
-        status: 'in_progress',
-      },
-      {
-        operatorId: '2',
-        time: '09:45',
-        code: 'VHC',
-        name: 'Vehicle Health Check',
-        status: 'in_progress',
-      },
-      {
-        operatorId: '3',
-        time: '10:00',
-        code: 'EXT',
-        name: 'Exterior Cleaning',
-        status: 'scheduled',
-      },
-      {
-        operatorId: '3',
-        time: '10:15',
-        code: 'EXT',
-        name: 'Exterior Cleaning',
-        status: 'scheduled',
-      },
-      {
-        operatorId: '3',
-        time: '10:30',
-        code: 'EXT',
-        name: 'Exterior Cleaning',
-        status: 'scheduled',
-      },
-      {
-        operatorId: '3',
-        time: '10:45',
-        code: 'EXT',
-        name: 'Exterior Cleaning',
-        status: 'scheduled',
-      },
-    ];
+    const op = this.scheduledOperations().find(
+      (item) => item.assignedUserId === operatorId && item.scheduledTime === time,
+    );
+    if (!op) return null;
 
-    return scheduled.find((s) => s.operatorId === operatorId && s.time === time) || null;
+    return {
+      code: op.operation?.code || 'OPR',
+      name: op.operation?.name || 'Operation',
+      status: op.status,
+    };
   }
 
   openSlotModal(operatorId: string, time: string): void {
     this.selectedOperatorId.set(operatorId);
     this.selectedSlotTime.set(time);
+    this.selectedPendingOperationId.set('');
     (document.getElementById('assign_modal') as HTMLDialogElement)?.showModal();
+  }
+
+  confirmAssignment(): void {
+    const operatorId = this.selectedOperatorId();
+    const slotTime = this.selectedSlotTime();
+    const operationId = this.selectedPendingOperationId();
+    if (!operatorId || !slotTime || !operationId) return;
+
+    this.operationService
+      .assignVehicleOperation(operationId, {
+        assignedUserId: operatorId,
+        scheduledDate: this.selectedDay(),
+        scheduledTime: slotTime,
+      })
+      .subscribe(() => {
+        this.selectedPendingOperationId.set('');
+        (document.getElementById('assign_modal') as HTMLDialogElement)?.close();
+      });
   }
 }

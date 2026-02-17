@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ClientService } from './services/client.service';
 import { Client } from '../../core/models';
@@ -32,7 +32,12 @@ export class ClientsComponent {
   };
 
   constructor() {
-    this.filteredClients.set(this.clients());
+    effect(() => {
+      this.filteredClients.set(this.clients());
+      if (this.searchQuery || this.typeFilter) {
+        this.filterClients();
+      }
+    });
   }
 
   setTypeFilter(type: string): void {
@@ -85,17 +90,21 @@ export class ClientsComponent {
   createClient(): void {
     if (!this.newClient.name || !this.newClient.email || !this.newClient.phone) return;
 
-    this.clientService.addClient({
+    this.clientService
+      .addClient({
       name: this.newClient.name,
       email: this.newClient.email,
       phone: this.newClient.phone,
       company: this.newClient.company || undefined,
       address: this.newClient.address || undefined,
       type: this.newClient.type,
-    });
-
-    this.filterClients();
-    (document.getElementById('new_client_modal') as HTMLDialogElement)?.close();
+      })
+      .subscribe({
+        next: () => {
+          this.filterClients();
+          (document.getElementById('new_client_modal') as HTMLDialogElement)?.close();
+        },
+      });
   }
 
   resetNewClient(): void {

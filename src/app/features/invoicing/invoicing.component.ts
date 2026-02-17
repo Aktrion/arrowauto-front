@@ -58,7 +58,7 @@ export class InvoicingComponent {
     } else if (tab === 'completed') {
       ops = ops.filter((item) => item.op.status === 'completed');
     } else if (tab === 'invoiced') {
-      ops = ops.filter((item) => (item.op as any).invoiced === true);
+      ops = ops.filter((item) => item.op.status === 'invoiced' || (item.op as any).invoiced === true);
     }
 
     if (this.searchQuery) {
@@ -85,8 +85,24 @@ export class InvoicingComponent {
     () => this.allOperations().filter((i) => i.op.status === 'completed').length
   );
 
-  invoicedTodayCount = signal(3);
-  totalRevenueToday = signal(1250.0);
+  invoicedTodayCount = computed(
+    () =>
+      this.allOperations().filter((item) => {
+        if (item.op.status !== 'invoiced') return false;
+        if (!item.op.completedAt) return false;
+        return new Date(item.op.completedAt).toDateString() === new Date().toDateString();
+      }).length,
+  );
+
+  totalRevenueToday = computed(() =>
+    this.allOperations()
+      .filter((item) => {
+        if (item.op.status !== 'invoiced') return false;
+        if (!item.op.completedAt) return false;
+        return new Date(item.op.completedAt).toDateString() === new Date().toDateString();
+      })
+      .reduce((sum, item) => sum + this.calculateTotal(item.op), 0),
+  );
 
   allSelected = computed(() => {
     const filtered = this.filteredOperations();
@@ -155,16 +171,46 @@ export class InvoicingComponent {
     const item = this.selectedItem();
     if (!item) return;
 
-    this.operationService.updateVehicleOperation(item.op.id, {
-      status: 'completed',
-      actualDuration: this.completeForm.duration,
-      hourlyRate: this.completeForm.hourlyRate,
-      assignedUserId: this.completeForm.operatorId,
-      notes: this.completeForm.notes,
-      completedAt: new Date(),
-    });
+    this.operationService
+      .updateVehicleOperation(item.op.id, {
+        status: 'completed',
+        actualDuration: this.completeForm.duration,
+        hourlyRate: this.completeForm.hourlyRate,
+        assignedUserId: this.completeForm.operatorId,
+        notes: this.completeForm.notes,
+        completedAt: new Date(),
+      })
+      .subscribe(() => {
+        (document.getElementById('complete_modal') as HTMLDialogElement)?.close();
+      });
+  }
 
-    (document.getElementById('complete_modal') as HTMLDialogElement)?.close();
+  markAsInvoiced(id: string): void {
+    const operation = this.allOperations().find((item) => item.op.id === id);
+    this.operationService.bulkMarkInvoiced([id]).subscribe(() => {
+      if (operation?.op.vehicleId) {
+        this.vehicleService.updateProductStatusByVehicleId(operation.op.vehicleId, 'invoiced').subscribe();
+      }
+    });
+  }
+
+  invoiceSelection(): void {
+    const ids = Array.from(this.selectedIds());
+    if (!ids.length) return;
+    const vehicleIds = Array.from(
+      new Set(
+        this.allOperations()
+          .filter((item) => ids.includes(item.op.id))
+          .map((item) => item.op.vehicleId),
+      ),
+    );
+
+    this.operationService.bulkMarkInvoiced(ids).subscribe(() => {
+      vehicleIds.forEach((vehicleId) =>
+        this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'invoiced').subscribe(),
+      );
+      this.clearSelection();
+    });
   }
 
   getStatusClass(status: string): string {
@@ -173,6 +219,7 @@ export class InvoicingComponent {
       scheduled: 'badge-info',
       in_progress: 'badge-warning',
       completed: 'badge-success',
+      invoiced: 'badge-primary',
       cancelled: 'badge-error',
     };
     return classes[status] || 'badge-ghost';

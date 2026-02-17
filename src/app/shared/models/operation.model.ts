@@ -12,7 +12,13 @@ export interface Operation {
   category: OperationCategory;
 }
 
-export type OperationStatus = 'pending' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+export type OperationStatus =
+  | 'pending'
+  | 'scheduled'
+  | 'in_progress'
+  | 'completed'
+  | 'invoiced'
+  | 'cancelled';
 
 export interface VehicleOperation {
   id: string;

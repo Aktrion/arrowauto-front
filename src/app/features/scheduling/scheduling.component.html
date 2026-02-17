@@ -31,7 +31,7 @@
   </div>
 
   <!-- Week Overview -->
-  <div class="grid grid-cols-7 gap-3">
+  <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
     @for (day of weekDays(); track day.date) {
       <button
         class="card card-premium hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
@@ -203,14 +203,14 @@
 
     <!-- Pending Operations Sidebar -->
     <div class="lg:col-span-1">
-      <div class="card card-premium h-full sticky top-4">
+      <div class="card card-premium h-full lg:sticky lg:top-4">
         <div class="card-body p-5">
           <div class="flex items-center justify-between mb-4">
             <h2 class="card-title text-lg">Pending Operations</h2>
             <div class="badge badge-neutral badge-sm">{{ pendingOperations().length }}</div>
           </div>
 
-          <div class="space-y-3 h-[calc(100vh-20rem)] overflow-y-auto custom-scrollbar pr-1">
+          <div class="space-y-3 h-[50vh] lg:h-[calc(100vh-20rem)] overflow-y-auto custom-scrollbar pr-1">
             @for (op of pendingOperations(); track op.id) {
               <div
                 class="p-3 bg-base-100 border border-base-200 rounded-xl cursor-move hover:border-primary hover:shadow-md hover:shadow-primary/5 transition-all group animate-fade-in-up"
@@ -255,9 +255,9 @@
 
   <!-- Assign Operation Modal -->
   <dialog id="assign_modal" class="modal modal-bottom sm:modal-middle">
-    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-white/10">
+    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-base-300">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">Ã—</button>
       </form>
       <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
         <lucide-icon [name]="icons.Calendar" class="h-6 w-6 text-primary"></lucide-icon>
@@ -289,6 +289,8 @@
           </label>
           <select
             class="select select-bordered w-full h-12 text-base shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            [ngModel]="selectedPendingOperationId()"
+            (ngModelChange)="selectedPendingOperationId.set($event)"
           >
             <option value="" disabled selected>Choose an operation...</option>
             @for (op of pendingOperations(); track op.id) {
@@ -306,7 +308,13 @@
         <form method="dialog">
           <button class="btn btn-ghost hover:bg-base-200">Cancel</button>
         </form>
-        <button class="btn btn-primary shadow-lg shadow-primary/20 px-8">Confirm Assignment</button>
+        <button
+          class="btn btn-primary shadow-lg shadow-primary/20 px-8"
+          [disabled]="!selectedPendingOperationId()"
+          (click)="confirmAssignment()"
+        >
+          Confirm Assignment
+        </button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop bg-neutral/50 backdrop-blur-sm">
@@ -314,3 +322,5 @@
     </form>
   </dialog>
 </div>
+
+

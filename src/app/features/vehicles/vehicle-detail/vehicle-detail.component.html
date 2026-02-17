@@ -1,7 +1,7 @@
 <div class="space-y-6 max-w-6xl mx-auto pb-12">
   <!-- Top Navigation & Actions -->
-  <div class="flex items-center justify-between pb-2">
-    <div class="flex items-center gap-4">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2">
+    <div class="flex items-center gap-3 sm:gap-4">
       <button
         routerLink="/vehicles"
         class="bg-base-200 hover:bg-base-300 p-2 rounded-xl transition-all text-base-content/60 hover:text-primary active:scale-95"
@@ -25,13 +25,13 @@
         </p>
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      <button routerLink="/vehicles" class="btn btn-ghost border-base-300 px-6 font-semibold">
+    <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <button routerLink="/vehicles" class="btn btn-ghost border-base-300 px-4 sm:px-6 font-semibold flex-1 sm:flex-none">
         {{ 'VEHICLE.DETAIL.CANCEL' | translate }}
       </button>
       <button
         (click)="save()"
-        class="btn-premium flex items-center gap-2 group shadow-glow-primary px-8"
+        class="btn-premium flex items-center gap-2 group shadow-glow-primary px-4 sm:px-8 flex-1 sm:flex-none"
         [disabled]="
           !product().vehicle?.licensePlate || !product().vehicle?.make || !product().vehicle?.model
         "
@@ -67,7 +67,7 @@
             <p class="text-base-content/60 font-medium text-sm">
               {{ product().vehicle?.make }} {{ product().vehicle?.model }}
               @if (product().vehicle?.year) {
-                <span class="text-base-content/40">• {{ product().vehicle?.year }}</span>
+                <span class="text-base-content/40">&bull; {{ product().vehicle?.year }}</span>
               }
             </p>
             <div class="mt-1.5">
@@ -141,13 +141,13 @@
     </div>
 
     <!-- Tabs Navigation (Full Width) -->
-    <div class="bg-base-200/50 p-1.5 rounded-2xl flex w-full shadow-inner">
+    <div class="bg-base-200/50 p-1.5 rounded-2xl flex w-full shadow-inner overflow-x-auto">
       <button
         (click)="activeTab.set('details')"
-        class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2"
+        class="flex-1 min-w-[120px] py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2"
         [class]="
           activeTab() === 'details'
-            ? 'bg-white text-primary shadow-sm'
+            ? 'bg-base-100 text-primary shadow-sm'
             : 'text-base-content/50 hover:text-base-content'
         "
       >
@@ -156,10 +156,10 @@
       </button>
       <button
         (click)="activeTab.set('operations')"
-        class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2"
+        class="flex-1 min-w-[120px] py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2"
         [class]="
           activeTab() === 'operations'
-            ? 'bg-white text-primary shadow-sm'
+            ? 'bg-base-100 text-primary shadow-sm'
             : 'text-base-content/50 hover:text-base-content'
         "
       >
@@ -168,10 +168,10 @@
       </button>
       <button
         (click)="activeTab.set('history')"
-        class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2"
+        class="flex-1 min-w-[120px] py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2"
         [class]="
           activeTab() === 'history'
-            ? 'bg-white text-primary shadow-sm'
+            ? 'bg-base-100 text-primary shadow-sm'
             : 'text-base-content/50 hover:text-base-content'
         "
       >
@@ -184,7 +184,7 @@
   <!-- Tab Content: Details (Full Width) -->
   @if (activeTab() === 'details' || isNew()) {
     <div class="animate-fade-in">
-      <div class="card-premium rounded-2xl border border-base-200/50 p-8 space-y-8">
+      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8 space-y-8">
         <!-- HPI & Primary Section -->
         <section>
           <div class="flex items-center gap-3 mb-6">
@@ -207,7 +207,7 @@
                   <input
                     type="text"
                     placeholder="e.g. AB12 CDE"
-                    class="w-full px-5 py-3.5 bg-base-200 border-2 border-transparent rounded-2xl focus:border-primary focus:bg-white transition-all uppercase font-mono text-xl text-primary font-bold shadow-inner"
+                    class="w-full px-5 py-3.5 bg-base-200 border-2 border-transparent rounded-2xl focus:border-primary focus:bg-base-100 transition-all uppercase font-mono text-xl text-primary font-bold shadow-inner"
                     [(ngModel)]="product().vehicle!.licensePlate"
                   />
                 </div>
@@ -252,7 +252,7 @@
                 <input
                   type="text"
                   placeholder="e.g. BMW"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
                   [(ngModel)]="product().vehicle!.make"
                 />
               </div>
@@ -265,7 +265,7 @@
                 <input
                   type="text"
                   placeholder="e.g. 320d M Sport"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
                   [(ngModel)]="product().vehicle!.model"
                 />
               </div>
@@ -295,7 +295,7 @@
                 >
                 <input
                   type="number"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
                   [(ngModel)]="product().vehicle!.year"
                 />
               </div>
@@ -307,7 +307,7 @@
                 <input
                   type="text"
                   placeholder="e.g. Black"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
                   [(ngModel)]="product().vehicle!.colour"
                 />
               </div>
@@ -319,7 +319,7 @@
                 <div class="relative">
                   <input
                     type="number"
-                    class="w-full px-4 py-3 pr-12 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+                    class="w-full px-4 py-3 pr-12 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
                     [(ngModel)]="product().vehicle!.mileage"
                   />
                   <span
@@ -336,7 +336,7 @@
                 <input
                   type="text"
                   placeholder="e.g. 2.0L"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
                   [(ngModel)]="product().vehicle!.engine"
                 />
               </div>
@@ -348,7 +348,7 @@
                 <input
                   type="text"
                   placeholder="Vehicle Identification Number"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-mono font-medium"
+                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-mono font-medium"
                   [(ngModel)]="product().vehicle!.vin"
                 />
               </div>
@@ -359,7 +359,7 @@
                 >
                 <input
                   type="date"
-                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+                  class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
                   [(ngModel)]="product().vehicle!.next_entry"
                 />
               </div>
@@ -386,7 +386,7 @@
               >{{ 'VEHICLE.DETAIL.ASSIGNMENT.ASSIGN_CLIENT' | translate }}</label
             >
             <select
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-semibold"
+              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all font-semibold"
               [(ngModel)]="product().customerId"
             >
               <option value="">
@@ -407,8 +407,8 @@
   <!-- Tab Content: Operations (Full Width) -->
   @if (activeTab() === 'operations') {
     <div class="animate-fade-in">
-      <div class="card-premium rounded-2xl border border-base-200/50 p-8">
-        <div class="flex justify-between items-center mb-8">
+      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-8">
           <div>
             <h3 class="font-bold text-xl text-base-content">
               {{ 'VEHICLE.DETAIL.OPERATIONS.TITLE' | translate }}
@@ -426,24 +426,24 @@
         <div class="space-y-3">
           @for (op of getVehicleOperations(product().id!); track op.id) {
             <div
-              class="flex items-center justify-between p-5 bg-base-200/40 border border-base-200/60 rounded-2xl hover:bg-base-200/80 transition-all group"
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-base-200/40 border border-base-200/60 rounded-2xl hover:bg-base-200/80 transition-all group"
             >
-              <div class="flex items-center gap-4">
+              <div class="flex items-center gap-4 min-w-0">
                 <div
-                  class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-primary font-bold"
+                  class="w-12 h-12 rounded-xl bg-base-100 shadow-sm flex items-center justify-center text-primary font-bold"
                 >
                   {{ op.operation?.code }}
                 </div>
-                <div>
-                  <p class="font-bold text-base-content group-hover:text-primary transition-colors">
+                <div class="min-w-0">
+                  <p class="font-bold text-base-content group-hover:text-primary transition-colors truncate">
                     {{ op.operation?.name }}
                   </p>
                   <p class="text-xs text-base-content/50 font-medium">
-                    {{ op.operation?.estimatedDuration }} min • £{{ op.operation?.defaultPrice }}
+                    {{ op.operation?.estimatedDuration }} min &bull; &pound;{{ op.operation?.defaultPrice }}
                   </p>
                 </div>
               </div>
-              <div class="flex items-center gap-4">
+              <div class="flex items-center justify-between sm:justify-end gap-4">
                 <span
                   class="status-badge px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
                   [class]="getOperationStatusClass(op.status)"
@@ -482,7 +482,7 @@
   <!-- Tab Content: History (Full Width) -->
   @if (activeTab() === 'history') {
     <div class="animate-fade-in">
-      <div class="card-premium rounded-2xl border border-base-200/50 p-8 text-center py-20">
+      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8 text-center py-16 sm:py-20">
         <div
           class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-6"
         >

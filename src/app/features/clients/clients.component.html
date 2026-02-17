@@ -25,7 +25,7 @@
         <input
           type="text"
           [placeholder]="'CLIENTS.SEARCH_PLACEHOLDER' | translate"
-          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
           [(ngModel)]="searchQuery"
           (input)="filterClients()"
         />
@@ -181,9 +181,9 @@
 
   <!-- New Client Modal -->
   <dialog id="new_client_modal" class="modal">
-    <div class="modal-box max-w-lg bg-white">
+    <div class="modal-box max-w-lg bg-base-100 border border-base-300">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">âœ•</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">×</button>
       </form>
 
       <div class="flex items-center gap-3 mb-6">
@@ -238,7 +238,7 @@
           <input
             type="text"
             placeholder="John Smith"
-            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
             [(ngModel)]="newClient.name"
           />
         </div>
@@ -251,7 +251,7 @@
             <input
               type="text"
               placeholder="Acme Corp Ltd"
-              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
               [(ngModel)]="newClient.company"
             />
           </div>
@@ -264,7 +264,7 @@
           <input
             type="email"
             placeholder="john@example.com"
-            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
             [(ngModel)]="newClient.email"
           />
         </div>
@@ -276,7 +276,7 @@
           <input
             type="tel"
             placeholder="+44 7700 900000"
-            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
             [(ngModel)]="newClient.phone"
           />
         </div>
@@ -288,7 +288,7 @@
           <textarea
             placeholder="123 Main Street, London, UK"
             rows="2"
-            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all resize-none"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all resize-none"
             [(ngModel)]="newClient.address"
           ></textarea>
         </div>
@@ -304,8 +304,11 @@
         </button>
       </div>
     </div>
-    <form method="dialog" class="modal-backdrop bg-black/50 backdrop-blur-sm">
+    <form method="dialog" class="modal-backdrop bg-base-content/30 backdrop-blur-sm">
       <button>close</button>
     </form>
   </dialog>
 </div>
+
+
+

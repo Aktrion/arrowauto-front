@@ -58,7 +58,7 @@
       <div class="space-y-2 p-2">
         @for (point of points(); track point._id) {
           <div
-            class="group flex items-center gap-4 p-3 bg-white rounded-xl border border-base-200 shadow-sm hover:border-primary/20 hover:shadow-md transition-all cursor-pointer"
+            class="group flex items-center gap-4 p-3 bg-base-100 rounded-xl border border-base-300 shadow-sm hover:border-primary/20 hover:shadow-md transition-all cursor-pointer"
             (click)="editPoint(point)"
           >
             <!-- Drag Handle (Visual only for now) -->
@@ -147,3 +147,5 @@
     ></app-inspection-point-editor>
   </div>
 }
+
+

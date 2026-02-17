@@ -48,9 +48,16 @@ export class InspectionBlocksService {
   // Helper to find blocks by template
   getBlocksByTemplateId(templateId: string) {
     return this.http.post<{ data: InspectionBlock[] }>(`${this.apiUrl}/search`, {
-      filter: { inspectionTemplateId: templateId },
-      sort: { order: 1 },
-      limit: 100, // Assume reasonable limit
+      page: 1,
+      limit: 100,
+      sortBy: 'order',
+      sortOrder: 'asc',
+      filters: {
+        inspectionTemplateId: {
+          value: templateId,
+          operator: 'equals',
+        },
+      },
     });
   }
 }

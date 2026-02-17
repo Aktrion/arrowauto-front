@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +33,25 @@ export class VehicleDetailComponent implements OnInit {
   clients = this.clientService.clients;
   activeTab = signal('details');
   hpiResult = signal(false);
+  private routeId = signal<string>('');
+
+  constructor() {
+    effect(() => {
+      const id = this.routeId();
+      if (!id || id === 'new') return;
+
+      const found = this.vehicleService.getVehicleById(id);
+      if (found) {
+        this.product.set({ ...found });
+        this.isNew.set(false);
+        return;
+      }
+
+      if (this.vehicleService.loaded()) {
+        this.router.navigate(['/vehicles']);
+      }
+    });
+  }
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
@@ -41,13 +60,8 @@ export class VehicleDetailComponent implements OnInit {
         this.isNew.set(true);
         this.resetProduct();
       } else {
-        const found = this.vehicleService.getVehicleById(id);
-        if (found) {
-          this.product.set({ ...found });
-          this.isNew.set(false);
-        } else {
-          this.router.navigate(['/vehicles']);
-        }
+        this.routeId.set(id);
+        this.vehicleService.loadVehicles();
       }
     });
   }
@@ -73,23 +87,21 @@ export class VehicleDetailComponent implements OnInit {
     const plate = this.product().vehicle?.licensePlate;
     if (!plate) return;
 
-    // Mock HPI check
-    setTimeout(() => {
+    this.vehicleService.findVehicleByPlate(plate).subscribe((vehicle) => {
+      if (!vehicle) {
+        this.hpiResult.set(false);
+        return;
+      }
+
       this.product.update((p) => ({
         ...p,
         vehicle: {
           ...p.vehicle!,
-          make: 'BMW',
-          model: '320d',
-          year: 2022,
-          registrationDate: '2022-01-14',
-          engine: '2.0',
-          colour: 'Black',
-          vin: 'WBAXXXXXXXXX12345',
+          ...vehicle,
         },
       }));
       this.hpiResult.set(true);
-    }, 500);
+    });
   }
 
   save() {
@@ -97,11 +109,14 @@ export class VehicleDetailComponent implements OnInit {
     if (!p.vehicle?.licensePlate || !p.vehicle?.make || !p.vehicle?.model) return;
 
     if (this.isNew()) {
-      this.vehicleService.addVehicleProduct(p as any);
+      this.vehicleService.addVehicleProduct(p as any).subscribe({
+        next: () => this.router.navigate(['/vehicles']),
+      });
     } else {
-      this.vehicleService.updateVehicleProduct(p.id!, p as any);
+      this.vehicleService.updateVehicleProduct(p.id!, p as any).subscribe({
+        next: () => this.router.navigate(['/vehicles']),
+      });
     }
-    this.router.navigate(['/vehicles']);
   }
 
   getVehicleOperations(vehicleId: string) {

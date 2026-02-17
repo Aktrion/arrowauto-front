@@ -6,6 +6,7 @@ export interface InspectionPoint {
   code?: string;
   category: string;
   name: string;
+  type?: 'standard' | 'tyre';
   description?: string;
   predefinedComments: string[];
 }

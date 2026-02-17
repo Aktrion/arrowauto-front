@@ -76,15 +76,11 @@ html {
 }
 
 body {
-  font-family:
-    'Inter',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--color-base-200);
+  color: var(--color-base-content);
 }
 
 /* === Custom Scrollbar === */
@@ -170,8 +166,8 @@ body {
 
 /* === Premium Card Styles === */
 .card-premium {
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--color-base-100);
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
   box-shadow: var(--shadow-md);
   transition: all var(--transition-normal);
 }
@@ -180,10 +176,10 @@ body {
 .stat-card {
   position: relative;
   overflow: hidden;
-  background: white;
+  background: var(--color-base-100);
   border-radius: 1rem;
   padding: 1.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
   box-shadow: var(--shadow-md);
   transition: all var(--transition-normal);
 }
@@ -236,7 +232,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  color: #22c55e;
+  color: var(--color-success);
   font-weight: 500;
   font-size: 0.875rem;
 }
@@ -245,7 +241,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  color: #ef4444;
+  color: var(--color-error);
   font-weight: 500;
   font-size: 0.875rem;
 }
@@ -258,14 +254,14 @@ body {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
   font-weight: 500;
-  color: #64748b;
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
   transition: all var(--transition-fast);
   position: relative;
 }
 
 .nav-link:hover {
-  background: rgba(148, 131, 186, 0.1);
-  color: #9483ba;
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
 }
 
 .nav-link.active {
@@ -284,7 +280,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #94a3b8;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
   padding: 1rem 1rem 0.5rem;
 }
 
@@ -300,28 +296,28 @@ body {
 }
 
 .status-pending {
-  background: #f1f5f9;
-  color: #64748b;
+  background: color-mix(in oklab, var(--color-base-300) 65%, transparent);
+  color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
 }
 .status-in-progress {
-  background: #dbeafe;
-  color: #2563eb;
+  background: color-mix(in oklab, var(--color-info) 20%, transparent);
+  color: var(--color-info);
 }
 .status-inspection {
-  background: #fef3c7;
-  color: #d97706;
+  background: color-mix(in oklab, var(--color-warning) 20%, transparent);
+  color: var(--color-warning);
 }
 .status-awaiting {
-  background: #f3e8ff;
-  color: #9333ea;
+  background: color-mix(in oklab, var(--color-accent) 20%, transparent);
+  color: var(--color-accent);
 }
 .status-completed {
-  background: #dcfce7;
-  color: #16a34a;
+  background: color-mix(in oklab, var(--color-success) 20%, transparent);
+  color: var(--color-success);
 }
 .status-error {
-  background: #fee2e2;
-  color: #dc2626;
+  background: color-mix(in oklab, var(--color-error) 20%, transparent);
+  color: var(--color-error);
 }
 
 /* === Table Styles === */
@@ -334,26 +330,26 @@ body {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
   padding: 1rem;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--color-base-300);
 }
 
 .table-premium td {
   padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-base-300);
 }
 
 .table-premium tr:hover td {
-  background: rgba(148, 131, 186, 0.03);
+  background: color-mix(in oklab, var(--color-primary) 5%, transparent);
 }
 
 /* === Vehicle Card Styles === */
 .vehicle-card {
   position: relative;
-  background: white;
+  background: var(--color-base-100);
   border-radius: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
   box-shadow: var(--shadow-md);
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -367,7 +363,11 @@ body {
 
 .vehicle-card-header {
   padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-base-200) 0%,
+    color-mix(in oklab, var(--color-base-300) 75%, transparent) 100%
+  );
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -395,7 +395,7 @@ body {
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: #e2e8f0;
+  background: var(--color-base-300);
 }
 
 .progress-step.completed {
@@ -414,8 +414,8 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--color-base-100);
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
   border-radius: 1rem;
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-normal);
@@ -441,15 +441,15 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--color-base-100);
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
   border-radius: 0.75rem;
   transition: all var(--transition-fast);
 }
 
 .user-card:hover {
-  background: #f8fafc;
-  border-color: rgba(148, 131, 186, 0.2);
+  background: var(--color-base-200);
+  border-color: color-mix(in oklab, var(--color-primary) 25%, transparent);
 }
 
 .user-avatar {
@@ -467,13 +467,13 @@ body {
 }
 
 .user-status.online {
-  background: #22c55e;
+  background: var(--color-success);
 }
 .user-status.offline {
-  background: #94a3b8;
+  background: color-mix(in oklab, var(--color-base-content) 35%, transparent);
 }
 .user-status.busy {
-  background: #f59e0b;
+  background: var(--color-warning);
 }
 
 /* === Animations === */
@@ -556,7 +556,12 @@ body {
 
 /* === Skeleton Loading === */
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-base-200) 25%,
+    var(--color-base-300) 50%,
+    var(--color-base-200) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 0.5rem;
@@ -592,31 +597,31 @@ body {
   width: 5rem;
   height: 5rem;
   border-radius: 50%;
-  background: #f1f5f9;
+  background: var(--color-base-200);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  color: #94a3b8;
+  color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
   margin-bottom: 1.5rem;
 }
 
 .empty-state-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-base-content);
   margin-bottom: 0.5rem;
 }
 
 .empty-state-description {
-  color: #64748b;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
   max-width: 20rem;
 }
 
 /* === Form Styles === */
 .form-section {
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--color-base-100);
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
   border-radius: 1rem;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -625,13 +630,13 @@ body {
 .form-section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-base-content);
   margin-bottom: 0.5rem;
 }
 
 .form-section-description {
   font-size: 0.875rem;
-  color: #64748b;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
   margin-bottom: 1.5rem;
 }
 
@@ -671,8 +676,8 @@ body {
   left: 50%;
   transform: translateX(-50%) translateY(-8px);
   padding: 0.5rem 0.75rem;
-  background: #1f2937;
-  color: white;
+  background: var(--color-neutral);
+  color: var(--color-neutral-content);
   font-size: 0.75rem;
   border-radius: 0.5rem;
   white-space: nowrap;
@@ -733,7 +738,7 @@ body {
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
-  border: 4px solid #e2e8f0;
+  border: 4px solid var(--color-base-300);
   position: relative;
   display: flex;
   align-items: center;
@@ -747,30 +752,30 @@ body {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  border: 2px dashed #94a3b8;
+  border: 2px dashed color-mix(in oklab, var(--color-base-content) 35%, transparent);
 }
 
 .tyre-status-indicator.status-good {
-  border-color: #22c55e;
+  border-color: var(--color-success);
 }
 .tyre-status-indicator.status-good::after {
-  background: #22c55e;
+  background: var(--color-success);
   border: none;
 }
 
 .tyre-status-indicator.status-acceptable {
-  border-color: #f59e0b;
+  border-color: var(--color-warning);
 }
 .tyre-status-indicator.status-acceptable::after {
-  background: #f59e0b;
+  background: var(--color-warning);
   border: none;
 }
 
 .tyre-status-indicator.status-attention {
-  border-color: #ef4444;
+  border-color: var(--color-error);
 }
 .tyre-status-indicator.status-attention::after {
-  background: #ef4444;
+  background: var(--color-error);
   border: none;
 }
 
@@ -791,8 +796,8 @@ body {
 .car-body {
   width: 120px;
   height: 320px;
-  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
-  border: 2px solid #94a3b8;
+  background: linear-gradient(180deg, var(--color-base-200) 0%, var(--color-base-300) 100%);
+  border: 2px solid color-mix(in oklab, var(--color-base-content) 35%, transparent);
   border-radius: 30px 30px 40px 40px;
   position: absolute;
   top: 50%;
@@ -802,7 +807,7 @@ body {
 }
 
 .car-window {
-  background: #334155;
+  background: color-mix(in oklab, var(--color-base-content) 80%, transparent);
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -860,6 +865,27 @@ body {
   width: 120px;
 }
 
+@media (max-width: 768px) {
+  .car-diagram-container {
+    min-height: 540px;
+    padding: 0 180px;
+  }
+
+  .tyre-control {
+    width: 150px;
+  }
+
+  .tyre-control.front-left,
+  .tyre-control.rear-left {
+    left: 8px;
+  }
+
+  .tyre-control.front-right,
+  .tyre-control.rear-right {
+    right: 8px;
+  }
+}
+
 /* Left side: Label | Input */
 .tyre-control.front-left .tyre-inputs,
 .tyre-control.rear-left .tyre-inputs {
@@ -885,11 +911,11 @@ body {
 .tyre-input {
   width: 70px;
   padding: 0.375rem 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-base-300);
   border-radius: 0.375rem;
   text-align: center;
   font-size: 0.875rem;
-  background: #fff;
+  background: var(--color-base-100);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -901,11 +927,11 @@ body {
 
 /* === Inspection Group Styles === */
 .inspection-group-header {
-  background: #f8fafc;
+  background: var(--color-base-200);
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-weight: 600;
-  color: #475569;
+  color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -923,30 +949,30 @@ body {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 0.25rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-base-300);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: #f1f5f9;
-  color: #cbd5e1;
+  background: var(--color-base-200);
+  color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
 }
 
 .status-toggle.active-ok {
-  background: #22c55e;
-  border-color: #22c55e;
+  background: var(--color-success);
+  border-color: var(--color-success);
   color: white;
 }
 
 .status-toggle.active-warning {
-  background: #f59e0b;
-  border-color: #f59e0b;
+  background: var(--color-warning);
+  border-color: var(--color-warning);
   color: white;
 }
 
 .status-toggle.active-defect {
-  background: #ef4444;
-  border-color: #ef4444;
+  background: var(--color-error);
+  border-color: var(--color-error);
   color: white;
 }
 

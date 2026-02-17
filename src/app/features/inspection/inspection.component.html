@@ -19,7 +19,7 @@
             >
           </h2>
 
-          <div class="space-y-3 mt-2 h-[calc(80vh-25rem)] overflow-y-auto pr-1 custom-scrollbar">
+          <div class="space-y-3 mt-2 max-h-[45vh] lg:h-[calc(80vh-25rem)] overflow-y-auto pr-1 custom-scrollbar">
             @for (vehicle of vehiclesForInspection(); track vehicle.id) {
             <button
               class="w-full p-4 rounded-xl border transition-all text-left relative overflow-hidden group"
@@ -93,15 +93,15 @@
 
           <div class="flex justify-between items-center px-2 mb-2">
             <span class="text-base-content/60 text-sm">Progress</span>
-            <span class="font-bold text-sm"
+              <span class="font-bold text-sm"
               >{{ countByStatus('ok') + countByStatus('warning') + countByStatus('defect') }} /
-              {{ inspectionPoints().length }}</span
+              {{ activeInspectionPoints().length }}</span
             >
           </div>
           <progress
             class="progress progress-primary w-full h-2 rounded-full mb-6"
             [value]="countByStatus('ok') + countByStatus('warning') + countByStatus('defect')"
-            [max]="inspectionPoints().length"
+            [max]="activeInspectionPoints().length"
           ></progress>
 
           @if (totalCost() > 0) {
@@ -116,10 +116,16 @@
           <button
             class="btn btn-primary btn-block shadow-lg shadow-primary/20"
             [disabled]="!hasInspectionResults()"
+            (click)="submitInspection()"
           >
             <lucide-icon [name]="icons.Send" class="h-5 w-5 mr-2"></lucide-icon>
-            Send to Customer
+            {{ isSaving() ? 'Saving...' : 'Save Inspection' }}
           </button>
+          @if (saveError()) {
+          <p class="text-error text-xs mt-2">{{ saveError() }}</p>
+          } @if (saveSuccess()) {
+          <p class="text-success text-xs mt-2">Inspection saved successfully.</p>
+          }
         </div>
       </div>
       }
@@ -209,7 +215,7 @@
               </div>
 
               <div class="collapse-content">
-                <div class="pt-4 pb-2 pl-8">
+                <div class="pt-4 pb-2 pl-0 sm:pl-8">
                   <!-- Detailed Edit Mode -->
                   <div class="bg-base-200/50 p-4 rounded-xl border border-base-200">
                     <div class="form-control mb-4">
@@ -315,7 +321,8 @@
             </div>
           </div>
 
-          <div class="car-diagram-container">
+          <div class="overflow-x-auto">
+            <div class="car-diagram-container min-w-[680px] lg:min-w-0">
             <div class="car-body">
               <div class="car-window front"></div>
               <div class="car-window rear"></div>
@@ -537,6 +544,7 @@
               </div>
             </div>
             }
+            </div>
           </div>
         </div>
       </div>
@@ -560,3 +568,4 @@
     </div>
   </div>
 </div>
+

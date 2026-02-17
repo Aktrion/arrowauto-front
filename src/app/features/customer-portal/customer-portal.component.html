@@ -111,7 +111,7 @@
                           {{ 'PORTAL.ESTIMATED_COST' | translate }}
                         </p>
                         <p class="text-2xl font-black text-primary leading-none">
-                          £{{ (item.partsCost + item.laborCost).toFixed(2) }}
+                          &pound;{{ (item.partsCost + item.laborCost).toFixed(2) }}
                         </p>
                       </div>
                     </div>
@@ -152,14 +152,14 @@
                         {{ 'PORTAL.COST_DETAILS.VIEW' | translate }}
                       </div>
                       <div class="collapse-content">
-                        <div class="flex gap-4 pt-2">
+                        <div class="flex flex-col sm:flex-row gap-4 pt-2">
                           <div
                             class="flex-1 p-3 bg-base-200/50 rounded-lg text-center border border-base-200"
                           >
                             <div class="text-[10px] uppercase font-bold text-base-content/40 mb-1">
                               {{ 'PORTAL.COST_DETAILS.PARTS' | translate }}
                             </div>
-                            <div class="font-bold">£{{ item.partsCost.toFixed(2) }}</div>
+                            <div class="font-bold">&pound;{{ item.partsCost.toFixed(2) }}</div>
                           </div>
                           <div
                             class="flex-1 p-3 bg-base-200/50 rounded-lg text-center border border-base-200"
@@ -167,7 +167,7 @@
                             <div class="text-[10px] uppercase font-bold text-base-content/40 mb-1">
                               {{ 'PORTAL.COST_DETAILS.LABOR' | translate }}
                             </div>
-                            <div class="font-bold">£{{ item.laborCost.toFixed(2) }}</div>
+                            <div class="font-bold">&pound;{{ item.laborCost.toFixed(2) }}</div>
                           </div>
                         </div>
                       </div>
@@ -251,7 +251,7 @@
       <!-- Cart / Summary Sticky Sidebar -->
       <div class="lg:col-span-1">
         <div
-          class="card card-premium sticky top-6 shadow-xl shadow-primary/5 ring-1 ring-primary/5"
+          class="card card-premium lg:sticky lg:top-6 shadow-xl shadow-primary/5 ring-1 ring-primary/5"
         >
           <div class="card-body p-6">
             <h2 class="card-title text-lg mb-4">{{ 'PORTAL.SELECTION.TITLE' | translate }}</h2>
@@ -273,7 +273,7 @@
                       <span class="text-sm font-medium truncate">{{ item.name }}</span>
                     </div>
                     <span class="font-bold text-sm"
-                      >£{{ (item.partsCost + item.laborCost).toFixed(2) }}</span
+                      >&pound;{{ (item.partsCost + item.laborCost).toFixed(2) }}</span
                     >
                   </div>
                 }
@@ -287,25 +287,25 @@
                   <span class="text-base-content/60 font-medium">{{
                     'PORTAL.COST_DETAILS.PARTS' | translate
                   }}</span>
-                  <span class="font-bold">£{{ totalParts().toFixed(2) }}</span>
+                  <span class="font-bold">&pound;{{ totalParts().toFixed(2) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                   <span class="text-base-content/60 font-medium">{{
                     'PORTAL.COST_DETAILS.LABOR' | translate
                   }}</span>
-                  <span class="font-bold">£{{ totalLabor().toFixed(2) }}</span>
+                  <span class="font-bold">&pound;{{ totalLabor().toFixed(2) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                   <span class="text-base-content/60 font-medium">{{
                     'PORTAL.TOTALS.VAT' | translate
                   }}</span>
-                  <span class="font-bold">£{{ totalVat().toFixed(2) }}</span>
+                  <span class="font-bold">&pound;{{ totalVat().toFixed(2) }}</span>
                 </div>
                 <div class="divider my-1"></div>
                 <div class="flex justify-between items-center pt-1">
                   <span class="font-black text-lg">{{ 'PORTAL.TOTALS.TOTAL' | translate }}</span>
                   <span class="font-black text-3xl text-primary"
-                    >£{{ grandTotal().toFixed(2) }}</span
+                    >&pound;{{ grandTotal().toFixed(2) }}</span
                   >
                 </div>
               </div>
@@ -353,7 +353,7 @@
 
   <!-- Confirmation Modal -->
   <dialog id="confirm_modal" class="modal modal-bottom sm:modal-middle">
-    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-white/10">
+    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-base-300">
       <div class="text-center mb-6">
         <div
           class="w-16 h-16 bg-success/10 text-success rounded-full flex items-center justify-center mx-auto mb-4"
@@ -369,7 +369,7 @@
           <span class="badge badge-neutral font-bold">{{ cartItems().length }}</span>
           {{ 'PORTAL.MODAL.DESC_2' | translate }}
         </p>
-        <p class="text-3xl font-black text-primary my-4">£{{ grandTotal().toFixed(2) }}</p>
+        <p class="text-3xl font-black text-primary my-4">&pound;{{ grandTotal().toFixed(2) }}</p>
         <p class="text-sm text-base-content/60 max-w-xs mx-auto">
           {{ 'PORTAL.MODAL.NOTE' | translate }}
         </p>
@@ -381,7 +381,11 @@
             {{ 'PORTAL.MODAL.GO_BACK' | translate }}
           </button>
         </form>
-        <button class="btn btn-primary px-8 shadow-lg shadow-primary/30" (click)="submitApproval()">
+        <button
+          class="btn btn-primary px-8 shadow-lg shadow-primary/30"
+          [disabled]="isSubmittingApproval()"
+          (click)="submitApproval()"
+        >
           {{ 'PORTAL.MODAL.YES_APPROVE' | translate }}
         </button>
       </div>

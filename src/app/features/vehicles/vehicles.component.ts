@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -7,8 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
 import { VehicleService } from './services/vehicle.service';
 import { ClientService } from '../clients/services/client.service';
-import { OperationService } from '../../shared/services/operation.service';
-import { Product, Vehicle } from '../../core/models';
+import { Product } from '../../core/models';
 
 @Component({
   selector: 'app-vehicles',
@@ -31,7 +30,12 @@ export class VehiclesComponent {
   statusFilter = '';
 
   constructor() {
-    this.filteredVehicles.set(this.vehicles());
+    effect(() => {
+      this.filteredVehicles.set(this.vehicles());
+      if (this.searchQuery || this.statusFilter) {
+        this.filterVehicles();
+      }
+    });
   }
 
   toggleView(isTable: boolean): void {

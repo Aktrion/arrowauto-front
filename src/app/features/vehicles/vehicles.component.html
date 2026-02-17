@@ -26,7 +26,7 @@
         <input
           type="text"
           [placeholder]="'VEHICLES.SEARCH_PLACEHOLDER' | translate"
-          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-sm"
+          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm"
           [(ngModel)]="searchQuery"
           (input)="filterVehicles()"
         />
@@ -79,7 +79,7 @@
             class="join-item btn btn-sm border-0 transition-all"
             [class]="
               !isTableView()
-                ? 'bg-white text-primary shadow-sm'
+                ? 'bg-base-100 text-primary shadow-sm'
                 : 'bg-transparent text-base-content/50'
             "
             (click)="toggleView(false)"
@@ -91,7 +91,7 @@
             class="join-item btn btn-sm border-0 transition-all"
             [class]="
               isTableView()
-                ? 'bg-white text-primary shadow-sm'
+                ? 'bg-base-100 text-primary shadow-sm'
                 : 'bg-transparent text-base-content/50'
             "
             (click)="toggleView(true)"
@@ -162,7 +162,7 @@
               </td>
               <td>
                 <span
-                  class="px-3 py-1 bg-yellow-400 text-black font-mono font-bold rounded shadow-sm border border-black/10 text-sm"
+                  class="px-3 py-1 bg-warning text-warning-content font-mono font-bold rounded shadow-sm border border-black/10 text-sm"
                 >
                   {{ product.vehicle?.licensePlate }}
                 </span>
@@ -347,3 +347,4 @@
     }
   </div>
 </div>
+

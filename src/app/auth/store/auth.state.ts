@@ -4,6 +4,7 @@ import { Login, Logout, UpdateUser } from './auth.actions';
 import { AuthService } from '../service/auth.service';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { catchError, of } from 'rxjs';
 
 import { User } from '../../core/models';
 
@@ -69,10 +70,15 @@ export class AuthState {
 
   @Action(Logout)
   logout(ctx: StateContext<AuthStateModel>) {
-    ctx.setState({
-      token: null,
-      user: null,
-    });
-    this.router.navigate(['/login']);
+    return this.authService.logout().pipe(
+      catchError(() => of(null)),
+      tap(() => {
+        ctx.setState({
+          token: null,
+          user: null,
+        });
+        this.router.navigate(['/login']);
+      }),
+    );
   }
 }

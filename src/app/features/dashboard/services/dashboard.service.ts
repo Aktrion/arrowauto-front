@@ -22,7 +22,7 @@ export class DashboardService {
       completedToday: vehicles.filter(
         (v) => v.status === 'completed' && v.updatedAt?.toDateString() === today,
       ).length,
-      totalRevenue: 45780.5, // Mock static value from original service
+      totalRevenue: 0,
       operatorsAvailable: this.userService.users().filter((u) => u.role?.name === 'operator')
         .length,
     };

@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
 import {
   InspectionPointStatus,
   InspectionResult,
@@ -23,10 +24,14 @@ export class InspectionComponent {
   private vehicleService = inject(VehicleService);
 
   inspectionPoints = this.inspectionService.inspectionPoints;
+  activeInspectionPoints = signal(this.inspectionService.inspectionPoints());
 
   selectedVehicleId = signal<string | null>(null);
   activeCategory = signal<string>('all');
   inspectionResults = signal<Map<string, Partial<InspectionResult>>>(new Map());
+  isSaving = signal(false);
+  saveError = signal<string | null>(null);
+  saveSuccess = signal(false);
 
   vehiclesForInspection = computed(() =>
     this.vehicleService
@@ -35,14 +40,14 @@ export class InspectionComponent {
   );
 
   categories = computed(() => {
-    const cats = new Set(this.inspectionPoints().map((p) => p.category));
+    const cats = new Set(this.activeInspectionPoints().map((p) => p.category));
     return Array.from(cats);
   });
 
   filteredPoints = computed(() => {
     const category = this.activeCategory();
-    if (category === 'all') return this.inspectionPoints();
-    return this.inspectionPoints().filter((p) => p.category === category);
+    if (category === 'all') return this.activeInspectionPoints();
+    return this.activeInspectionPoints().filter((p) => p.category === category);
   });
 
   groupedPoints = computed(() => {
@@ -68,13 +73,19 @@ export class InspectionComponent {
       groups.set(point.category, current);
     });
 
-    // Return array of objects { category: string, points: Point[] } sorted by defined order
-    return order
+    const ordered = order
       .filter((cat) => groups.has(cat))
       .map((category) => ({
         category,
         points: groups.get(category)!,
       }));
+
+    const remaining = Array.from(groups.entries())
+      .filter(([category]) => !order.includes(category))
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([category, groupPoints]) => ({ category, points: groupPoints }));
+
+    return [...ordered, ...remaining];
   });
 
   // Helper to find specific tyre points for the visualizer
@@ -89,7 +100,17 @@ export class InspectionComponent {
     };
 
     const code = codeMap[position];
-    return this.inspectionPoints().find((p) => p.code === code)?.id;
+    const aliases: Record<string, string[]> = {
+      NSFT: ['NSFT', 'LEFT-FRONT', 'FRONT-LEFT'],
+      OSFT: ['OSFT', 'RIGHT-FRONT', 'FRONT-RIGHT'],
+      NSRT: ['NSRT', 'LEFT-REAR', 'REAR-LEFT'],
+      OSRT: ['OSRT', 'RIGHT-REAR', 'REAR-RIGHT'],
+      SS: ['SS', 'SPARE'],
+    };
+    const expectedCodes = aliases[code] || [code];
+    return this.activeInspectionPoints().find((p) =>
+      expectedCodes.includes((p.code || '').toUpperCase()),
+    )?.id;
   }
 
   totalCost = computed(() => {
@@ -102,7 +123,53 @@ export class InspectionComponent {
 
   selectVehicle(vehicleId: string): void {
     this.selectedVehicleId.set(vehicleId);
+    this.saveError.set(null);
+    this.saveSuccess.set(false);
     this.inspectionResults.set(new Map());
+    this.activeCategory.set('all');
+
+    const vehicle = this.vehicleService.getVehicleById(vehicleId);
+    if (vehicle?.inspectionTemplateId) {
+      this.inspectionService
+        .getInspectionPointsFromTemplate(vehicle.inspectionTemplateId)
+        .subscribe((points) => {
+          this.activeInspectionPoints.set(points.length ? points : this.inspectionPoints());
+        });
+    } else {
+      this.activeInspectionPoints.set(this.inspectionPoints());
+    }
+
+    const productId = this.vehicleService.getProductIdByVehicleId(vehicleId);
+    if (!productId) return;
+
+    this.inspectionService.getInspectionValuesByProduct(productId).subscribe((values) => {
+      const mapped = new Map<string, Partial<InspectionResult>>();
+      values.forEach((value) => {
+        const pointId = value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id;
+        if (!pointId) return;
+        const parsedCosts = this.readCostsFromComments(value.comments || []);
+        mapped.set(pointId, {
+          id: value._id || value.id,
+          pointId,
+          vehicleId,
+          status: this.mapValueToStatus(value.value),
+          comment: (value.comments || []).find((item) => !item.startsWith('__')) || '',
+          photos: value.mediaUrls || [],
+          partsCost: parsedCosts.partsCost,
+          laborCost: parsedCosts.laborCost,
+          tyreMeasurements:
+            value.type === 'tyre'
+              ? {
+                  inner: value.innerDepth || 0,
+                  middle: value.midDepth || 0,
+                  outer: value.outerDepth || 0,
+                }
+              : undefined,
+          requiresParts: (parsedCosts.partsCost || 0) > 0,
+        });
+      });
+      this.inspectionResults.set(mapped);
+    });
   }
 
   setCategory(category: string): void {
@@ -220,6 +287,56 @@ export class InspectionComponent {
     return this.inspectionResults().size > 0;
   }
 
+  submitInspection(): void {
+    const vehicleId = this.selectedVehicleId();
+    if (!vehicleId) return;
+
+    const productId = this.vehicleService.getProductIdByVehicleId(vehicleId);
+    if (!productId) {
+      this.saveError.set('No product linked to this vehicle.');
+      return;
+    }
+
+    const pointsById = new Map(this.activeInspectionPoints().map((point) => [point.id, point]));
+    const requests = Array.from(this.inspectionResults().entries()).map(([pointId, result]) => {
+      const point = pointsById.get(pointId);
+      if (!point) return of(null);
+
+      const payload = {
+        productId,
+        inspectionPointId: pointId,
+        type: point.type || 'standard',
+        value: this.mapStatusToValue(result.status),
+        comments: this.buildComments(result.comment, result.partsCost, result.laborCost),
+        mediaUrls: result.photos || [],
+        innerDepth: result.tyreMeasurements?.inner,
+        midDepth: result.tyreMeasurements?.middle,
+        outerDepth: result.tyreMeasurements?.outer,
+      };
+
+      if (result.id && this.isMongoObjectId(result.id)) {
+        return this.inspectionService.updateInspectionValue(result.id, payload);
+      }
+      return this.inspectionService.createInspectionValue(payload);
+    });
+
+    if (requests.length === 0) return;
+
+    this.isSaving.set(true);
+    this.saveError.set(null);
+    this.saveSuccess.set(false);
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.saveSuccess.set(true);
+      },
+      error: () => {
+        this.isSaving.set(false);
+        this.saveError.set('Failed to save inspection values.');
+      },
+    });
+  }
+
   // Tyre specific methods
   getTyreMeasurement(pointId: string, type: keyof TyreMeasurement): number {
     const result = this.inspectionResults().get(pointId);
@@ -267,5 +384,42 @@ export class InspectionComponent {
       newResults.set(pointId, { ...existing, tyreCondition: condition });
       return newResults;
     });
+  }
+
+  private mapValueToStatus(value?: 'red' | 'yellow' | 'ok'): InspectionPointStatus {
+    if (value === 'ok') return 'ok';
+    if (value === 'yellow') return 'warning';
+    if (value === 'red') return 'defect';
+    return 'not_inspected';
+  }
+
+  private mapStatusToValue(status?: InspectionPointStatus): 'red' | 'yellow' | 'ok' | undefined {
+    if (status === 'ok') return 'ok';
+    if (status === 'warning') return 'yellow';
+    if (status === 'defect') return 'red';
+    return undefined;
+  }
+
+  private buildComments(comment?: string, partsCost?: number, laborCost?: number): string[] {
+    const comments: string[] = [];
+    if (comment?.trim()) {
+      comments.push(comment.trim());
+    }
+    comments.push(`__partsCost:${Number(partsCost || 0)}`);
+    comments.push(`__laborCost:${Number(laborCost || 0)}`);
+    return comments;
+  }
+
+  private readCostsFromComments(comments: string[]): { partsCost: number; laborCost: number } {
+    const partsTag = comments.find((item) => item.startsWith('__partsCost:'));
+    const laborTag = comments.find((item) => item.startsWith('__laborCost:'));
+    return {
+      partsCost: Number(partsTag?.split(':')[1] || 0),
+      laborCost: Number(laborTag?.split(':')[1] || 0),
+    };
+  }
+
+  private isMongoObjectId(value: string): boolean {
+    return /^[a-f\d]{24}$/i.test(value);
   }
 }

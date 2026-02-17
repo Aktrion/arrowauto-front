@@ -1,8 +1,11 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
+import { VehicleService } from '../vehicles/services/vehicle.service';
+import { InspectionService } from '../inspection/services/inspection.service';
 
 interface RepairItem {
   id: string;
@@ -22,125 +25,83 @@ interface RepairItem {
   imports: [CommonModule, LucideAngularModule, TranslateModule],
   templateUrl: './customer-portal.component.html',
 })
-export class CustomerPortalComponent {
+export class CustomerPortalComponent implements OnInit {
   icons = ICONS;
+  private readonly route = inject(ActivatedRoute);
+  private readonly vehicleService = inject(VehicleService);
+  private readonly inspectionService = inject(InspectionService);
+
   vehicleData = {
-    plate: 'CD56 IJK',
-    make: 'Mercedes',
-    model: 'C-Class',
-    year: 2023,
+    plate: '-',
+    make: '-',
+    model: '-',
+    year: new Date().getFullYear(),
   };
 
   repairItems: RepairItem[] = [
-    {
-      id: '1',
-      name: 'Front Bumper',
-      category: 'Exterior',
-      severity: 'major',
-      comment: 'Deep scratch on the front bumper, requires respray',
-      partsCost: 45.0,
-      laborCost: 120.0,
-      photos: ['1', '2'],
-      approved: false,
-    },
-    {
-      id: '2',
-      name: 'Driver Door',
-      category: 'Exterior',
-      severity: 'minor',
-      comment: 'Small dent near handle',
-      partsCost: 0,
-      laborCost: 85.0,
-      photos: ['3'],
-      approved: false,
-    },
-    {
-      id: '3',
-      name: 'Front Left Wheel',
-      category: 'Wheels',
-      severity: 'minor',
-      comment: 'Kerb damage on alloy wheel',
-      partsCost: 0,
-      laborCost: 65.0,
-      photos: ['4'],
-      approved: false,
-    },
-    {
-      id: '4',
-      name: 'Windscreen',
-      category: 'Glass',
-      severity: 'major',
-      comment: 'Stone chip that may spread - recommend replacement',
-      partsCost: 280.0,
-      laborCost: 80.0,
-      photos: ['5', '6'],
-      approved: false,
-    },
+    // Loaded from backend inspection-values
   ];
 
-  inspectionCategories = [
-    {
-      name: 'Exterior',
-      status: 'warning',
-      okCount: 4,
-      totalCount: 6,
-      points: [
-        { name: 'Front Bumper', status: 'defect' },
-        { name: 'Rear Bumper', status: 'ok' },
-        { name: 'Bonnet', status: 'ok' },
-        { name: 'Roof', status: 'ok' },
-        { name: 'Driver Door', status: 'warning' },
-        { name: 'Passenger Door', status: 'ok' },
-      ],
-    },
-    {
-      name: 'Wheels',
-      status: 'warning',
-      okCount: 3,
-      totalCount: 4,
-      points: [
-        { name: 'Front Left Wheel', status: 'warning' },
-        { name: 'Front Right Wheel', status: 'ok' },
-        { name: 'Rear Left Wheel', status: 'ok' },
-        { name: 'Rear Right Wheel', status: 'ok' },
-      ],
-    },
-    {
-      name: 'Tyres',
-      status: 'ok',
-      okCount: 4,
-      totalCount: 4,
-      points: [
-        { name: 'Front Left Tyre', status: 'ok' },
-        { name: 'Front Right Tyre', status: 'ok' },
-        { name: 'Rear Left Tyre', status: 'ok' },
-        { name: 'Rear Right Tyre', status: 'ok' },
-      ],
-    },
-    {
-      name: 'Glass',
-      status: 'warning',
-      okCount: 1,
-      totalCount: 2,
-      points: [
-        { name: 'Windscreen', status: 'defect' },
-        { name: 'Rear Window', status: 'ok' },
-      ],
-    },
-  ];
+  inspectionCategories: Array<{
+    name: string;
+    status: 'ok' | 'warning';
+    okCount: number;
+    totalCount: number;
+    points: Array<{ name: string; status: 'ok' | 'warning' | 'defect' }>;
+  }> = [];
 
   cartIds = signal<Set<string>>(new Set());
   showSuccess = signal(false);
+  isSubmittingApproval = signal(false);
+  private currentVehicleId = signal<string | null>(null);
+  private currentProductId = signal<string | null>(null);
 
-  cartItems = computed(() => this.repairItems.filter((item) => this.cartIds().has(item.id)));
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const explicitVehicleId = params.get('vehicleId');
+      if (explicitVehicleId) {
+        this.loadPortalData(explicitVehicleId);
+        return;
+      }
 
-  totalParts = computed(() => this.cartItems().reduce((sum, item) => sum + item.partsCost, 0));
+      const firstVehicleId = this.vehicleService.vehicles()?.[0]?.vehicleId;
+      if (firstVehicleId) {
+        this.loadPortalData(firstVehicleId);
+        return;
+      }
 
-  totalLabor = computed(() => this.cartItems().reduce((sum, item) => sum + item.laborCost, 0));
+      this.vehicleService.loadVehicles().add(() => {
+        const fallbackVehicleId = this.vehicleService.vehicles()?.[0]?.vehicleId;
+        if (fallbackVehicleId) {
+          this.loadPortalData(fallbackVehicleId);
+        }
+      });
+    });
+  }
 
-  subtotal = computed(() => this.totalParts() + this.totalLabor());
-  totalVat = computed(() => this.subtotal() * 0.2);
-  grandTotal = computed(() => this.subtotal() + this.totalVat());
+  cartItems() {
+    return this.repairItems.filter((item) => this.cartIds().has(item.id));
+  }
+
+  totalParts() {
+    return this.cartItems().reduce((sum, item) => sum + item.partsCost, 0);
+  }
+
+  totalLabor() {
+    return this.cartItems().reduce((sum, item) => sum + item.laborCost, 0);
+  }
+
+  subtotal() {
+    return this.totalParts() + this.totalLabor();
+  }
+
+  totalVat() {
+    return this.subtotal() * 0.2;
+  }
+
+  grandTotal() {
+    return this.subtotal() + this.totalVat();
+  }
 
   isInCart(id: string): boolean {
     return this.cartIds().has(id);
@@ -163,8 +124,114 @@ export class CustomerPortalComponent {
   }
 
   submitApproval(): void {
-    (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
-    this.showSuccess.set(true);
-    setTimeout(() => this.showSuccess.set(false), 3000);
+    const vehicleId = this.currentVehicleId();
+    if (!vehicleId) return;
+
+    this.isSubmittingApproval.set(true);
+    this.vehicleService
+      .updateProductStatusByVehicleId(vehicleId, 'in_progress')
+      .subscribe({
+        next: () => {
+          (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
+          this.showSuccess.set(true);
+          this.isSubmittingApproval.set(false);
+          setTimeout(() => this.showSuccess.set(false), 3000);
+        },
+        error: () => {
+          this.isSubmittingApproval.set(false);
+        },
+      });
+  }
+
+  private loadPortalData(vehicleId: string) {
+    this.currentVehicleId.set(vehicleId);
+    const vehicle = this.vehicleService.getVehicleById(vehicleId);
+    if (vehicle?.vehicle) {
+      this.vehicleData = {
+        plate: vehicle.vehicle.licensePlate,
+        make: vehicle.vehicle.make,
+        model: vehicle.vehicle.model,
+        year: vehicle.vehicle.year || new Date().getFullYear(),
+      };
+    }
+
+    const productId = this.vehicleService.getProductIdByVehicleId(vehicleId);
+    if (!productId) {
+      this.vehicleService.loadVehicles().add(() => {
+        const resolvedProductId = this.vehicleService.getProductIdByVehicleId(vehicleId);
+        if (!resolvedProductId) {
+          this.currentProductId.set(null);
+          this.repairItems = [];
+          this.inspectionCategories = [];
+          return;
+        }
+        this.currentProductId.set(resolvedProductId);
+        this.loadInspectionData(resolvedProductId);
+      });
+      return;
+    }
+
+    this.currentProductId.set(productId);
+    this.loadInspectionData(productId);
+  }
+
+  private loadInspectionData(productId: string) {
+    const points = this.inspectionService.inspectionPoints();
+    const pointMap = new Map(points.map((point) => [point.id, point]));
+
+    this.inspectionService.getInspectionValuesByProduct(productId).subscribe((values) => {
+      this.repairItems = values
+        .filter((value) => value.value === 'red' || value.value === 'yellow')
+        .map((value) => {
+          const pointId = value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
+          const point = pointMap.get(pointId);
+          const costs = this.readCosts(value.comments || []);
+          return {
+            id: value._id || value.id || crypto.randomUUID(),
+            name: point?.name || 'Inspection Item',
+            category: point?.category || 'General',
+            severity: value.value === 'red' ? 'major' : 'minor',
+            comment: (value.comments || []).find((comment) => !comment.startsWith('__')) || '',
+            partsCost: costs.partsCost,
+            laborCost: costs.laborCost,
+            photos: value.mediaUrls || [],
+            approved: false,
+          };
+        });
+
+      const grouped = new Map<string, Array<{ name: string; status: 'ok' | 'warning' | 'defect' }>>();
+      values.forEach((value) => {
+        const pointId = value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
+        const point = pointMap.get(pointId);
+        if (!point) return;
+        const category = point.category || 'General';
+        const status: 'ok' | 'warning' | 'defect' =
+          value.value === 'ok' ? 'ok' : value.value === 'yellow' ? 'warning' : 'defect';
+        const list = grouped.get(category) || [];
+        list.push({ name: point.name, status });
+        grouped.set(category, list);
+      });
+
+      this.inspectionCategories = Array.from(grouped.entries()).map(([name, categoryPoints]) => {
+        const okCount = categoryPoints.filter((point) => point.status === 'ok').length;
+        const hasDefect = categoryPoints.some((point) => point.status === 'defect');
+        return {
+          name,
+          status: hasDefect ? 'warning' : 'ok',
+          okCount,
+          totalCount: categoryPoints.length,
+          points: categoryPoints,
+        };
+      });
+    });
+  }
+
+  private readCosts(comments: string[]) {
+    const parts = comments.find((comment) => comment.startsWith('__partsCost:'));
+    const labor = comments.find((comment) => comment.startsWith('__laborCost:'));
+    return {
+      partsCost: Number(parts?.split(':')[1] || 0),
+      laborCost: Number(labor?.split(':')[1] || 0),
+    };
   }
 }

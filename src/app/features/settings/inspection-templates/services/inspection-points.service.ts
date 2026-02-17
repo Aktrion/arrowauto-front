@@ -66,9 +66,16 @@ export class InspectionPointsService {
 
   getPointsByBlockId(blockId: string) {
     return this.http.post<{ data: InspectionPoint[] }>(`${this.apiUrl}/search`, {
-      filter: { inspectionBlockId: blockId },
-      sort: { order: 1 },
+      page: 1,
       limit: 100,
+      sortBy: 'order',
+      sortOrder: 'asc',
+      filters: {
+        inspectionBlockId: {
+          value: blockId,
+          operator: 'equals',
+        },
+      },
     });
   }
 }

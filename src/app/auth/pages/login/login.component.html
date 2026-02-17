@@ -1,7 +1,6 @@
 <div class="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
-  <!-- Background video -->
   <video
-    class="absolute inset-0 w-full h-full object-cover scale-110 blur-[10px] brightness-90 saturate-125"
+    class="absolute inset-0 w-full h-full object-cover scale-110 blur-[8px] brightness-90 saturate-125"
     autoplay
     [muted]="true"
     loop
@@ -11,87 +10,64 @@
     <source src="/assets/videos/car-video1.mp4" type="video/mp4" />
   </video>
 
-  <!-- Primary tint overlay (más fuerte) -->
-  <div class="absolute inset-0 bg-[#9483ba]/32"></div>
+  <div class="absolute inset-0 bg-primary/25"></div>
+  <div class="absolute inset-0 bg-base-content/20"></div>
 
-  <!-- Dark overlay (más suave) -->
-  <div class="absolute inset-0 bg-black/28"></div>
-
-  <!-- Vignette con primary (da profundidad) -->
-  <div
-    class="absolute inset-0"
-    style="
-      background: radial-gradient(circle at center, rgba(148, 131, 186, 0.15) 0%, transparent 80%);
-    "
-  ></div>
-
-  <!-- Main container -->
   <div class="relative z-10 w-full max-w-5xl px-4 py-10 animate-fadeInUp">
     <div
-      class="mx-auto grid w-full overflow-hidden rounded-3xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl md:grid-cols-2"
+      class="mx-auto grid w-full overflow-hidden rounded-3xl border border-base-300/60 bg-base-100/20 shadow-2xl backdrop-blur-xl md:grid-cols-2"
     >
-      <!-- Left / Branding -->
       <div class="relative hidden md:flex flex-col justify-between p-12 lg:p-14">
-        <div
-          class="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"
-        ></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-base-100/20 to-transparent"></div>
 
         <div class="relative">
           <div class="flex items-center gap-3 mb-8">
             <img src="/assets/img/logo/arrow-logo.png" alt="" />
           </div>
 
-          <!-- <h1 class="text-4xl font-semibold text-white leading-tight">
-            {{ 'LOGIN.TITLE_PART_1' | translate }}
-            <span class="text-white/90">{{ 'LOGIN.TITLE_PART_2' | translate }}</span>
-          </h1> -->
-
-          <p class="mt-4 text-base text-white/70 leading-relaxed max-w-sm">
+          <p class="mt-4 text-base text-base-100/80 leading-relaxed max-w-sm">
             {{ 'LOGIN.DESCRIPTION' | translate }}
           </p>
 
-          <!-- Mini features -->
-          <div class="mt-10 space-y-3 text-sm text-white/70">
+          <div class="mt-10 space-y-3 text-sm text-base-100/80">
             <div class="flex items-center gap-2">
-              <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
               {{ 'LOGIN.FEATURE.REAL_TIME' | translate }}
             </div>
             <div class="flex items-center gap-2">
-              <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
               {{ 'LOGIN.FEATURE.SECURE' | translate }}
             </div>
             <div class="flex items-center gap-2">
-              <span class="h-1.5 w-1.5 rounded-full bg-[#9483ba]"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
               {{ 'LOGIN.FEATURE.WORKFLOW' | translate }}
             </div>
           </div>
         </div>
 
-        <div class="relative text-xs text-white/50">{{ 'LOGIN.COPYRIGHT' | translate }}</div>
+        <div class="relative text-xs text-base-100/60">{{ 'LOGIN.COPYRIGHT' | translate }}</div>
       </div>
 
-      <!-- Right / Form -->
-      <div class="bg-white/95 dark:bg-slate-950/70 p-8 sm:p-10 lg:p-12">
+      <div class="bg-base-100/95 p-8 sm:p-10 lg:p-12">
         <div class="mb-8">
-          <h2 class="text-3xl font-semibold text-gray-900 dark:text-white">
+          <h2 class="text-3xl font-semibold text-base-content">
             {{ 'LOGIN.FORM.TITLE' | translate }}
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 text-sm text-base-content/60">
             {{ 'LOGIN.FORM.SUBTITLE' | translate }}
           </p>
         </div>
 
         <form class="space-y-5" [formGroup]="form">
-          <!-- Email -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label class="block text-sm font-medium text-base-content/80 mb-2">
               {{ 'LOGIN.FORM.EMAIL_LABEL' | translate }}
             </label>
 
             <div
-              class="relative rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950/40 focus-within:ring-2 focus-within:ring-[#9483ba]/40 transition"
+              class="relative rounded-xl border border-base-300 bg-base-100 focus-within:ring-2 focus-within:ring-primary/30 transition"
             >
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center text-base-content/40">
                 <lucide-icon [name]="icons.Mail" class="w-5 h-5"></lucide-icon>
               </div>
 
@@ -99,21 +75,20 @@
                 type="text"
                 formControlName="userName"
                 [placeholder]="'LOGIN.FORM.EMAIL_PLACEHOLDER' | translate"
-                class="w-full pl-10 pr-4 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
+                class="w-full pl-10 pr-4 py-3.5 rounded-xl bg-transparent outline-none text-base-content placeholder:text-base-content/40"
               />
             </div>
           </div>
 
-          <!-- Password -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label class="block text-sm font-medium text-base-content/80 mb-2">
               {{ 'LOGIN.FORM.PASSWORD_LABEL' | translate }}
             </label>
 
             <div
-              class="relative rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-950/40 focus-within:ring-2 focus-within:ring-[#9483ba]/40 transition"
+              class="relative rounded-xl border border-base-300 bg-base-100 focus-within:ring-2 focus-within:ring-primary/30 transition"
             >
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center text-base-content/40">
                 <lucide-icon [name]="icons.Lock" class="w-5 h-5"></lucide-icon>
               </div>
 
@@ -121,42 +96,32 @@
                 type="password"
                 formControlName="password"
                 [placeholder]="'LOGIN.FORM.PASSWORD_PLACEHOLDER' | translate"
-                class="w-full pl-10 pr-12 py-3.5 rounded-xl bg-transparent outline-none text-gray-900 dark:text-white placeholder:text-gray-400"
+                class="w-full pl-10 pr-12 py-3.5 rounded-xl bg-transparent outline-none text-base-content placeholder:text-base-content/40"
               />
 
               <button
                 type="button"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#9483ba] transition"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-base-content/40 hover:text-primary transition"
               >
                 <lucide-icon [name]="icons.Eye" class="w-5 h-5"></lucide-icon>
               </button>
             </div>
           </div>
 
-          <!-- Remember + forgot -->
           <div class="flex items-center justify-between pt-1">
             <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                formControlName="remember"
-                class="w-4 h-4 rounded border-gray-300 accent-[#9483ba] focus:ring-[#9483ba]"
-              />
-              <span class="text-sm text-gray-600 dark:text-gray-400">{{
+              <input type="checkbox" formControlName="remember" class="checkbox checkbox-primary checkbox-sm" />
+              <span class="text-sm text-base-content/70">{{
                 'LOGIN.FORM.REMEMBER_ME' | translate
               }}</span>
             </label>
 
-            <a href="#" class="text-sm font-medium text-[#9483ba] hover:text-[#8573ad] transition">
+            <a href="#" class="text-sm font-medium text-primary hover:text-primary/80 transition">
               {{ 'LOGIN.FORM.FORGOT_PASSWORD' | translate }}
             </a>
           </div>
 
-          <!-- CTA -->
-          <button
-            type="button"
-            (click)="login()"
-            class="w-full mt-2 py-3.5 rounded-xl bg-[var(--color-primary-darkest)] hover:bg-[var(--color-primary-darker)] text-white font-semibold shadow-lg shadow-[var(--color-primary)]/25 transition active:scale-[0.99] cursor-pointer"
-          >
+          <button type="button" (click)="login()" class="btn btn-primary btn-lg w-full mt-2 rounded-xl">
             {{ 'LOGIN.FORM.SIGN_IN' | translate }}
           </button>
         </form>
@@ -164,8 +129,8 @@
     </div>
   </div>
 
-  <!-- Language Switcher -->
   <div class="fixed top-6 right-6 z-[100]">
     <app-language-switcher></app-language-switcher>
   </div>
 </div>
+

@@ -13,9 +13,9 @@ import { ICONS } from '../../icons';
       <div
         tabindex="0"
         role="button"
-        class="btn btn-ghost btn-circle btn-sm rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-all shadow-lg flex items-center justify-center overflow-hidden"
+        class="btn btn-ghost btn-circle btn-sm rounded-full bg-base-100/80 border border-base-300 hover:bg-base-200 transition-all shadow-lg flex items-center justify-center overflow-hidden"
       >
-        <span class="text-[10px] font-bold text-white uppercase">{{ currentLang() }}</span>
+        <span class="text-[10px] font-bold text-base-content uppercase">{{ currentLang() }}</span>
         <img
           [src]="currentLang() === 'en' ? '/assets/flags/gb.svg' : '/assets/flags/es.svg'"
           [alt]="currentLang()"
@@ -25,7 +25,7 @@ import { ICONS } from '../../icons';
       </div>
       <ul
         tabindex="0"
-        class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-200"
+        class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-300"
       >
         <li>
           <button
@@ -42,7 +42,7 @@ import { ICONS } from '../../icons';
                 class="absolute inset-0 w-full h-full object-cover z-10"
                 onerror="this.style.display='none'"
               />
-              <span class="text-[8px] font-bold">🇬🇧</span>
+              <span class="text-[8px] font-bold">EN</span>
             </div>
             English
           </button>
@@ -58,13 +58,13 @@ import { ICONS } from '../../icons';
             >
               <img
                 src="/assets/flags/es.svg"
-                alt="Español"
+                alt="Espanol"
                 class="absolute inset-0 w-full h-full object-cover z-10"
                 onerror="this.style.display='none'"
               />
-              <span class="text-[8px] font-bold">🇪🇸</span>
+              <span class="text-[8px] font-bold">ES</span>
             </div>
-            Español
+            Espanol
           </button>
         </li>
       </ul>

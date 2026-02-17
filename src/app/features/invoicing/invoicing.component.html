@@ -90,7 +90,7 @@
             Revenue Today
           </div>
           <div class="text-3xl font-black text-primary group-hover:drop-shadow-sm transition-all">
-            £{{ totalRevenueToday().toLocaleString() }}
+            &pound;{{ totalRevenueToday().toLocaleString() }}
           </div>
         </div>
         <div
@@ -116,7 +116,7 @@
           <button
             class="tab rounded-lg px-4 transition-all duration-300"
             [class.tab-active]="activeTab() === 'pending'"
-            [class.bg-white]="activeTab() === 'pending'"
+            [class.bg-base-100]="activeTab() === 'pending'"
             [class.shadow-sm]="activeTab() === 'pending'"
             (click)="setTab('pending')"
           >
@@ -125,7 +125,7 @@
           <button
             class="tab rounded-lg px-4 transition-all duration-300"
             [class.tab-active]="activeTab() === 'completed'"
-            [class.bg-white]="activeTab() === 'completed'"
+            [class.bg-base-100]="activeTab() === 'completed'"
             [class.shadow-sm]="activeTab() === 'completed'"
             (click)="setTab('completed')"
           >
@@ -134,7 +134,7 @@
           <button
             class="tab rounded-lg px-4 transition-all duration-300"
             [class.tab-active]="activeTab() === 'invoiced'"
-            [class.bg-white]="activeTab() === 'invoiced'"
+            [class.bg-base-100]="activeTab() === 'invoiced'"
             [class.shadow-sm]="activeTab() === 'invoiced'"
             (click)="setTab('invoiced')"
           >
@@ -226,14 +226,14 @@
                   </td>
                   <td>
                     @if (item.op.hourlyRate) {
-                      <span class="text-xs">£{{ item.op.hourlyRate }}/hr</span>
+                      <span class="text-xs">&pound;{{ item.op.hourlyRate }}/hr</span>
                     } @else {
                       <span class="text-base-content/40">-</span>
                     }
                   </td>
                   <td>
                     <span class="font-bold text-primary"
-                      >£{{ calculateTotal(item.op).toFixed(2) }}</span
+                      >&pound;{{ calculateTotal(item.op).toFixed(2) }}</span
                     >
                   </td>
                   <td>
@@ -254,7 +254,9 @@
                         </button>
                       }
                       @if (item.op.status === 'completed') {
-                        <button class="btn btn-outline btn-primary btn-xs">Invoice</button>
+                        <button class="btn btn-outline btn-primary btn-xs" (click)="markAsInvoiced(item.op.id)">
+                          Invoice
+                        </button>
                       }
                     </div>
                   </td>
@@ -294,7 +296,10 @@
               <button class="btn btn-sm btn-ghost hover:bg-base-200" (click)="clearSelection()">
                 Cancel
               </button>
-              <button class="btn btn-sm btn-primary shadow-lg shadow-primary/20">
+              <button
+                class="btn btn-sm btn-primary shadow-lg shadow-primary/20"
+                (click)="invoiceSelection()"
+              >
                 <lucide-icon [name]="icons.FileText" class="h-4 w-4 ml-1"></lucide-icon>
                 Generate Invoice
               </button>
@@ -307,7 +312,7 @@
 
   <!-- Complete Operation Modal -->
   <dialog id="complete_modal" class="modal modal-bottom sm:modal-middle">
-    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-white/10">
+    <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-base-300">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
       </form>
@@ -325,7 +330,7 @@
                 <span class="font-mono bg-base-300 px-1 rounded text-xs">{{
                   selectedItem()!.product?.vehicle?.jobNumber
                 }}</span>
-                <span>•</span>
+                <span>&bull;</span>
                 <span class="font-semibold">{{
                   selectedItem()!.product?.vehicle?.licensePlate
                 }}</span>
@@ -373,13 +378,13 @@
             <div class="form-control">
               <label class="label">
                 <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
-                  >Hourly Rate (£)</span
+                  >Hourly Rate (&pound;)</span
                 >
               </label>
               <div class="relative">
                 <span
                   class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 font-medium pointer-events-none"
-                  >£</span
+                  >&pound;</span
                 >
                 <input
                   type="number"
@@ -410,7 +415,7 @@
                 >Calculated Total</span
               >
               <span class="text-2xl font-black text-primary"
-                >£{{ calculateCompleteTotal().toFixed(2) }}</span
+                >&pound;{{ calculateCompleteTotal().toFixed(2) }}</span
               >
             </div>
           </div>
@@ -435,3 +440,4 @@
     </form>
   </dialog>
 </div>
+
