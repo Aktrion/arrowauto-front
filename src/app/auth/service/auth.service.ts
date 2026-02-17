@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly API_URL = 'https://wr9wfpyr2j.eu-west-1.awsapprunner.com';
+  private readonly API_URL = environment.apiUrl;
   private http = inject(HttpClient);
 
   constructor() {}
