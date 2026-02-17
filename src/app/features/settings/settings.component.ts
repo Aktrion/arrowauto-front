@@ -6,11 +6,17 @@ import { UserService } from '../../core/services/user.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../shared/icons';
 import { InspectionTemplatesListComponent } from './inspection-templates/inspection-templates-list/inspection-templates-list.component';
+import { TyreConfigurationsComponent } from './tyre-configurations/tyre-configurations.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule, InspectionTemplatesListComponent],
+  imports: [
+    FormsModule,
+    LucideAngularModule,
+    InspectionTemplatesListComponent,
+    TyreConfigurationsComponent,
+  ],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
@@ -39,6 +45,11 @@ export class SettingsComponent {
       id: 'inspection-templates',
       name: 'Inspection Templates',
       icon: this.icons.FileText,
+    },
+    {
+      id: 'tyre-configurations',
+      name: 'Tyre Configurations',
+      icon: this.icons.Disc,
     },
     {
       id: 'users',

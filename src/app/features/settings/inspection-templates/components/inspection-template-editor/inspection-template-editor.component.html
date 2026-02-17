@@ -1,70 +1,293 @@
-<div class="space-y-6">
-  <!-- Header -->
-  <div class="flex items-center gap-4">
+<div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
+  <div class="p-5 border-b border-base-200 flex items-center gap-4">
     <button class="btn btn-ghost btn-sm btn-square" (click)="cancel.emit()">
       <lucide-icon [name]="icons.ChevronLeft" class="h-5 w-5"></lucide-icon>
     </button>
     <div>
-      <h3 class="text-lg font-bold text-base-content">
-        {{ templateId ? 'Edit Template' : 'New Template' }}
+      <h3 class="text-xl font-bold text-base-content">
+        {{ templateId ? 'Edit Inspection Template' : 'New Inspection Template' }}
       </h3>
       <p class="text-sm text-base-content/60">
-        {{ templateId ? 'Update existing template details' : 'Create a new inspection template' }}
+        Build the full template in one place and save once.
       </p>
     </div>
-    <div class="ml-auto flex gap-2">
-      <button class="btn btn-primary btn-sm" (click)="saveTemplate()">
+    <div class="ml-auto">
+      <button class="btn btn-primary btn-sm min-w-28" (click)="save()" [disabled]="saving()">
         <lucide-icon [name]="icons.Check" class="h-4 w-4 mr-2"></lucide-icon>
-        Save
+        {{ saving() ? 'Saving...' : 'Save Template' }}
       </button>
     </div>
   </div>
 
-  <!-- Template Details -->
-  <div class="card bg-base-100 shadow-sm p-4 space-y-4">
-    <div class="form-control">
-      <label class="label">
-        <span class="label-text font-medium">Template Name</span>
-      </label>
-      <input
-        type="text"
-        [(ngModel)]="name"
-        class="input input-bordered w-full"
-        placeholder="e.g. Standard Service Inspection"
-      />
-    </div>
+  <div class="p-5 space-y-5">
+    @if (error()) {
+      <div class="alert alert-error text-sm">
+        <lucide-icon [name]="icons.CircleAlert" class="h-4 w-4"></lucide-icon>
+        <span>{{ error() }}</span>
+      </div>
+    }
 
-    <div class="form-control">
-      <label class="label cursor-pointer justify-start gap-4">
-        <span class="label-text font-medium">Active</span>
-        <input type="checkbox" [(ngModel)]="active" class="toggle toggle-primary" />
-      </label>
-    </div>
-  </div>
-
-  <!-- Blocks Section (Only if template exists) -->
-  @if (templateId) {
-    <div class="flex items-center justify-between mt-6">
-      <h4 class="font-bold text-base-content">Inspection Blocks</h4>
-      <button class="btn btn-sm btn-ghost text-primary" (click)="addBlock()">
-        <lucide-icon [name]="icons.Plus" class="h-4 w-4 mr-1"></lucide-icon>
-        Add Block
-      </button>
-    </div>
-
-    <div class="space-y-4">
-      @for (block of blocks(); track block._id) {
-        <app-inspection-block-editor
-          [block]="block"
-          (deleteBlock)="deleteBlock($event)"
-          (updated)="loadBlocks(templateId!)"
-        ></app-inspection-block-editor>
-      }
-      @if (blocks().length === 0) {
-        <div class="text-center py-4 text-base-content/60 bg-base-200/30 rounded-xl">
-          No blocks defined. Add one to start.
+    @if (loading()) {
+      <div class="rounded-xl border border-base-200 p-8 text-center text-base-content/60">
+        Loading template...
+      </div>
+    } @else {
+      <div class="rounded-xl border border-base-200 p-4 bg-base-200/30">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div class="md:col-span-3">
+            <label class="label">
+              <span class="label-text font-medium">Template Name</span>
+            </label>
+            <input
+              type="text"
+              class="input input-bordered w-full bg-base-100"
+              [ngModel]="draft().name"
+              (ngModelChange)="updateTemplateName($event)"
+              placeholder="e.g. Standard Pre-Sale Inspection"
+            />
+          </div>
+          <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-3">
+              <span class="label-text font-medium">Active</span>
+              <input
+                type="checkbox"
+                class="toggle toggle-primary"
+                [ngModel]="draft().active"
+                (ngModelChange)="updateTemplateActive($event)"
+              />
+            </label>
+          </div>
         </div>
-      }
-    </div>
-  }
+      </div>
+
+      <div class="flex items-center justify-between">
+        <h4 class="font-semibold text-base-content">Inspection Blocks</h4>
+        <button class="btn btn-outline btn-sm" (click)="addBlock()">
+          <lucide-icon [name]="icons.Plus" class="h-4 w-4 mr-1"></lucide-icon>
+          Add Block
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        @for (block of draft().blocks; track block.localId; let blockIndex = $index) {
+          <div class="rounded-xl border border-base-200 bg-base-200/20">
+            <div class="p-4 border-b border-base-200 flex flex-col gap-3 md:flex-row md:items-center">
+              <div
+                class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-sm font-bold"
+              >
+                {{ blockIndex + 1 }}
+              </div>
+              <input
+                type="text"
+                class="input input-bordered flex-1 bg-base-100"
+                [ngModel]="block.name"
+                (ngModelChange)="updateBlockName(block.localId, $event)"
+                placeholder="Block name"
+              />
+              <label class="label cursor-pointer gap-2 md:ml-2">
+                <span class="label-text text-xs">Active</span>
+                <input
+                  type="checkbox"
+                  class="toggle toggle-xs toggle-primary"
+                  [ngModel]="block.active"
+                  (ngModelChange)="updateBlockActive(block.localId, $event)"
+                />
+              </label>
+              <button class="btn btn-ghost btn-sm text-error" (click)="removeBlock(block.localId)">
+                <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
+                Remove
+              </button>
+            </div>
+
+            <div class="p-4 space-y-3">
+              @if (block.points.length === 0) {
+                <div class="rounded-xl border border-dashed border-base-300 px-4 py-6 text-center text-sm">
+                  <p class="font-medium text-base-content/80">No points in this block</p>
+                  <p class="text-base-content/60">Add at least one inspection point.</p>
+                </div>
+              }
+
+              @for (point of block.points; track point.localId; let pointIndex = $index) {
+                <div class="rounded-xl border border-base-300 bg-base-100">
+                  <div class="p-3 flex items-center gap-2 border-b border-base-200">
+                    <button
+                      class="btn btn-ghost btn-xs btn-square"
+                      (click)="togglePointCollapsed(block.localId, point.localId)"
+                    >
+                      <lucide-icon
+                        [name]="icons.ChevronRight"
+                        class="h-4 w-4 transition-transform"
+                        [class.rotate-90]="!isPointCollapsed(block.localId, point.localId)"
+                      ></lucide-icon>
+                    </button>
+                    <div class="badge badge-outline">Point {{ pointIndex + 1 }}</div>
+                    <div class="text-sm font-medium text-base-content/80 truncate">
+                      {{ point.name || 'Untitled point' }}
+                    </div>
+                    <div class="ml-auto flex items-center gap-2">
+                      <div class="badge badge-ghost badge-sm uppercase">{{ point.type }}</div>
+                      @if (point.type === 'tyre' && point.tyrePosition) {
+                        <div class="badge badge-outline badge-sm uppercase">
+                          {{ point.tyrePosition }}
+                        </div>
+                      }
+                      @if (point.mandatory) {
+                        <div class="badge badge-error badge-sm">Mandatory</div>
+                      }
+                      <button
+                        class="btn btn-ghost btn-xs text-error"
+                        (click)="removePoint(block.localId, point.localId)"
+                      >
+                        <lucide-icon [name]="icons.Trash2" class="h-3.5 w-3.5"></lucide-icon>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  @if (!isPointCollapsed(block.localId, point.localId)) {
+                    <div class="p-4 space-y-3">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="md:col-span-2">
+                          <label class="label"><span class="label-text text-xs">Name</span></label>
+                          <input
+                            type="text"
+                            class="input input-sm input-bordered w-full"
+                            [ngModel]="point.name"
+                            (ngModelChange)="updatePoint(block.localId, point.localId, { name: $event })"
+                            placeholder="Inspection point name"
+                          />
+                        </div>
+                        <div>
+                          <label class="label"><span class="label-text text-xs">Type</span></label>
+                          <select
+                            class="select select-sm select-bordered w-full"
+                            [ngModel]="point.type"
+                            (ngModelChange)="updatePoint(block.localId, point.localId, { type: $event })"
+                          >
+                            <option value="standard">Standard</option>
+                            <option value="tyre">Tyre</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      @if (point.type === 'tyre') {
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label class="label">
+                              <span class="label-text text-xs">Tyre Configuration</span>
+                            </label>
+                            <select
+                              class="select select-sm select-bordered w-full"
+                              [ngModel]="point.tyreConfigurationId || ''"
+                              (ngModelChange)="
+                                updatePoint(block.localId, point.localId, { tyreConfigurationId: $event || undefined })
+                              "
+                            >
+                              <option value="">Select configuration</option>
+                              @for (config of tyreConfigs(); track config._id) {
+                                <option [value]="config._id">{{ config.code }}</option>
+                              }
+                            </select>
+                            @if (tyreConfigs().length === 0) {
+                              <p class="mt-1 text-xs text-warning">
+                                No tyre configurations available yet. Create one in Settings >
+                                Tyre Configurations.
+                              </p>
+                            }
+                          </div>
+                          <div>
+                            <label class="label"><span class="label-text text-xs">Tyre Code</span></label>
+                            <select
+                              class="select select-sm select-bordered w-full"
+                              [ngModel]="point.tyrePosition || ''"
+                              (ngModelChange)="
+                                updatePoint(block.localId, point.localId, { tyrePosition: $event || undefined })
+                              "
+                            >
+                              <option value="">Select tyre code</option>
+                              @for (code of tyreCodeOptions; track code.value) {
+                                <option [value]="code.value">{{ code.label }}</option>
+                              }
+                            </select>
+                          </div>
+                        </div>
+                      }
+
+                      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <label class="label cursor-pointer justify-start gap-2">
+                          <input
+                            type="checkbox"
+                            class="checkbox checkbox-sm checkbox-primary"
+                            [ngModel]="point.active"
+                            (ngModelChange)="updatePoint(block.localId, point.localId, { active: $event })"
+                          />
+                          <span class="label-text text-xs">Active</span>
+                        </label>
+                        <label class="label cursor-pointer justify-start gap-2">
+                          <input
+                            type="checkbox"
+                            class="checkbox checkbox-sm checkbox-primary"
+                            [ngModel]="point.mandatory"
+                            (ngModelChange)="updatePoint(block.localId, point.localId, { mandatory: $event })"
+                          />
+                          <span class="label-text text-xs">Mandatory</span>
+                        </label>
+                        <div>
+                          <label class="label"><span class="label-text text-xs">Mandatory Media</span></label>
+                          <select
+                            class="select select-sm select-bordered w-full"
+                            [ngModel]="point.mandatoryMedia"
+                            (ngModelChange)="updatePoint(block.localId, point.localId, { mandatoryMedia: $event })"
+                          >
+                            <option value="optional">Optional</option>
+                            <option value="required">Required</option>
+                            <option value="requiredIfNok">Required if NOK</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="label"><span class="label-text text-xs">Mandatory Comment</span></label>
+                          <select
+                            class="select select-sm select-bordered w-full"
+                            [ngModel]="point.mandatoryComment"
+                            (ngModelChange)="updatePoint(block.localId, point.localId, { mandatoryComment: $event })"
+                          >
+                            <option value="optional">Optional</option>
+                            <option value="required">Required</option>
+                            <option value="requiredIfNok">Required if NOK</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="label">
+                          <span class="label-text text-xs">Scripted Comments (one per line)</span>
+                        </label>
+                        <textarea
+                          class="textarea textarea-sm textarea-bordered w-full"
+                          rows="3"
+                          [ngModel]="point.scriptedCommentsText"
+                          (ngModelChange)="
+                            updatePoint(block.localId, point.localId, { scriptedCommentsText: $event })
+                          "
+                          placeholder="Optional helper comments"
+                        ></textarea>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <button
+                class="btn btn-ghost btn-sm w-full border border-dashed border-base-300"
+                (click)="addPoint(block.localId)"
+              >
+                <lucide-icon [name]="icons.Plus" class="h-4 w-4 mr-1"></lucide-icon>
+                Add Inspection Point
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
 </div>

@@ -173,6 +173,11 @@
         <app-inspection-templates-list></app-inspection-templates-list>
       }
 
+      <!-- Tyre Configurations -->
+      @if (activeSection() === 'tyre-configurations') {
+        <app-tyre-configurations></app-tyre-configurations>
+      }
+
       <!-- Users & Operators -->
       @if (activeSection() === 'users') {
         <div class="form-section">
@@ -315,7 +320,7 @@
 
       <!-- Save Button -->
       <!-- Save Button -->
-      @if (activeSection() !== 'inspection-templates') {
+      @if (activeSection() !== 'inspection-templates' && activeSection() !== 'tyre-configurations') {
         <div class="flex justify-end mt-6">
           <button class="btn-premium">
             <lucide-icon [name]="icons.Check" class="h-5 w-5 mr-2"></lucide-icon>

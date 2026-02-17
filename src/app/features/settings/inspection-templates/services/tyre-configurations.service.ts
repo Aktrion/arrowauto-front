@@ -1,11 +1,34 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
+import { tap } from 'rxjs';
 
 export interface TyreConfiguration {
   _id: string;
   code: string;
-  // Add other fields if needed for display
+  amberUpLimit: number;
+  redUpLimit: number;
+  chooseType?: string;
+  winterAmberUpLimit?: number;
+  winterRedUpLimit?: number;
+}
+
+export interface CreateTyreConfigurationDto {
+  code: string;
+  amberUpLimit: number;
+  redUpLimit: number;
+  chooseType?: string;
+  winterAmberUpLimit?: number;
+  winterRedUpLimit?: number;
+}
+
+export interface UpdateTyreConfigurationDto {
+  code?: string;
+  amberUpLimit?: number;
+  redUpLimit?: number;
+  chooseType?: string;
+  winterAmberUpLimit?: number;
+  winterRedUpLimit?: number;
 }
 
 @Injectable({
@@ -22,8 +45,23 @@ export class TyreConfigurationsService {
   }
 
   getAll() {
-    return this.http.get<TyreConfiguration[]>(this.apiUrl).subscribe((configs) => {
-      this.configurations.set(configs);
-    });
+    return this.http
+      .get<TyreConfiguration[]>(this.apiUrl)
+      .pipe(tap((configs) => this.configurations.set(configs)))
+      .subscribe();
+  }
+
+  create(dto: CreateTyreConfigurationDto) {
+    return this.http.post<TyreConfiguration>(this.apiUrl, dto).pipe(tap(() => this.getAll()));
+  }
+
+  update(id: string, dto: UpdateTyreConfigurationDto) {
+    return this.http
+      .patch<TyreConfiguration>(`${this.apiUrl}/${id}`, dto)
+      .pipe(tap(() => this.getAll()));
+  }
+
+  delete(id: string) {
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(tap(() => this.getAll()));
   }
 }
