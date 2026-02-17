@@ -127,7 +127,7 @@ export class VehicleService {
 
   updateProductStatusByVehicleId(
     vehicleId: string,
-    target: 'inspection' | 'in_progress' | 'awaiting_approval' | 'completed' | 'invoiced',
+    target: VehicleStatus,
   ) {
     const productId = this.productIdByVehicleId.get(vehicleId);
     const statusId = this.resolveStatusStepId(target);
@@ -304,13 +304,15 @@ export class VehicleService {
   }
 
   private resolveStatusStepId(
-    target: 'inspection' | 'in_progress' | 'awaiting_approval' | 'completed' | 'invoiced',
+    target: VehicleStatus,
   ): string | undefined {
     const statusSteps = this._statusSteps();
     const matchers: Record<typeof target, string[]> = {
+      pending: ['pending', 'received', 'check in'],
       inspection: ['inspection'],
       in_progress: ['in progress', 'repair', 'working'],
       awaiting_approval: ['awaiting approval', 'waiting approval', 'approval'],
+      approved: ['approved', 'authorised', 'authorized'],
       completed: ['completed', 'ready'],
       invoiced: ['invoiced', 'invoice'],
     };

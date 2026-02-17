@@ -199,7 +199,8 @@
       "MILEAGE": "Mileage",
       "CLIENT": "Client",
       "VIEW": "View",
-      "MANAGE": "Manage"
+      "MANAGE": "Manage",
+      "OPEN": "Open details"
     }
   },
   "VEHICLE": {

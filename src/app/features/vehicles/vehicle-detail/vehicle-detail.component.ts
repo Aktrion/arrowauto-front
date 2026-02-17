@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
+import { of, switchMap } from 'rxjs';
 import { ICONS } from '../../../shared/icons';
 import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
 import { OperationService } from '../../../shared/services/operation.service';
-import { Product, Vehicle } from '../models/vehicle.model';
+import { Product, Vehicle, VehicleStatus } from '../models/vehicle.model';
 
 @Component({
   selector: 'app-vehicle-detail',
@@ -34,6 +35,16 @@ export class VehicleDetailComponent implements OnInit {
   activeTab = signal('details');
   hpiResult = signal(false);
   private routeId = signal<string>('');
+  private initialStatus = signal<VehicleStatus>('pending');
+  readonly statusOptions: VehicleStatus[] = [
+    'pending',
+    'inspection',
+    'in_progress',
+    'awaiting_approval',
+    'approved',
+    'completed',
+    'invoiced',
+  ];
 
   constructor() {
     effect(() => {
@@ -44,6 +55,7 @@ export class VehicleDetailComponent implements OnInit {
       if (found) {
         this.product.set({ ...found });
         this.isNew.set(false);
+        this.initialStatus.set(found.status);
         return;
       }
 
@@ -81,6 +93,7 @@ export class VehicleDetailComponent implements OnInit {
         mileage: 0,
       },
     });
+    this.initialStatus.set('pending');
   }
 
   performHPICheck() {
@@ -113,9 +126,19 @@ export class VehicleDetailComponent implements OnInit {
         next: () => this.router.navigate(['/vehicles']),
       });
     } else {
-      this.vehicleService.updateVehicleProduct(p.id!, p as any).subscribe({
-        next: () => this.router.navigate(['/vehicles']),
-      });
+      this.vehicleService
+        .updateVehicleProduct(p.id!, p as any)
+        .pipe(
+          switchMap(() => {
+            if (!p.id || !p.status || p.status === this.initialStatus()) {
+              return of(null);
+            }
+            return this.vehicleService.updateProductStatusByVehicleId(p.id, p.status);
+          }),
+        )
+        .subscribe({
+          next: () => this.router.navigate(['/vehicles']),
+        });
     }
   }
 

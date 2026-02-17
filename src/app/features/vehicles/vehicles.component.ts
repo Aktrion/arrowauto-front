@@ -72,10 +72,6 @@ export class VehiclesComponent {
     this.router.navigate(['/vehicles/new']);
   }
 
-  openVehicleDetail(vehicle: Product): void {
-    this.router.navigate(['/vehicles', vehicle.id]);
-  }
-
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
     const client = this.clientService.getClientById(clientId);

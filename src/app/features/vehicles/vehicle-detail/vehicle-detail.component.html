@@ -113,6 +113,21 @@
               {{ product().vehicle?.mileage ? (product().vehicle?.mileage | number) + ' mi' : '-' }}
             </p>
           </div>
+          <div class="px-4 py-2 bg-base-200/50 rounded-xl border border-base-200 min-w-[180px]">
+            <p class="text-[9px] text-base-content/40 uppercase font-bold tracking-widest mb-1.5">
+              {{ 'VEHICLES.TABLE.STATUS' | translate }}
+            </p>
+            <select
+              class="w-full px-2.5 py-1.5 bg-base-100 border border-base-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-primary/20"
+              [(ngModel)]="product().status"
+            >
+              @for (status of statusOptions; track status) {
+                <option [ngValue]="status">
+                  {{ formatStatus(status) }}
+                </option>
+              }
+            </select>
+          </div>
         </div>
 
         <!-- Quick Actions -->
