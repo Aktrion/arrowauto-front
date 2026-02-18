@@ -1,7 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
-import { forkJoin, of } from 'rxjs';
+﻿import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { forkJoin, of, switchMap } from 'rxjs';
 import {
   InspectionPointStatus,
   InspectionResult,
@@ -12,53 +11,34 @@ import { InspectionService } from './services/inspection.service';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../shared/icons';
-import { Product } from '../vehicles/models/vehicle.model';
 import { NotificationService } from '../../core/services/notification.service';
-
-interface InspectionHistoryItem {
-  vehicleId: string;
-  productId: string;
-  plate: string;
-  makeModel: string;
-  pointsCount: number;
-  okCount: number;
-  warningCount: number;
-  defectCount: number;
-  totalCost: number;
-  updatedAt?: Date;
-}
 
 @Component({
   selector: 'app-inspection',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule, DatePipe],
+  imports: [LucideAngularModule],
   templateUrl: './inspection.component.html',
 })
-export class InspectionComponent {
+export class InspectionComponent implements OnInit {
   icons = ICONS;
-  private inspectionService = inject(InspectionService);
-  private vehicleService = inject(VehicleService);
-  private notificationService = inject(NotificationService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly inspectionService = inject(InspectionService);
+  private readonly vehicleService = inject(VehicleService);
+  private readonly notificationService = inject(NotificationService);
 
   inspectionPoints = this.inspectionService.inspectionPoints;
   activeInspectionPoints = signal(this.inspectionService.inspectionPoints());
 
   selectedVehicleId = signal<string | null>(null);
   selectedProductId = signal<string | null>(null);
-  viewMode = signal<'editor' | 'history'>('editor');
   activeCategory = signal<string>('all');
   inspectionResults = signal<Map<string, Partial<InspectionResult>>>(new Map());
   isSaving = signal(false);
   saveError = signal<string | null>(null);
   saveSuccess = signal(false);
-  inspectionHistory = signal<InspectionHistoryItem[]>([]);
-  isLoadingHistory = signal(false);
-  historyError = signal<string | null>(null);
 
   vehiclesForInspection = computed(() =>
-    this.vehicleService
-      .vehicles()
-      .filter((v) => v.status === 'inspection' || v.status === 'in_progress')
+    this.vehicleService.vehicles().filter((v) => v.status === 'inspection' || v.status === 'in_progress'),
   );
 
   categories = computed(() => {
@@ -76,7 +56,6 @@ export class InspectionComponent {
     const points = this.filteredPoints();
     const groups = new Map<string, typeof points>();
 
-    // Define the order of categories as per requirement
     const order = [
       'Vehicle Receiving',
       'External/Drive in Inspection',
@@ -110,14 +89,50 @@ export class InspectionComponent {
     return [...ordered, ...remaining];
   });
 
+  totalCost = computed(() => {
+    let total = 0;
+    this.inspectionResults().forEach((result) => {
+      total += (result.partsCost || 0) + (result.laborCost || 0);
+    });
+    return total;
+  });
+
+  ngOnInit(): void {
+    const productId = this.route.snapshot.paramMap.get('productId');
+    if (productId) {
+      this.selectInspectionByProductId(productId);
+    }
+  }
+
+  private selectInspectionByProductId(productId: string): void {
+    this.vehicleService.getProductById(productId).subscribe((product) => {
+      const vehicleId = product?.vehicleId;
+      if (!vehicleId) {
+        this.saveError.set('No se encontrÃ³ el vehÃ­culo para esta inspecciÃ³n.');
+        this.notificationService.error('No se encontrÃ³ el vehÃ­culo para esta inspecciÃ³n.');
+        return;
+      }
+      const inspectionValueIds = Array.isArray((product as any)?.inspectionValueIds)
+        ? (product as any).inspectionValueIds
+            .map((id: any) => this.normalizeId(id))
+            .filter((id: string) => !!id)
+        : [];
+      this.selectVehicle(
+        vehicleId,
+        productId,
+        inspectionValueIds,
+        (product as any)?.inspectionTemplateId,
+      );
+    });
+  }
+
   // Helper to find specific tyre points for the visualizer
   getTyrePointId(position: 'NSF' | 'OSF' | 'NSR' | 'OSR' | 'Spare'): string | undefined {
-    // Map visual positions to codes
     const codeMap: Record<string, string> = {
-      NSF: 'NSFT', // Near Side Front (Passenger)
-      OSF: 'OSFT', // Off Side Front (Driver)
-      NSR: 'NSRT', // Near Side Rear
-      OSR: 'OSRT', // Off Side Rear
+      NSF: 'NSFT',
+      OSF: 'OSFT',
+      NSR: 'NSRT',
+      OSR: 'OSRT',
       Spare: 'SS',
     };
 
@@ -135,27 +150,12 @@ export class InspectionComponent {
     )?.id;
   }
 
-  totalCost = computed(() => {
-    let total = 0;
-    this.inspectionResults().forEach((result) => {
-      total += (result.partsCost || 0) + (result.laborCost || 0);
-    });
-    return total;
-  });
-
-  setViewMode(mode: 'editor' | 'history'): void {
-    this.viewMode.set(mode);
-    if (mode === 'history') {
-      this.loadInspectionHistory();
-    }
-  }
-
-  editInspectionFromHistory(vehicleId: string, productId: string): void {
-    this.viewMode.set('editor');
-    this.selectVehicle(vehicleId, productId);
-  }
-
-  selectVehicle(vehicleId: string, explicitProductId?: string): void {
+  selectVehicle(
+    vehicleId: string,
+    explicitProductId?: string,
+    explicitInspectionValueIds: string[] = [],
+    explicitTemplateId?: string,
+  ): void {
     this.selectedVehicleId.set(vehicleId);
     this.selectedProductId.set(explicitProductId || null);
     this.saveError.set(null);
@@ -164,51 +164,37 @@ export class InspectionComponent {
     this.activeCategory.set('all');
 
     const vehicle = this.vehicleService.getVehicleById(vehicleId);
-    if (vehicle?.inspectionTemplateId) {
-      this.inspectionService
-        .getInspectionPointsFromTemplate(vehicle.inspectionTemplateId)
-        .subscribe((points) => {
-          this.activeInspectionPoints.set(points.length ? points : this.inspectionPoints());
-        });
-    } else {
-      this.activeInspectionPoints.set(this.inspectionPoints());
+    const productId = explicitProductId || this.vehicleService.getProductIdByVehicleId(vehicleId);
+    const templateId = explicitTemplateId || vehicle?.inspectionTemplateId;
+
+    const points$ = templateId
+      ? this.inspectionService.getInspectionPointsFromTemplate(templateId)
+      : of(this.inspectionPoints());
+    const values$ = explicitInspectionValueIds.length
+      ? this.inspectionService.getInspectionValuesByIds(explicitInspectionValueIds)
+      : productId
+        ? this.inspectionService.getInspectionValuesByProduct(productId)
+        : of([]);
+
+    if (productId) {
+      this.selectedProductId.set(productId);
     }
 
-    const productId = explicitProductId || this.vehicleService.getProductIdByVehicleId(vehicleId);
-    if (!productId) return;
-    this.selectedProductId.set(productId);
-
-    this.loadInspectionValuesForProduct(productId, vehicleId);
+    forkJoin({ points: points$, values: values$ }).subscribe(({ points, values }) => {
+      const resolvedPoints = points.length ? points : this.inspectionPoints();
+      this.activeInspectionPoints.set(resolvedPoints);
+      this.applyInspectionValuesToResults(
+        values as any[],
+        vehicleId,
+        explicitInspectionValueIds,
+        resolvedPoints,
+      );
+    });
   }
 
   private loadInspectionValuesForProduct(productId: string, vehicleId: string): void {
     this.inspectionService.getInspectionValuesByProduct(productId).subscribe((values) => {
-      const mapped = new Map<string, Partial<InspectionResult>>();
-      values.forEach((value) => {
-        const pointId = value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id;
-        if (!pointId) return;
-        const parsedCosts = this.readCostsFromComments(value.comments || []);
-        mapped.set(pointId, {
-          id: value._id || value.id,
-          pointId,
-          vehicleId,
-          status: this.mapValueToStatus(value.value),
-          comment: (value.comments || []).find((item) => !item.startsWith('__')) || '',
-          photos: value.mediaUrls || [],
-          partsCost: parsedCosts.partsCost,
-          laborCost: parsedCosts.laborCost,
-          tyreMeasurements:
-            value.type === 'tyre'
-              ? {
-                  inner: value.innerDepth || 0,
-                  middle: value.midDepth || 0,
-                  outer: value.outerDepth || 0,
-                }
-              : undefined,
-          requiresParts: (parsedCosts.partsCost || 0) > 0,
-        });
-      });
-      this.inspectionResults.set(mapped);
+      this.applyInspectionValuesToResults(values as any[], vehicleId, [], this.activeInspectionPoints());
     });
   }
 
@@ -254,25 +240,8 @@ export class InspectionComponent {
     });
   }
 
-  getPointNotes(pointId: string): string {
-    const result = this.inspectionResults().get(pointId);
-    return (result as any)?.notes || '';
-  }
-
-  setPointNotes(pointId: string, event: Event): void {
-    const value = (event.target as HTMLTextAreaElement).value;
-    this.inspectionResults.update((results) => {
-      const newResults = new Map(results);
-      const existing = newResults.get(pointId) || {
-        id: crypto.randomUUID(),
-        pointId,
-        vehicleId: this.selectedVehicleId()!,
-        photos: [],
-        requiresParts: false,
-      };
-      newResults.set(pointId, { ...existing, notes: value } as any);
-      return newResults;
-    });
+  setPointCommentFromEvent(pointId: string, event: Event): void {
+    this.setPointComment(pointId, (event.target as HTMLTextAreaElement).value);
   }
 
   getPointPartsCost(pointId: string): number {
@@ -366,20 +335,31 @@ export class InspectionComponent {
     this.isSaving.set(true);
     this.saveError.set(null);
     this.saveSuccess.set(false);
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.saveSuccess.set(true);
-        this.notificationService.success('Inspection saved successfully.');
-        this.refreshCurrentVehicleResults(vehicleId);
-        this.loadInspectionHistory();
-      },
-      error: () => {
-        this.isSaving.set(false);
-        this.saveError.set('Failed to save inspection values.');
-        this.notificationService.error('Failed to save inspection values.');
-      },
-    });
+
+    forkJoin(requests)
+      .pipe(
+        switchMap(() => {
+          const currentStatus = this.vehicleService.getVehicleById(vehicleId)?.status;
+          if (currentStatus === 'inspection') {
+            return this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'awaiting_approval');
+          }
+          return of(null);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.saveSuccess.set(true);
+          this.notificationService.success('Inspection saved successfully.');
+          this.refreshCurrentVehicleResults(vehicleId);
+          this.vehicleService.loadVehicles();
+        },
+        error: () => {
+          this.isSaving.set(false);
+          this.saveError.set('Failed to save inspection values.');
+          this.notificationService.error('Failed to save inspection values.');
+        },
+      });
   }
 
   private refreshCurrentVehicleResults(vehicleId: string): void {
@@ -388,82 +368,6 @@ export class InspectionComponent {
       return;
     }
     this.loadInspectionValuesForProduct(productId, vehicleId);
-  }
-
-  loadInspectionHistory(): void {
-    const allVehicles = this.vehicleService.vehicles();
-    const candidates = allVehicles
-      .map((vehicle) => ({
-        vehicle,
-        productId: this.vehicleService.getProductIdByVehicleId(vehicle.id || vehicle.vehicleId || ''),
-      }))
-      .filter((item): item is { vehicle: Product; productId: string } => !!item.productId);
-
-    if (!candidates.length) {
-      this.inspectionHistory.set([]);
-      return;
-    }
-
-    this.isLoadingHistory.set(true);
-    this.historyError.set(null);
-
-    const requests = candidates.map((item) =>
-      this.inspectionService.getInspectionValuesByProduct(item.productId),
-    );
-
-    forkJoin(requests).subscribe({
-      next: (valuesByProduct) => {
-        const history: InspectionHistoryItem[] = [];
-
-        valuesByProduct.forEach((values, index) => {
-          if (!values.length) return;
-          const candidate = candidates[index];
-          let totalCost = 0;
-          let okCount = 0;
-          let warningCount = 0;
-          let defectCount = 0;
-          let latestTimestamp = 0;
-
-          values.forEach((value) => {
-            const status = this.mapValueToStatus(value.value);
-            if (status === 'ok') okCount += 1;
-            if (status === 'warning') warningCount += 1;
-            if (status === 'defect') defectCount += 1;
-
-            const parsed = this.readCostsFromComments(value.comments || []);
-            totalCost += parsed.partsCost + parsed.laborCost;
-
-            const stamp = new Date(value.updatedAt || value.createdAt || '').getTime();
-            if (!Number.isNaN(stamp) && stamp > latestTimestamp) {
-              latestTimestamp = stamp;
-            }
-          });
-
-          history.push({
-            vehicleId: candidate.vehicle.id || candidate.vehicle.vehicleId || '',
-            productId: candidate.productId,
-            plate: candidate.vehicle.vehicle?.licensePlate || 'N/A',
-            makeModel:
-              `${candidate.vehicle.vehicle?.make || ''} ${candidate.vehicle.vehicle?.model || ''}`.trim() ||
-              'Unknown',
-            pointsCount: values.length,
-            okCount,
-            warningCount,
-            defectCount,
-            totalCost,
-            updatedAt: latestTimestamp ? new Date(latestTimestamp) : undefined,
-          });
-        });
-
-        history.sort((a, b) => (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0));
-        this.inspectionHistory.set(history);
-        this.isLoadingHistory.set(false);
-      },
-      error: () => {
-        this.historyError.set('Failed to load inspection history.');
-        this.isLoadingHistory.set(false);
-      },
-    });
   }
 
   // Tyre specific methods
@@ -482,7 +386,7 @@ export class InspectionComponent {
         vehicleId: this.selectedVehicleId()!,
         photos: [],
         requiresParts: false,
-        status: 'not_inspected', // Default status if starting with measurements
+        status: 'not_inspected',
       };
 
       const measurements = existing.tyreMeasurements || { inner: 0, middle: 0, outer: 0 };
@@ -551,4 +455,66 @@ export class InspectionComponent {
   private isMongoObjectId(value: string): boolean {
     return /^[a-f\d]{24}$/i.test(value);
   }
+
+  private applyInspectionValuesToResults(
+    values: any[],
+    vehicleId: string,
+    explicitInspectionValueIds: string[],
+    points: { id: string }[],
+  ): void {
+    const mapped = new Map<string, Partial<InspectionResult>>();
+    const fallbackPointByValueId = new Map<string, string>();
+
+    if (explicitInspectionValueIds.length && points.length) {
+      explicitInspectionValueIds.forEach((valueId, index) => {
+        const point = points[index];
+        if (valueId && point?.id) {
+          fallbackPointByValueId.set(valueId, point.id);
+        }
+      });
+    }
+
+    values.forEach((value) => {
+      const valueId = this.normalizeId(value?._id || value?.id);
+      const pointId = this.normalizeId(
+        value?.inspectionPointId || value?.inspectionPoint?._id || value?.inspectionPoint?.id,
+      ) || (valueId ? fallbackPointByValueId.get(valueId) || '' : '');
+
+      if (!pointId) return;
+
+      const parsedCosts = this.readCostsFromComments(value.comments || []);
+      mapped.set(pointId, {
+        id: valueId || value._id || value.id,
+        pointId,
+        vehicleId,
+        status: this.mapValueToStatus(value.value),
+        comment: (value.comments || []).find((item: string) => !item.startsWith('__')) || '',
+        photos: value.mediaUrls || [],
+        partsCost: parsedCosts.partsCost,
+        laborCost: parsedCosts.laborCost,
+        tyreMeasurements:
+          value.type === 'tyre'
+            ? {
+                inner: value.innerDepth || 0,
+                middle: value.midDepth || 0,
+                outer: value.outerDepth || 0,
+              }
+            : undefined,
+        requiresParts: (parsedCosts.partsCost || 0) > 0,
+      });
+    });
+
+    this.inspectionResults.set(mapped);
+  }
+
+  private normalizeId(ref?: string | { _id?: any; id?: any; $oid?: string } | null): string {
+    if (!ref) return '';
+    if (typeof ref === 'string') return ref;
+    const nested = (ref as any)._id || (ref as any).id || (ref as any).$oid;
+    if (typeof nested === 'string') return nested;
+    if (nested && typeof nested === 'object') return this.normalizeId(nested as any);
+    return '';
+  }
 }
+
+

@@ -24,7 +24,7 @@ interface BackendInspectionBlock {
 export interface BackendInspectionValue {
   _id?: string;
   id?: string;
-  productId: string;
+  productId?: string;
   inspectionPointId?: string;
   inspectionPoint?: { _id?: string; id?: string };
   type: 'standard' | 'tyre';
@@ -105,7 +105,9 @@ export class InspectionService {
 
   getInspectionValuesByProduct(productId: string) {
     return this.http
-      .post<{ data: BackendInspectionValue[] }>(`${this.valuesApiUrl}/search`, {
+      .post<{ data?: BackendInspectionValue[] } | BackendInspectionValue[]>(
+        `${this.valuesApiUrl}/search`,
+        {
         page: 1,
         limit: 500,
         sortBy: 'createdAt',
@@ -116,8 +118,57 @@ export class InspectionService {
             operator: 'equals',
           },
         },
-      })
-      .pipe(map((res) => res.data || []), catchError(() => of([])));
+      },
+      )
+      .pipe(
+        map((res) => (Array.isArray(res) ? res : res.data || [])),
+        catchError(() => of([])),
+      );
+  }
+
+  getAllInspectionValues() {
+    return this.http
+      .post<{ data?: BackendInspectionValue[] } | BackendInspectionValue[]>(
+        `${this.valuesApiUrl}/search`,
+        {
+          page: 1,
+          limit: 5000,
+          sortBy: 'updatedAt',
+          sortOrder: 'desc',
+          filters: {},
+        },
+      )
+      .pipe(
+        map((res) => (Array.isArray(res) ? res : res.data || [])),
+        catchError(() => of([])),
+      );
+  }
+
+  getInspectionValuesByIds(ids: string[]) {
+    if (!ids.length) {
+      return of([] as BackendInspectionValue[]);
+    }
+
+    return this.http
+      .post<{ data?: BackendInspectionValue[] } | BackendInspectionValue[]>(
+        `${this.valuesApiUrl}/search`,
+        {
+          page: 1,
+          limit: Math.max(100, ids.length),
+          sortBy: 'updatedAt',
+          sortOrder: 'desc',
+          filters: {
+            _id: {
+              value: ids,
+              operator: 'in',
+            },
+          },
+        },
+      )
+      .pipe(
+        map((res) => (Array.isArray(res) ? res : res.data || [])),
+        catchError(() => of([])),
+      );
   }
 
   createInspectionValue(payload: Record<string, any>) {

@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -25,9 +25,21 @@ export class VehiclesComponent {
   clients = this.clientService.clients;
   filteredVehicles = signal<Product[]>([]);
   isTableView = signal(true);
+  currentPage = signal(1);
+  readonly pageSize = 10;
 
   searchQuery = '';
+  searchField: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job' = 'all';
   statusFilter = '';
+
+  paginatedVehicles = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredVehicles().slice(start, start + this.pageSize);
+  });
+
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredVehicles().length / this.pageSize)),
+  );
 
   constructor() {
     effect(() => {
@@ -53,11 +65,27 @@ export class VehiclesComponent {
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (v) =>
-          v.vehicle?.licensePlate?.toLowerCase().includes(query) ||
-          v.vehicle?.make?.toLowerCase().includes(query) ||
-          v.vehicle?.model?.toLowerCase().includes(query) ||
-          v.vehicle?.jobNumber?.toLowerCase().includes(query),
+        (v) => {
+          const plate = v.vehicle?.licensePlate?.toLowerCase() || '';
+          const make = v.vehicle?.make?.toLowerCase() || '';
+          const model = v.vehicle?.model?.toLowerCase() || '';
+          const job = v.vehicle?.jobNumber?.toLowerCase() || '';
+          const client = this.getClientName(v.customerId).toLowerCase();
+
+          if (this.searchField === 'plate') return plate.includes(query);
+          if (this.searchField === 'make') return make.includes(query);
+          if (this.searchField === 'model') return model.includes(query);
+          if (this.searchField === 'job') return job.includes(query);
+          if (this.searchField === 'client') return client.includes(query);
+
+          return (
+            plate.includes(query) ||
+            make.includes(query) ||
+            model.includes(query) ||
+            job.includes(query) ||
+            client.includes(query)
+          );
+        },
       );
     }
 
@@ -66,6 +94,22 @@ export class VehiclesComponent {
     }
 
     this.filteredVehicles.set(filtered);
+    this.currentPage.set(1);
+  }
+
+  setSearchField(field: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job') {
+    this.searchField = field;
+    this.filterVehicles();
+  }
+
+  nextPage() {
+    if (this.currentPage() >= this.totalPages()) return;
+    this.currentPage.update((p) => p + 1);
+  }
+
+  prevPage() {
+    if (this.currentPage() <= 1) return;
+    this.currentPage.update((p) => p - 1);
   }
 
   openNewVehicleModal(): void {

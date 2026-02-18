@@ -15,9 +15,21 @@
           type="text"
           placeholder="Search job number..."
           class="input input-bordered pl-10 w-full sm:w-64 focus:input-primary transition-all shadow-sm"
-          [(ngModel)]="searchQuery"
+          [ngModel]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
         />
       </div>
+      <select
+        class="select select-bordered w-full sm:w-48"
+        [ngModel]="searchField"
+        (ngModelChange)="setSearchField($event)"
+      >
+        <option value="all">All Fields</option>
+        <option value="job">Job #</option>
+        <option value="plate">Plate</option>
+        <option value="operation">Operation</option>
+        <option value="status">Status</option>
+      </select>
     </div>
   </div>
 
@@ -169,7 +181,7 @@
               </tr>
             </thead>
             <tbody class="text-sm">
-              @for (item of filteredOperations(); track item.op.id) {
+              @for (item of paginatedOperations(); track item.op.id) {
                 <tr
                   class="hover group transition-colors border-b border-base-100 last:border-none"
                   [class.bg-primary/5]="isSelected(item.op.id)"
@@ -279,6 +291,23 @@
               }
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between p-4 border-t border-base-200">
+        <p class="text-sm text-base-content/60">
+          Showing {{ paginatedOperations().length }} of {{ filteredOperations().length }}
+        </p>
+        <div class="join">
+          <button class="join-item btn btn-sm" [disabled]="currentPage() <= 1" (click)="prevPage()">
+            Prev
+          </button>
+          <button class="join-item btn btn-sm btn-ghost cursor-default">
+            Page {{ currentPage() }} / {{ totalPages() }}
+          </button>
+          <button class="join-item btn btn-sm" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+            Next
+          </button>
         </div>
       </div>
 

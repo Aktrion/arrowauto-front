@@ -153,6 +153,28 @@
         </li>
         <li>
           <a
+            routerLink="/inspection-history"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.INSPECTION_HISTORY' | translate) : ''"
+          >
+            <lucide-icon
+              [name]="icons.Clock"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap overflow-hidden"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              {{ 'SHELL.SIDEBAR.INSPECTION_HISTORY' | translate }}
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
             routerLink="/scheduling"
             routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
             class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"

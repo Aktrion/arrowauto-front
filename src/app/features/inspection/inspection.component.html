@@ -1,4 +1,4 @@
-﻿<div class="inspection-page space-y-6">
+<div class="inspection-page space-y-6">
   <section class="inspection-hero card-premium">
     <div>
       <p class="inspection-kicker">Operations / Inspection Lab</p>
@@ -25,26 +25,6 @@
     </div>
   </section>
 
-  <div class="inspection-view-switch">
-    <button
-      class="inspection-switch-btn"
-      [class.active]="viewMode() === 'editor'"
-      (click)="setViewMode('editor')"
-    >
-      <lucide-icon [name]="icons.ClipboardCheck" class="h-4 w-4"></lucide-icon>
-      Editor
-    </button>
-    <button
-      class="inspection-switch-btn"
-      [class.active]="viewMode() === 'history'"
-      (click)="setViewMode('history')"
-    >
-      <lucide-icon [name]="icons.Clock" class="h-4 w-4"></lucide-icon>
-      Historial
-    </button>
-  </div>
-
-  @if (viewMode() === 'editor') {
   <div class="inspection-layout">
     <aside class="inspection-sidebar">
       <section class="inspection-panel card-premium">
@@ -244,8 +224,8 @@
                             <textarea
                               class="textarea textarea-bordered h-20 text-sm"
                               placeholder="Additional details..."
-                              [value]="getPointNotes(point.id)"
-                              (input)="setPointNotes(point.id, $event)"
+                              [value]="getPointComment(point.id)"
+                              (input)="setPointCommentFromEvent(point.id, $event)"
                             ></textarea>
                           </div>
 
@@ -582,70 +562,5 @@
       }
     </main>
   </div>
-  } @else {
-  <section class="inspection-panel card-premium inspection-history-panel">
-    <div class="inspection-panel-head">
-      <div>
-        <p class="inspection-kicker">Inspection Archive</p>
-        <h2 class="inspection-panel-title">Historial de inspecciones</h2>
-      </div>
-      <button class="btn btn-sm btn-ghost" (click)="loadInspectionHistory()">
-        <lucide-icon [name]="icons.Zap" class="h-4 w-4 mr-1"></lucide-icon>
-        Refrescar
-      </button>
-    </div>
-
-    @if (isLoadingHistory()) {
-      <div class="inspection-history-loading">Cargando historial...</div>
-    } @else if (historyError()) {
-      <div class="inspection-history-error">{{ historyError() }}</div>
-    } @else if (!inspectionHistory().length) {
-      <div class="inspection-empty-small">No hay inspecciones registradas todavía.</div>
-    } @else {
-      <div class="inspection-history-table-wrap">
-        <table class="table w-full">
-          <thead>
-            <tr>
-              <th>Vehículo</th>
-              <th>Última actualización</th>
-              <th>Puntos</th>
-              <th>Estado</th>
-              <th>Costo estimado</th>
-              <th class="text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of inspectionHistory(); track item.productId) {
-              <tr>
-                <td>
-                  <div class="font-bold">{{ item.plate }}</div>
-                  <div class="text-xs text-base-content/60">{{ item.makeModel }}</div>
-                </td>
-                <td>{{ item.updatedAt ? (item.updatedAt | date: 'medium') : '-' }}</td>
-                <td>{{ item.pointsCount }}</td>
-                <td>
-                  <div class="inspection-history-status">
-                    <span class="text-success">OK {{ item.okCount }}</span>
-                    <span class="text-warning">Warn {{ item.warningCount }}</span>
-                    <span class="text-error">Defect {{ item.defectCount }}</span>
-                  </div>
-                </td>
-                <td class="font-semibold">&pound;{{ item.totalCost.toFixed(2) }}</td>
-                <td class="text-right">
-                  <button
-                    class="btn btn-sm btn-primary"
-                    (click)="editInspectionFromHistory(item.vehicleId, item.productId)"
-                  >
-                    <lucide-icon [name]="icons.Pencil" class="h-4 w-4 mr-1"></lucide-icon>
-                    Editar
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
-  </section>
-  }
 </div>
+

@@ -55,3 +55,17 @@ export interface Product {
   odometer?: number;
   distanceUnit: 'miles' | 'km';
 }
+
+export type ProductActivityEventType =
+  | 'product_created'
+  | 'status_changed'
+  | 'operations_updated'
+  | 'movements_updated';
+
+export interface ProductActivityEvent {
+  type: ProductActivityEventType;
+  occurredAt: Date;
+  actorName?: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+}

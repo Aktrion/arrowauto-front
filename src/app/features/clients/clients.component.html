@@ -1,5 +1,4 @@
-<div class="space-y-6">
-  <!-- Header -->
+ï»¿<div class="space-y-6">
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div class="animate-slide-up">
       <h1 class="text-2xl font-bold text-base-content">{{ 'CLIENTS.TITLE' | translate }}</h1>
@@ -14,9 +13,8 @@
     </button>
   </div>
 
-  <!-- Search & Filter -->
   <div class="card-premium rounded-xl p-4 animate-slide-up stagger-1">
-    <div class="flex flex-col sm:flex-row gap-4">
+    <div class="flex flex-col lg:flex-row gap-4">
       <div class="flex-1 relative">
         <lucide-icon
           [name]="icons.Search"
@@ -30,84 +28,159 @@
           (input)="filterClients()"
         />
       </div>
-      <div class="flex gap-2">
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            typeFilter === ''
-              ? 'bg-primary text-white'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setTypeFilter('')"
-        >
-          {{ 'CLIENTS.FILTER.ALL' | translate }}
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            typeFilter === 'company'
-              ? 'bg-primary text-white'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setTypeFilter('company')"
-        >
-          {{ 'CLIENTS.FILTER.COMPANIES' | translate }}
-        </button>
-        <button
-          class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-          [class]="
-            typeFilter === 'individual'
-              ? 'bg-primary text-white'
-              : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-          "
-          (click)="setTypeFilter('individual')"
-        >
-          {{ 'CLIENTS.FILTER.INDIVIDUALS' | translate }}
-        </button>
+
+      <select
+        class="select select-bordered bg-base-200 border-0 rounded-xl text-sm min-w-[170px]"
+        [ngModel]="searchField"
+        (ngModelChange)="setSearchField($event)"
+      >
+        <option value="all">All Fields</option>
+        <option value="name">Name</option>
+        <option value="email">Email</option>
+        <option value="company">Company</option>
+        <option value="phone">Phone</option>
+      </select>
+
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-wrap gap-2">
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            [class]="
+              typeFilter === ''
+                ? 'bg-primary text-white shadow-glow-primary'
+                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+            "
+            (click)="setTypeFilter('')"
+          >
+            {{ 'CLIENTS.FILTER.ALL' | translate }}
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            [class]="
+              typeFilter === 'company'
+                ? 'bg-primary text-white shadow-glow-primary'
+                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+            "
+            (click)="setTypeFilter('company')"
+          >
+            {{ 'CLIENTS.FILTER.COMPANIES' | translate }}
+          </button>
+          <button
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            [class]="
+              typeFilter === 'individual'
+                ? 'bg-primary text-white shadow-glow-primary'
+                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+            "
+            (click)="setTypeFilter('individual')"
+          >
+            {{ 'CLIENTS.FILTER.INDIVIDUALS' | translate }}
+          </button>
+        </div>
+
+        <div class="divider divider-horizontal hidden lg:flex"></div>
+
+        <div class="join bg-base-200 p-1 rounded-xl hidden lg:flex">
+          <button
+            class="join-item btn btn-sm border-0 transition-all"
+            [class]="
+              !isTableView()
+                ? 'bg-base-100 text-primary shadow-sm'
+                : 'bg-transparent text-base-content/50'
+            "
+            (click)="toggleView(false)"
+            title="Card View"
+          >
+            <lucide-icon [name]="icons.LayoutGrid" class="h-4 w-4"></lucide-icon>
+          </button>
+          <button
+            class="join-item btn btn-sm border-0 transition-all"
+            [class]="
+              isTableView()
+                ? 'bg-base-100 text-primary shadow-sm'
+                : 'bg-transparent text-base-content/50'
+            "
+            (click)="toggleView(true)"
+            title="List View"
+          >
+            <lucide-icon [name]="icons.Table" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-slide-up stagger-2">
-    <div class="stat-card">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-base-content/60">{{ 'CLIENTS.STATS.TOTAL' | translate }}</p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ clients().length }}</p>
-        </div>
-        <div class="stat-icon stat-icon-primary">
-          <lucide-icon [name]="icons.Users" class="h-6 w-6"></lucide-icon>
-        </div>
-      </div>
+  @if (isTableView()) {
+    <div class="hidden lg:block overflow-x-auto card-premium rounded-2xl border border-base-200 animate-slide-up">
+      <table class="table table-zebra w-full overflow-hidden">
+        <thead>
+          <tr class="bg-base-200/50 text-base-content/70 border-0">
+            <th class="pl-6 w-24">{{ 'CLIENTS.BUTTON.EDIT' | translate }}</th>
+            <th>{{ 'CLIENTS.MODAL.FULL_NAME' | translate }}</th>
+            <th>{{ 'CLIENTS.MODAL.COMPANY_NAME' | translate }}</th>
+            <th>{{ 'CLIENTS.MODAL.EMAIL' | translate }}</th>
+            <th>{{ 'CLIENTS.MODAL.PHONE' | translate }}</th>
+            <th class="pr-6">{{ 'CLIENTS.MODAL.TYPE' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (client of paginatedClients(); track client.id) {
+            <tr class="hover:bg-primary/5 transition-colors border-b border-base-200/50">
+              <td class="pl-6">
+                <button
+                  class="btn btn-ghost btn-xs text-primary hover:bg-primary/10"
+                  (click)="openEditClientModal(client)"
+                >
+                  <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
+                </button>
+              </td>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white"
+                  >
+                    {{ getInitials(client.name) }}
+                  </div>
+                  <span class="font-semibold text-base-content">{{ client.name }}</span>
+                </div>
+              </td>
+              <td class="text-sm">{{ client.company || '-' }}</td>
+              <td class="text-sm">{{ client.email || '-' }}</td>
+              <td class="text-sm">{{ client.phone || '-' }}</td>
+              <td class="pr-6">
+                <span
+                  class="inline-block px-2 py-0.5 text-xs font-medium rounded-full"
+                  [class]="
+                    client.type === 'company' ? 'bg-info/20 text-info' : 'bg-success/20 text-success'
+                  "
+                >
+                  {{
+                    client.type === 'company'
+                      ? ('CLIENTS.CARD.COMPANY' | translate)
+                      : ('CLIENTS.CARD.INDIVIDUAL' | translate)
+                  }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center py-20">
+                <div class="flex flex-col items-center gap-3">
+                  <div class="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center">
+                    <lucide-icon [name]="icons.Users" class="h-8 w-8 text-base-content/20"></lucide-icon>
+                  </div>
+                  <p class="text-base-content/60 font-medium">{{ 'CLIENTS.EMPTY.TITLE' | translate }}</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
-    <div class="stat-card">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-base-content/60">{{ 'CLIENTS.STATS.COMPANIES' | translate }}</p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ getCompanyCount() }}</p>
-        </div>
-        <div class="stat-icon stat-icon-info">
-          <lucide-icon [name]="icons.Building2" class="h-6 w-6"></lucide-icon>
-        </div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-base-content/60">{{ 'CLIENTS.STATS.INDIVIDUALS' | translate }}</p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ getIndividualCount() }}</p>
-        </div>
-        <div class="stat-icon stat-icon-success">
-          <lucide-icon [name]="icons.User" class="h-6 w-6"></lucide-icon>
-        </div>
-      </div>
-    </div>
-  </div>
+  }
 
-  <!-- Clients Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-    @for (client of filteredClients(); track client.id; let i = $index) {
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" [class.lg:hidden]="isTableView()">
+    @for (client of paginatedClients(); track client.id; let i = $index) {
       <div
         class="card-premium rounded-xl overflow-hidden animate-slide-up"
         [style.animation-delay]="i * 50 + 'ms'"
@@ -151,11 +224,7 @@
           </div>
         </div>
         <div class="px-6 py-4 bg-base-200/30 border-t border-base-200 flex gap-2">
-          <button class="btn btn-ghost btn-sm flex-1">
-            <lucide-icon [name]="icons.Eye" class="h-4 w-4 mr-1"></lucide-icon>
-            {{ 'CLIENTS.BUTTON.VIEW' | translate }}
-          </button>
-          <button class="btn btn-ghost btn-sm flex-1">
+          <button class="btn btn-ghost btn-sm flex-1" (click)="openEditClientModal(client)">
             <lucide-icon [name]="icons.Pencil" class="h-4 w-4 mr-1"></lucide-icon>
             {{ 'CLIENTS.BUTTON.EDIT' | translate }}
           </button>
@@ -168,9 +237,7 @@
             <lucide-icon [name]="icons.Users" class="h-10 w-10"></lucide-icon>
           </div>
           <h3 class="empty-state-title">{{ 'CLIENTS.EMPTY.TITLE' | translate }}</h3>
-          <p class="empty-state-description">
-            {{ 'CLIENTS.EMPTY.DESCRIPTION' | translate }}
-          </p>
+          <p class="empty-state-description">{{ 'CLIENTS.EMPTY.DESCRIPTION' | translate }}</p>
           <button class="btn-premium mt-4" (click)="openNewClientModal()">
             {{ 'CLIENTS.EMPTY.BUTTON' | translate }}
           </button>
@@ -179,11 +246,27 @@
     }
   </div>
 
-  <!-- New Client Modal -->
+  <div class="flex items-center justify-between card-premium rounded-xl p-3">
+    <p class="text-sm text-base-content/60">
+      Showing {{ paginatedClients().length }} of {{ filteredClients().length }}
+    </p>
+    <div class="join">
+      <button class="join-item btn btn-sm" [disabled]="currentPage() <= 1" (click)="prevPage()">
+        Prev
+      </button>
+      <button class="join-item btn btn-sm btn-ghost cursor-default">
+        Page {{ currentPage() }} / {{ totalPages() }}
+      </button>
+      <button class="join-item btn btn-sm" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+        Next
+      </button>
+    </div>
+  </div>
+
   <dialog id="new_client_modal" class="modal">
     <div class="modal-box max-w-lg bg-base-100 border border-base-300">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">×</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">x</button>
       </form>
 
       <div class="flex items-center gap-3 mb-6">
@@ -191,9 +274,7 @@
           <lucide-icon [name]="icons.UserPlus" class="h-6 w-6 text-white"></lucide-icon>
         </div>
         <div>
-          <h3 class="text-lg font-bold text-base-content">
-            {{ 'CLIENTS.MODAL.TITLE' | translate }}
-          </h3>
+          <h3 class="text-lg font-bold text-base-content">{{ 'CLIENTS.MODAL.TITLE' | translate }}</h3>
           <p class="text-sm text-base-content/60">{{ 'CLIENTS.MODAL.SUBTITLE' | translate }}</p>
         </div>
       </div>
@@ -308,7 +389,115 @@
       <button>close</button>
     </form>
   </dialog>
+
+  <dialog id="edit_client_modal" class="modal">
+    <div class="modal-box max-w-lg bg-base-100 border border-base-300">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">x</button>
+      </form>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
+          <lucide-icon [name]="icons.Pencil" class="h-6 w-6 text-white"></lucide-icon>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-base-content">{{ 'CLIENTS.BUTTON.EDIT' | translate }}</h3>
+          <p class="text-sm text-base-content/60">{{ editClient.name }}</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.TYPE' | translate
+          }}</label>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="flex-1 py-3 rounded-xl font-medium transition-all"
+              [class]="
+                editClient.type === 'individual'
+                  ? 'bg-primary text-white'
+                  : 'bg-base-200 text-base-content/70'
+              "
+              (click)="editClient.type = 'individual'"
+            >
+              {{ 'CLIENTS.CARD.INDIVIDUAL' | translate }}
+            </button>
+            <button
+              type="button"
+              class="flex-1 py-3 rounded-xl font-medium transition-all"
+              [class]="
+                editClient.type === 'company'
+                  ? 'bg-primary text-white'
+                  : 'bg-base-200 text-base-content/70'
+              "
+              (click)="editClient.type = 'company'"
+            >
+              {{ 'CLIENTS.CARD.COMPANY' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.FULL_NAME' | translate
+          }}</label>
+          <input
+            type="text"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="editClient.name"
+          />
+        </div>
+
+        @if (editClient.type === 'company') {
+          <div>
+            <label class="block text-sm font-medium text-base-content mb-1">{{
+              'CLIENTS.MODAL.COMPANY_NAME' | translate
+            }}</label>
+            <input
+              type="text"
+              class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+              [(ngModel)]="editClient.company"
+            />
+          </div>
+        }
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.EMAIL' | translate
+          }}</label>
+          <input
+            type="email"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="editClient.email"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'CLIENTS.MODAL.PHONE' | translate
+          }}</label>
+          <input
+            type="tel"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="editClient.phone"
+          />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-base-200">
+        <form method="dialog">
+          <button class="btn btn-ghost">{{ 'CLIENTS.MODAL.CANCEL' | translate }}</button>
+        </form>
+        <button class="btn-premium" (click)="saveEditClient()">
+          <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-2"></lucide-icon>
+          {{ 'VEHICLE.DETAIL.SAVE_CHANGES' | translate }}
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-base-content/30 backdrop-blur-sm">
+      <button>close</button>
+    </form>
+  </dialog>
 </div>
-
-
-

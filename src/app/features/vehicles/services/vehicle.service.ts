@@ -2,7 +2,12 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Product, Vehicle, VehicleStatus } from '../models/vehicle.model';
+import {
+  Product,
+  ProductActivityEvent,
+  Vehicle,
+  VehicleStatus,
+} from '../models/vehicle.model';
 
 interface BackendVehicle {
   _id?: string;
@@ -24,12 +29,29 @@ interface BackendVehicle {
 interface BackendProduct {
   _id?: string;
   id?: string;
-  vehicleId?: string;
+  vehicleId?: string | { _id?: string; id?: string };
+  vehicle?: { _id?: string; id?: string };
   customerId?: string;
   statusId?: string;
   inspectionTemplateId?: string;
+  inspectionValueIds?: string[];
   operations?: string[];
+  createdAt?: string;
   updatedAt?: string;
+}
+
+interface BackendProductActivityEvent {
+  type?: string;
+  occurredAt?: string;
+  actorName?: string;
+  message?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface BackendProductActivityResponse {
+  productId?: string;
+  total?: number;
+  data?: BackendProductActivityEvent[];
 }
 
 interface BackendStatusStep {
@@ -69,11 +91,24 @@ export class VehicleService {
   loadVehicles() {
     this.loaded.set(false);
     return forkJoin({
-      vehicles: this.http.get<BackendVehicle[]>(this.vehiclesApiUrl).pipe(catchError(() => of([]))),
-      products: this.http.get<BackendProduct[]>(this.productsApiUrl).pipe(catchError(() => of([]))),
+      vehicles: this.http
+        .get<any>(this.vehiclesApiUrl)
+        .pipe(
+          map((response) => this.normalizeArrayResponse<BackendVehicle>(response)),
+          catchError(() => of([])),
+        ),
+      products: this.http
+        .get<any>(this.productsApiUrl)
+        .pipe(
+          map((response) => this.normalizeArrayResponse<BackendProduct>(response)),
+          catchError(() => of([])),
+        ),
       statusSteps: this.http
-        .get<BackendStatusStep[]>(this.statusStepsApiUrl)
-        .pipe(catchError(() => of([]))),
+        .get<any>(this.statusStepsApiUrl)
+        .pipe(
+          map((response) => this.normalizeArrayResponse<BackendStatusStep>(response)),
+          catchError(() => of([])),
+        ),
     }).subscribe(({ vehicles, products, statusSteps }) => {
       this._statusSteps.set(statusSteps);
       const statusById = new Map(
@@ -82,16 +117,17 @@ export class VehicleService {
       const latestProductByVehicleId = new Map<string, BackendProduct>();
 
       products.forEach((product) => {
-        if (!product.vehicleId) return;
-        const current = latestProductByVehicleId.get(product.vehicleId);
+        const productVehicleId = this.extractEntityId(product.vehicleId || product.vehicle);
+        if (!productVehicleId) return;
+        const current = latestProductByVehicleId.get(productVehicleId);
         if (!current) {
-          latestProductByVehicleId.set(product.vehicleId, product);
+          latestProductByVehicleId.set(productVehicleId, product);
           return;
         }
         const currentDate = current.updatedAt ? new Date(current.updatedAt).getTime() : 0;
         const productDate = product.updatedAt ? new Date(product.updatedAt).getTime() : 0;
         if (productDate >= currentDate) {
-          latestProductByVehicleId.set(product.vehicleId, product);
+          latestProductByVehicleId.set(productVehicleId, product);
         }
       });
 
@@ -125,6 +161,65 @@ export class VehicleService {
     return this.productIdByVehicleId.get(vehicleId);
   }
 
+  getProductCandidatesByVehicleId(vehicleId: string) {
+    const preferredId = this.productIdByVehicleId.get(vehicleId);
+
+    return this.http.get<BackendProduct[]>(this.productsApiUrl).pipe(
+      map((products) => {
+        const candidates = products
+          .filter((product) => product.vehicleId === vehicleId)
+          .sort((a, b) => {
+            const aInspectionCount = (a.inspectionValueIds || []).length;
+            const bInspectionCount = (b.inspectionValueIds || []).length;
+            if (aInspectionCount !== bInspectionCount) {
+              return bInspectionCount - aInspectionCount;
+            }
+            const aUpdatedAt = a.updatedAt || a.createdAt || '';
+            const bUpdatedAt = b.updatedAt || b.createdAt || '';
+            return new Date(bUpdatedAt).getTime() - new Date(aUpdatedAt).getTime();
+          })
+          .map((product) => product._id || product.id || '')
+          .filter(Boolean);
+
+        if (preferredId) {
+          return [preferredId, ...candidates.filter((id) => id !== preferredId)];
+        }
+
+        return candidates;
+      }),
+      catchError(() => of(preferredId ? [preferredId] : [])),
+    );
+  }
+
+  getAllProducts() {
+    return this.http.get<any>(this.productsApiUrl).pipe(
+      map((response) =>
+        this.normalizeArrayResponse<BackendProduct>(response).map((product) => ({
+          ...product,
+          vehicleId: this.extractEntityId(product.vehicleId || product.vehicle),
+        })),
+      ),
+      catchError(() => of([])),
+    );
+  }
+
+  getProductById(productId: string) {
+    return this.http.get<any>(`${this.productsApiUrl}/${productId}`).pipe(
+      map((product) =>
+        this.normalizeSingleResponse<BackendProduct>(product)
+          ? {
+              ...this.normalizeSingleResponse<BackendProduct>(product),
+              vehicleId: this.extractEntityId(
+                this.normalizeSingleResponse<BackendProduct>(product)?.vehicleId ||
+                  this.normalizeSingleResponse<BackendProduct>(product)?.vehicle,
+              ),
+            }
+          : null,
+      ),
+      catchError(() => of(null)),
+    );
+  }
+
   updateProductStatusByVehicleId(
     vehicleId: string,
     target: VehicleStatus,
@@ -138,7 +233,20 @@ export class VehicleService {
     return this.http
       .patch(`${this.productsApiUrl}/${productId}`, { statusId })
       .pipe(
-        tap(() => this.loadVehicles()),
+        tap(() => {
+          this._vehicles.update((vehicles) =>
+            vehicles.map((item) =>
+              item.vehicleId === vehicleId || item.id === vehicleId
+                ? {
+                    ...item,
+                    status: target,
+                    updatedAt: new Date(),
+                  }
+                : item,
+            ),
+          );
+          this.loadVehicles();
+        }),
         catchError(() => of(null)),
       );
   }
@@ -183,6 +291,7 @@ export class VehicleService {
           .post<BackendProduct>(this.productsApiUrl, {
             vehicleId,
             customerId: product.customerId || undefined,
+            inspectionTemplateId: product.inspectionTemplateId || undefined,
             code: `PRD-${Date.now().toString().slice(-6)}`,
           })
           .pipe(
@@ -205,6 +314,39 @@ export class VehicleService {
         return created;
       }),
       tap((created) => this._vehicles.update((vehicles) => [created, ...vehicles])),
+    );
+  }
+
+  getActivityTimelineByVehicleId(vehicleId: string) {
+    const knownProductId = this.productIdByVehicleId.get(vehicleId);
+    const productId$ = knownProductId
+      ? of(knownProductId)
+      : this.http.get<BackendProduct[]>(this.productsApiUrl).pipe(
+          map((products) => this.resolveLatestProductIdByVehicleId(products, vehicleId)),
+          catchError(() => of(undefined)),
+        );
+
+    return productId$.pipe(
+      switchMap((productId) => {
+        if (!productId) {
+          return of([] as ProductActivityEvent[]);
+        }
+
+        return this.http
+          .get<BackendProductActivityResponse>(`${this.productsApiUrl}/${productId}/activity`)
+          .pipe(
+            map((response) =>
+              (response.data || []).map((event) => ({
+                type: (event.type || 'movements_updated') as ProductActivityEvent['type'],
+                occurredAt: event.occurredAt ? new Date(event.occurredAt) : new Date(),
+                actorName: event.actorName,
+                message: event.message || 'Event',
+                metadata: event.metadata || {},
+              })),
+            ),
+            catchError(() => of([] as ProductActivityEvent[])),
+          );
+      }),
     );
   }
 
@@ -244,11 +386,21 @@ export class VehicleService {
       }),
       switchMap(() => {
         const productId = this.productIdByVehicleId.get(target.vehicleId!);
-        if (!productId || !updates.customerId) {
+        if (!productId) {
+          return of(null);
+        }
+        const productPayload: Record<string, any> = {};
+        if ('customerId' in updates) {
+          productPayload['customerId'] = updates.customerId || null;
+        }
+        if ('inspectionTemplateId' in updates) {
+          productPayload['inspectionTemplateId'] = updates.inspectionTemplateId || null;
+        }
+        if (Object.keys(productPayload).length === 0) {
           return of(null);
         }
         return this.http
-          .patch(`${this.productsApiUrl}/${productId}`, { customerId: updates.customerId })
+          .patch(`${this.productsApiUrl}/${productId}`, productPayload)
           .pipe(catchError(() => of(null)));
       }),
     );
@@ -332,5 +484,73 @@ export class VehicleService {
   private generateFallbackVin(licensePlate?: string): string {
     const normalized = (licensePlate || 'UNKNOWN').replace(/[^A-Z0-9]/gi, '').toUpperCase();
     return `VIN-${normalized.slice(0, 8).padEnd(8, 'X')}-${Date.now().toString().slice(-6)}`;
+  }
+
+  private resolveLatestProductIdByVehicleId(products: BackendProduct[], vehicleId: string) {
+    const candidates = products.filter((product) => product.vehicleId === vehicleId);
+    if (candidates.length === 0) {
+      return undefined;
+    }
+
+    const latest = candidates.reduce((current, product) => {
+      if (!current) {
+        return product;
+      }
+      const currentDate = current.updatedAt ? new Date(current.updatedAt).getTime() : 0;
+      const productDate = product.updatedAt ? new Date(product.updatedAt).getTime() : 0;
+      return productDate >= currentDate ? product : current;
+    }, candidates[0]);
+
+    const productId = latest._id || latest.id;
+    if (productId) {
+      this.productIdByVehicleId.set(vehicleId, productId);
+    }
+    return productId;
+  }
+
+  private extractEntityId(
+    ref?: string | { _id?: any; id?: any; $oid?: string; toString?: () => string } | null,
+  ): string | undefined {
+    if (!ref) {
+      return undefined;
+    }
+    if (typeof ref === 'string') {
+      return ref;
+    }
+    const nestedId = ref._id || ref.id || ref.$oid;
+    if (typeof nestedId === 'string') {
+      return nestedId;
+    }
+    if (nestedId && typeof nestedId === 'object') {
+      const nested = this.extractEntityId(nestedId as any);
+      if (nested) return nested;
+    }
+    if (typeof ref.toString === 'function') {
+      const asString = ref.toString();
+      if (asString && asString !== '[object Object]') {
+        return asString;
+      }
+    }
+    return undefined;
+  }
+
+  private normalizeArrayResponse<T>(response: any): T[] {
+    if (Array.isArray(response)) {
+      return response as T[];
+    }
+    if (Array.isArray(response?.data)) {
+      return response.data as T[];
+    }
+    return [];
+  }
+
+  private normalizeSingleResponse<T>(response: any): T | null {
+    if (!response) {
+      return null;
+    }
+    if (response?.data && !Array.isArray(response.data)) {
+      return response.data as T;
+    }
+    return response as T;
   }
 }

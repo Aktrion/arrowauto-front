@@ -31,6 +31,18 @@
           (input)="filterVehicles()"
         />
       </div>
+      <select
+        class="select select-bordered bg-base-200 border-0 rounded-xl text-sm min-w-[170px]"
+        [ngModel]="searchField"
+        (ngModelChange)="setSearchField($event)"
+      >
+        <option value="all">All Fields</option>
+        <option value="plate">License Plate</option>
+        <option value="make">Make</option>
+        <option value="model">Model</option>
+        <option value="job">Job Number</option>
+        <option value="client">Client</option>
+      </select>
 
       <!-- Filters & View Toggle -->
       <div class="flex flex-wrap items-center gap-4">
@@ -123,7 +135,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (product of filteredVehicles(); track product.id) {
+          @for (product of paginatedVehicles(); track product.id) {
             <tr class="hover:bg-primary/5 transition-colors border-b border-base-200/50">
               <td class="pl-6">
                 <a
@@ -218,7 +230,7 @@
     class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
     [class.lg:hidden]="isTableView()"
   >
-    @for (product of filteredVehicles(); track product.id; let i = $index) {
+    @for (product of paginatedVehicles(); track product.id; let i = $index) {
       <div class="vehicle-card animate-slide-up" [style.animation-delay]="i * 50 + 'ms'">
         <!-- Status Badge -->
         <div class="vehicle-card-status">
@@ -329,6 +341,23 @@
         </div>
       </div>
     }
+  </div>
+
+  <div class="flex items-center justify-between card-premium rounded-xl p-3">
+    <p class="text-sm text-base-content/60">
+      Showing {{ paginatedVehicles().length }} of {{ filteredVehicles().length }}
+    </p>
+    <div class="join">
+      <button class="join-item btn btn-sm" [disabled]="currentPage() <= 1" (click)="prevPage()">
+        Prev
+      </button>
+      <button class="join-item btn btn-sm btn-ghost cursor-default">
+        Page {{ currentPage() }} / {{ totalPages() }}
+      </button>
+      <button class="join-item btn btn-sm" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+        Next
+      </button>
+    </div>
   </div>
 </div>
 

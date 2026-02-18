@@ -1,0 +1,122 @@
+<div class="inspection-page space-y-6">
+  <section class="inspection-hero card-premium">
+    <div>
+      <p class="inspection-kicker">Operations / Inspection Archive</p>
+      <h1 class="inspection-title">Historial de inspecciones</h1>
+      <p class="inspection-subtitle">Consulta inspecciones guardadas y vuelve al editor por ID.</p>
+    </div>
+    <div class="inspection-hero-metrics">
+      <div class="inspection-metric-chip">
+        <span class="inspection-metric-label">Registros</span>
+        <span class="inspection-metric-value">{{ filteredInspectionHistory().length }}</span>
+      </div>
+      <div class="inspection-metric-chip">
+        <span class="inspection-metric-label">Página</span>
+        <span class="inspection-metric-value">{{ historyPage() }} / {{ historyTotalPages() }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="inspection-panel card-premium inspection-history-panel">
+    <div class="inspection-panel-head">
+      <div class="flex items-center gap-2">
+        <div class="form-control relative group">
+          <lucide-icon
+            [name]="icons.Search"
+            class="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40"
+          ></lucide-icon>
+          <input
+            type="text"
+            class="input input-sm input-bordered pl-8 w-44"
+            placeholder="Buscar..."
+            [ngModel]="historySearchQuery"
+            (ngModelChange)="onHistorySearchChange($event)"
+          />
+        </div>
+        <select
+          class="select select-sm select-bordered"
+          [ngModel]="historySearchField"
+          (ngModelChange)="setHistorySearchField($event)"
+        >
+          <option value="all">Todos</option>
+          <option value="plate">Matrícula</option>
+          <option value="makeModel">Marca/Modelo</option>
+        </select>
+      </div>
+      <button class="btn btn-sm btn-ghost" (click)="loadInspectionHistory()">
+        <lucide-icon [name]="icons.Zap" class="h-4 w-4 mr-1"></lucide-icon>
+        Refrescar
+      </button>
+    </div>
+
+    @if (isLoadingHistory()) {
+      <div class="inspection-history-loading">Cargando historial...</div>
+    } @else if (historyError()) {
+      <div class="inspection-history-error">{{ historyError() }}</div>
+    } @else if (!filteredInspectionHistory().length) {
+      <div class="inspection-empty-small">No hay inspecciones registradas todavía.</div>
+    } @else {
+      <div class="inspection-history-table-wrap">
+        <table class="table w-full">
+          <thead>
+            <tr>
+              <th>Vehículo</th>
+              <th>Última actualización</th>
+              <th>Puntos</th>
+              <th>Estado</th>
+              <th>Costo estimado</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of paginatedInspectionHistory(); track item.productId) {
+              <tr>
+                <td>
+                  <div class="font-bold">{{ item.plate }}</div>
+                  <div class="text-xs text-base-content/60">{{ item.makeModel }}</div>
+                </td>
+                <td>{{ item.updatedAt ? (item.updatedAt | date: 'medium') : '-' }}</td>
+                <td>{{ item.pointsCount }}</td>
+                <td>
+                  <div class="inspection-history-status">
+                    <span class="text-success">OK {{ item.okCount }}</span>
+                    <span class="text-warning">Warn {{ item.warningCount }}</span>
+                    <span class="text-error">Defect {{ item.defectCount }}</span>
+                  </div>
+                </td>
+                <td class="font-semibold">&pound;{{ item.totalCost.toFixed(2) }}</td>
+                <td class="text-right">
+                  <button class="btn btn-sm btn-primary" (click)="editInspectionFromHistory(item.productId)">
+                    <lucide-icon [name]="icons.Pencil" class="h-4 w-4 mr-1"></lucide-icon>
+                    Editar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="flex items-center justify-between mt-4">
+        <p class="text-sm text-base-content/60">
+          Mostrando {{ paginatedInspectionHistory().length }} de {{ filteredInspectionHistory().length }}
+        </p>
+        <div class="join">
+          <button class="join-item btn btn-sm" [disabled]="historyPage() <= 1" (click)="prevHistoryPage()">
+            Prev
+          </button>
+          <button class="join-item btn btn-sm btn-ghost cursor-default">
+            Página {{ historyPage() }} / {{ historyTotalPages() }}
+          </button>
+          <button
+            class="join-item btn btn-sm"
+            [disabled]="historyPage() >= historyTotalPages()"
+            (click)="nextHistoryPage()"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</div>
+

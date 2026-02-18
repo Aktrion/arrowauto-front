@@ -3,9 +3,14 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
+import { of, switchMap } from 'rxjs';
 import { ICONS } from '../../shared/icons';
 import { VehicleService } from '../vehicles/services/vehicle.service';
-import { InspectionService } from '../inspection/services/inspection.service';
+import {
+  BackendInspectionValue,
+  InspectionService,
+} from '../inspection/services/inspection.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 interface RepairItem {
@@ -160,62 +165,126 @@ export class CustomerPortalComponent implements OnInit {
     if (!productId) {
       this.vehicleService.loadVehicles().add(() => {
         const resolvedProductId = this.vehicleService.getProductIdByVehicleId(vehicleId);
-        if (!resolvedProductId) {
-          this.currentProductId.set(null);
-          this.repairItems = [];
-          this.inspectionCategories = [];
-          return;
-        }
-        this.currentProductId.set(resolvedProductId);
-        this.loadInspectionData(resolvedProductId);
+        this.resolveAndLoadInspectionData(vehicleId, resolvedProductId || undefined);
       });
       return;
     }
 
-    this.currentProductId.set(productId);
-    this.loadInspectionData(productId);
+    this.resolveAndLoadInspectionData(vehicleId, productId);
+  }
+
+  private resolveAndLoadInspectionData(vehicleId: string, preferredProductId?: string) {
+    this.vehicleService
+      .getProductCandidatesByVehicleId(vehicleId)
+      .pipe(
+        switchMap((candidateIds) => {
+          const orderedIds = preferredProductId
+            ? [
+                preferredProductId,
+                ...candidateIds.filter((id) => id !== preferredProductId),
+              ]
+            : candidateIds;
+
+          if (!orderedIds.length) {
+            this.currentProductId.set(null);
+            this.repairItems = [];
+            this.inspectionCategories = [];
+            return of([]);
+          }
+
+          return this.tryLoadFirstInspectionData(orderedIds);
+        }),
+      )
+      .subscribe();
+  }
+
+  private tryLoadFirstInspectionData(
+    productIds: string[],
+  ): Observable<BackendInspectionValue[]> {
+    const [currentId, ...rest] = productIds;
+    if (!currentId) {
+      this.currentProductId.set(null);
+      this.repairItems = [];
+      this.inspectionCategories = [];
+      return of([] as BackendInspectionValue[]);
+    }
+
+    return this.inspectionService.getInspectionValuesByProduct(currentId).pipe(
+      switchMap((values) => {
+        if (values.length > 0 || rest.length === 0) {
+          this.currentProductId.set(currentId);
+          this.applyInspectionData(values);
+          return of(values as BackendInspectionValue[]);
+        }
+        return this.tryLoadFirstInspectionData(rest);
+      }),
+    );
   }
 
   private loadInspectionData(productId: string) {
+    this.currentProductId.set(productId);
+    this.inspectionService.getInspectionValuesByProduct(productId).subscribe((values) => {
+      this.applyInspectionData(values);
+    });
+  }
+
+  private applyInspectionData(values: BackendInspectionValue[]) {
     const points = this.inspectionService.inspectionPoints();
     const pointMap = new Map(points.map((point) => [point.id, point]));
 
-    this.inspectionService.getInspectionValuesByProduct(productId).subscribe((values) => {
-      this.repairItems = values
-        .filter((value) => value.value === 'red' || value.value === 'yellow')
-        .map((value) => {
-          const pointId = value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
-          const point = pointMap.get(pointId);
-          const costs = this.readCosts(value.comments || []);
-          return {
-            id: value._id || value.id || crypto.randomUUID(),
-            name: point?.name || 'Inspection Item',
-            category: point?.category || 'General',
-            severity: value.value === 'red' ? 'major' : 'minor',
-            comment: (value.comments || []).find((comment) => !comment.startsWith('__')) || '',
-            partsCost: costs.partsCost,
-            laborCost: costs.laborCost,
-            photos: value.mediaUrls || [],
-            approved: false,
-          };
-        });
-
-      const grouped = new Map<string, Array<{ name: string; status: 'ok' | 'warning' | 'defect' }>>();
-      values.forEach((value) => {
-        const pointId = value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
+    this.repairItems = values
+      .filter((value) => value.value === 'red' || value.value === 'yellow')
+      .map((value) => {
+        const pointId =
+          value.inspectionPointId ||
+          value.inspectionPoint?._id ||
+          value.inspectionPoint?.id ||
+          '';
         const point = pointMap.get(pointId);
-        if (!point) return;
-        const category = point.category || 'General';
-        const status: 'ok' | 'warning' | 'defect' =
-          value.value === 'ok' ? 'ok' : value.value === 'yellow' ? 'warning' : 'defect';
-        const list = grouped.get(category) || [];
-        list.push({ name: point.name, status });
-        grouped.set(category, list);
+        const costs = this.readCosts(value.comments || []);
+        return {
+          id: value._id || value.id || crypto.randomUUID(),
+          name: point?.name || 'Inspection Item',
+          category: point?.category || 'General',
+          severity: value.value === 'red' ? 'major' : 'minor',
+          comment:
+            (value.comments || []).find((comment) => !comment.startsWith('__')) ||
+            '',
+          partsCost: costs.partsCost,
+          laborCost: costs.laborCost,
+          photos: value.mediaUrls || [],
+          approved: false,
+        };
       });
 
-      this.inspectionCategories = Array.from(grouped.entries()).map(([name, categoryPoints]) => {
-        const okCount = categoryPoints.filter((point) => point.status === 'ok').length;
-        const hasDefect = categoryPoints.some((point) => point.status === 'defect');
+    const grouped = new Map<
+      string,
+      Array<{ name: string; status: 'ok' | 'warning' | 'defect' }>
+    >();
+    values.forEach((value) => {
+      const pointId =
+        value.inspectionPointId ||
+        value.inspectionPoint?._id ||
+        value.inspectionPoint?.id ||
+        '';
+      const point = pointMap.get(pointId);
+      if (!point) return;
+      const category = point.category || 'General';
+      const status: 'ok' | 'warning' | 'defect' =
+        value.value === 'ok' ? 'ok' : value.value === 'yellow' ? 'warning' : 'defect';
+      const list = grouped.get(category) || [];
+      list.push({ name: point.name, status });
+      grouped.set(category, list);
+    });
+
+    this.inspectionCategories = Array.from(grouped.entries()).map(
+      ([name, categoryPoints]) => {
+        const okCount = categoryPoints.filter(
+          (point) => point.status === 'ok',
+        ).length;
+        const hasDefect = categoryPoints.some(
+          (point) => point.status === 'defect',
+        );
         return {
           name,
           status: hasDefect ? 'warning' : 'ok',
@@ -223,8 +292,8 @@ export class CustomerPortalComponent implements OnInit {
           totalCount: categoryPoints.length,
           points: categoryPoints,
         };
-      });
-    });
+      },
+    );
   }
 
   private readCosts(comments: string[]) {

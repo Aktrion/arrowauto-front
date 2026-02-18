@@ -22,6 +22,8 @@ interface CreateCustomerDto {
   emails?: string[];
 }
 
+type UpdateCustomerDto = Partial<CreateCustomerDto>;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -72,6 +74,36 @@ export class ClientService {
     return this.http.post<BackendCustomer>(this.apiUrl, dto).pipe(
       map((created) => this.mapClient(created)),
       tap((created) => this._clients.update((clients) => [created, ...clients])),
+    );
+  }
+
+  updateClient(id: string, client: Partial<Client>) {
+    const nameSource = (client.name || '').trim();
+    const nameParts = nameSource.split(' ').filter(Boolean);
+    const [firstName, ...rest] = nameParts;
+
+    const dto: UpdateCustomerDto = {};
+    if (nameSource) {
+      dto.firstName = firstName || nameSource;
+      dto.lastName = rest.join(' ') || '-';
+    }
+    if (client.phone !== undefined) {
+      dto.mobilePhoneNumber = client.phone || undefined;
+    }
+    if (client.email !== undefined) {
+      dto.emails = client.email ? [client.email] : [];
+    }
+    if (client.company !== undefined) {
+      dto.title = client.company || undefined;
+    }
+
+    return this.http.patch<BackendCustomer>(`${this.apiUrl}/${id}`, dto).pipe(
+      map((updated) => this.mapClient(updated)),
+      tap((updated) =>
+        this._clients.update((clients) =>
+          clients.map((item) => (item.id === id ? updated : item)),
+        ),
+      ),
     );
   }
 

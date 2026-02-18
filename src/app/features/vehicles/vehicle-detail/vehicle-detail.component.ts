@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,8 +10,15 @@ import { ICONS } from '../../../shared/icons';
 import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
 import { OperationService } from '../../../shared/services/operation.service';
-import { Product, Vehicle, VehicleStatus } from '../models/vehicle.model';
+import { OperationStatus, VehicleOperation } from '../../../shared/models';
+import {
+  Product,
+  ProductActivityEvent,
+  Vehicle,
+  VehicleStatus,
+} from '../models/vehicle.model';
 import { NotificationService } from '../../../core/services/notification.service';
+import { InspectionTemplatesService } from '../../settings/inspection-templates/services/inspection-templates.service';
 
 @Component({
   selector: 'app-vehicle-detail',
@@ -27,6 +34,7 @@ export class VehicleDetailComponent implements OnInit {
   private clientService = inject(ClientService);
   private operationService = inject(OperationService);
   private notificationService = inject(NotificationService);
+  private inspectionTemplatesService = inject(InspectionTemplatesService);
 
   isNew = signal(false);
   product = signal<Partial<Product>>({
@@ -34,7 +42,16 @@ export class VehicleDetailComponent implements OnInit {
     status: 'pending',
   });
   clients = this.clientService.clients;
+  inspectionTemplates = computed(() =>
+    this.inspectionTemplatesService
+      .templates()
+      .filter((template) => template.active)
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  );
   activeTab = signal('details');
+  activityTimeline = signal<ProductActivityEvent[]>([]);
+  activityLoading = signal(false);
+  operationSaving = signal<Record<string, boolean>>({});
   hpiResult = signal(false);
   private routeId = signal<string>('');
   private initialStatus = signal<VehicleStatus>('pending');
@@ -47,6 +64,14 @@ export class VehicleDetailComponent implements OnInit {
     'completed',
     'invoiced',
   ];
+  readonly operationStatusOptions: OperationStatus[] = [
+    'pending',
+    'scheduled',
+    'in_progress',
+    'completed',
+    'invoiced',
+    'cancelled',
+  ];
 
   constructor() {
     effect(() => {
@@ -58,6 +83,7 @@ export class VehicleDetailComponent implements OnInit {
         this.product.set({ ...found });
         this.isNew.set(false);
         this.initialStatus.set(found.status);
+        this.loadActivityTimeline(id);
         return;
       }
 
@@ -76,6 +102,7 @@ export class VehicleDetailComponent implements OnInit {
       } else {
         this.routeId.set(id);
         this.vehicleService.loadVehicles();
+        this.loadActivityTimeline(id);
       }
     });
   }
@@ -144,6 +171,9 @@ export class VehicleDetailComponent implements OnInit {
         )
         .subscribe({
           next: () => {
+            if (p.status) {
+              this.initialStatus.set(p.status);
+            }
             this.notificationService.success('Vehicle updated successfully.');
             this.router.navigate(['/vehicles']);
           },
@@ -154,6 +184,21 @@ export class VehicleDetailComponent implements OnInit {
 
   getVehicleOperations(vehicleId: string) {
     return this.operationService.getVehicleOperations(vehicleId);
+  }
+
+  getOperationsStats(vehicleId: string) {
+    const operations = this.getVehicleOperations(vehicleId);
+    const completed = operations.filter(
+      (operation) =>
+        operation.status === 'completed' || operation.status === 'invoiced',
+    ).length;
+    return {
+      total: operations.length,
+      completed,
+      progress: operations.length
+        ? Math.round((completed / operations.length) * 100)
+        : 0,
+    };
   }
 
   getClientName(clientId?: string): string {
@@ -190,5 +235,62 @@ export class VehicleDetailComponent implements OnInit {
       cancelled: 'status-error',
     };
     return classes[status] || 'status-pending';
+  }
+
+  isOperationSaving(operationId: string) {
+    return Boolean(this.operationSaving()[operationId]);
+  }
+
+  setActiveTab(tab: 'details' | 'operations' | 'history') {
+    this.activeTab.set(tab);
+    if (tab === 'history') {
+      const vehicleId = this.product().id || this.routeId();
+      if (vehicleId) {
+        this.loadActivityTimeline(vehicleId);
+      }
+    }
+  }
+
+  getTimelineCardClass(index: number): string {
+    return index % 2 === 0 ? 'md:col-start-1' : 'md:col-start-3';
+  }
+
+  onStatusChange(status: VehicleStatus) {
+    this.product.update((current) => ({
+      ...current,
+      status,
+    }));
+  }
+
+  updateOperationStatus(operation: VehicleOperation, status: OperationStatus) {
+    if (!operation.id || operation.status === status) {
+      return;
+    }
+
+    this.operationSaving.update((state) => ({ ...state, [operation.id]: true }));
+    this.operationService.updateVehicleOperation(operation.id, { status }).subscribe({
+      next: () => {
+        this.operationSaving.update((state) => ({ ...state, [operation.id]: false }));
+        this.notificationService.success('Operation updated successfully.');
+      },
+      error: () => {
+        this.operationSaving.update((state) => ({ ...state, [operation.id]: false }));
+        this.notificationService.error('Failed to update operation.');
+      },
+    });
+  }
+
+  private loadActivityTimeline(vehicleId: string) {
+    this.activityLoading.set(true);
+    this.vehicleService.getActivityTimelineByVehicleId(vehicleId).subscribe({
+      next: (events) => {
+        this.activityTimeline.set(events);
+        this.activityLoading.set(false);
+      },
+      error: () => {
+        this.activityTimeline.set([]);
+        this.activityLoading.set(false);
+      },
+    });
   }
 }

@@ -21,9 +21,12 @@ export class InvoicingComponent {
   private userService = inject(UserService);
 
   searchQuery = '';
+  searchField: 'all' | 'job' | 'plate' | 'operation' | 'status' = 'all';
   activeTab = signal<'pending' | 'completed' | 'invoiced'>('pending');
   selectedIds = signal<Set<string>>(new Set());
   selectedItem = signal<{ op: VehicleOperation; product: any } | null>(null);
+  currentPage = signal(1);
+  readonly pageSize = 10;
 
   completeForm = {
     operatorId: '',
@@ -64,14 +67,37 @@ export class InvoicingComponent {
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
       ops = ops.filter(
-        (item) =>
-          item.product?.vehicle?.jobNumber?.toLowerCase().includes(query) ||
-          item.product?.vehicle?.licensePlate?.toLowerCase().includes(query)
+        (item) => {
+          const job = item.product?.vehicle?.jobNumber?.toLowerCase() || '';
+          const plate = item.product?.vehicle?.licensePlate?.toLowerCase() || '';
+          const operation = item.op.operation?.name?.toLowerCase() || '';
+          const status = item.op.status.toLowerCase();
+
+          if (this.searchField === 'job') return job.includes(query);
+          if (this.searchField === 'plate') return plate.includes(query);
+          if (this.searchField === 'operation') return operation.includes(query);
+          if (this.searchField === 'status') return status.includes(query);
+          return (
+            job.includes(query) ||
+            plate.includes(query) ||
+            operation.includes(query) ||
+            status.includes(query)
+          );
+        },
       );
     }
 
     return ops;
   });
+
+  paginatedOperations = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredOperations().slice(start, start + this.pageSize);
+  });
+
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredOperations().length / this.pageSize)),
+  );
 
   pendingCount = computed(
     () =>
@@ -112,6 +138,17 @@ export class InvoicingComponent {
   setTab(tab: 'pending' | 'completed' | 'invoiced'): void {
     this.activeTab.set(tab);
     this.clearSelection();
+    this.currentPage.set(1);
+  }
+
+  onSearchChange(value: string) {
+    this.searchQuery = value;
+    this.currentPage.set(1);
+  }
+
+  setSearchField(field: 'all' | 'job' | 'plate' | 'operation' | 'status') {
+    this.searchField = field;
+    this.currentPage.set(1);
   }
 
   toggleSelectAll(): void {
@@ -223,5 +260,15 @@ export class InvoicingComponent {
       cancelled: 'badge-error',
     };
     return classes[status] || 'badge-ghost';
+  }
+
+  nextPage() {
+    if (this.currentPage() >= this.totalPages()) return;
+    this.currentPage.update((p) => p + 1);
+  }
+
+  prevPage() {
+    if (this.currentPage() <= 1) return;
+    this.currentPage.update((p) => p - 1);
   }
 }

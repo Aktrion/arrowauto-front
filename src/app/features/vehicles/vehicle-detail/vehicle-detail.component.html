@@ -117,7 +117,11 @@
             <p class="text-[9px] text-base-content/40 uppercase font-bold tracking-widest mb-1.5">
               {{ 'VEHICLES.TABLE.STATUS' | translate }}
             </p>
-            <select class="select select-bordered select-sm w-full bg-base-100 font-semibold" [(ngModel)]="product().status">
+            <select
+              class="select select-bordered select-sm w-full bg-base-100 font-semibold"
+              [ngModel]="product().status"
+              (ngModelChange)="onStatusChange($event)"
+            >
               @for (status of statusOptions; track status) {
                 <option [ngValue]="status">
                   {{ formatStatus(status) }}
@@ -132,7 +136,7 @@
     <!-- Tabs Navigation (Full Width) -->
     <div class="bg-base-200/50 p-1.5 rounded-2xl flex w-full shadow-inner overflow-x-auto">
       <button
-        (click)="activeTab.set('details')"
+        (click)="setActiveTab('details')"
         class="flex-1 min-w-[120px] py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2"
         [class]="
           activeTab() === 'details'
@@ -144,7 +148,7 @@
         {{ 'VEHICLE.DETAIL.TABS.GENERAL' | translate }}
       </button>
       <button
-        (click)="activeTab.set('operations')"
+        (click)="setActiveTab('operations')"
         class="flex-1 min-w-[120px] py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2"
         [class]="
           activeTab() === 'operations'
@@ -156,7 +160,7 @@
         {{ 'VEHICLE.DETAIL.TABS.OPERATIONS' | translate }}
       </button>
       <button
-        (click)="activeTab.set('history')"
+        (click)="setActiveTab('history')"
         class="flex-1 min-w-[120px] py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2"
         [class]="
           activeTab() === 'history'
@@ -369,21 +373,38 @@
             </h3>
           </div>
 
-          <div class="space-y-2 max-w-md">
-            <label
-              class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-              >{{ 'VEHICLE.DETAIL.ASSIGNMENT.ASSIGN_CLIENT' | translate }}</label
-            >
-            <select class="select select-bordered select-sm w-full bg-base-200 font-semibold" [(ngModel)]="product().customerId">
-              <option value="">
-                {{ 'VEHICLE.DETAIL.ASSIGNMENT.SELECT_CLIENT' | translate }}
-              </option>
-              @for (client of clients(); track client.id) {
-                <option [value]="client.id">
-                  {{ client.name }} - {{ client.company || 'Private' }}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.ASSIGNMENT.ASSIGN_CLIENT' | translate }}</label
+              >
+              <select class="select select-bordered select-sm w-full bg-base-200 font-semibold" [(ngModel)]="product().customerId">
+                <option value="">
+                  {{ 'VEHICLE.DETAIL.ASSIGNMENT.SELECT_CLIENT' | translate }}
                 </option>
-              }
-            </select>
+                @for (client of clients(); track client.id) {
+                  <option [value]="client.id">
+                    {{ client.name }} - {{ client.company || 'Private' }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1">
+                Inspection template
+              </label>
+              <select
+                class="select select-bordered select-sm w-full bg-base-200 font-semibold"
+                [(ngModel)]="product().inspectionTemplateId"
+              >
+                <option value="">No template</option>
+                @for (template of inspectionTemplates(); track template._id) {
+                  <option [value]="template._id">{{ template.name }}</option>
+                }
+              </select>
+            </div>
           </div>
         </section>
       </div>
@@ -394,7 +415,7 @@
   @if (activeTab() === 'operations') {
     <div class="animate-fade-in">
       <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-7">
           <div>
             <h3 class="font-bold text-xl text-base-content">
               {{ 'VEHICLE.DETAIL.OPERATIONS.TITLE' | translate }}
@@ -403,16 +424,27 @@
               {{ 'VEHICLE.DETAIL.OPERATIONS.SUBTITLE' | translate }}
             </p>
           </div>
+          <div class="rounded-xl border border-base-200 bg-base-100 px-4 py-2">
+            <p class="text-xs font-semibold text-base-content/60">
+              {{ getOperationsStats(product().id!).completed }} / {{ getOperationsStats(product().id!).total }}
+              completed
+            </p>
+            <progress
+              class="progress progress-primary h-2 w-40"
+              [value]="getOperationsStats(product().id!).progress"
+              max="100"
+            ></progress>
+          </div>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-3.5">
           @for (op of getVehicleOperations(product().id!); track op.id) {
             <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-base-200/40 border border-base-200/60 rounded-2xl hover:bg-base-200/80 transition-all group"
+              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-gradient-to-r from-base-100 to-base-200/60 border border-base-200 rounded-2xl hover:shadow-md hover:border-primary/20 transition-all group"
             >
               <div class="flex items-center gap-4 min-w-0">
                 <div
-                  class="w-12 h-12 rounded-xl bg-base-100 shadow-sm flex items-center justify-center text-primary font-bold"
+                  class="w-12 h-12 rounded-xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-center text-primary font-bold"
                 >
                   {{ op.operation?.code }}
                 </div>
@@ -426,17 +458,26 @@
                 </div>
               </div>
               <div class="flex items-center justify-between sm:justify-end gap-4">
-                <span
-                  class="status-badge px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
-                  [class]="getOperationStatusClass(op.status)"
+                <select
+                  class="select select-bordered select-sm w-[150px] bg-base-100 font-semibold"
+                  [disabled]="isOperationSaving(op.id)"
+                  [ngModel]="op.status"
+                  (ngModelChange)="updateOperationStatus(op, $event)"
                 >
-                  {{ op.status }}
-                </span>
-                <button
-                  class="p-2 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
-                >
-                  <lucide-icon [name]="icons.ChevronRight" class="h-5 w-5"></lucide-icon>
-                </button>
+                  @for (status of operationStatusOptions; track status) {
+                    <option [ngValue]="status">{{ formatStatus(status) }}</option>
+                  }
+                </select>
+                @if (isOperationSaving(op.id)) {
+                  <span class="loading loading-spinner loading-sm text-primary"></span>
+                } @else {
+                  <span
+                    class="status-badge px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider"
+                    [class]="getOperationStatusClass(op.status)"
+                  >
+                    {{ formatStatus(op.status) }}
+                  </span>
+                }
               </div>
             </div>
           } @empty {
@@ -464,18 +505,51 @@
   <!-- Tab Content: History (Full Width) -->
   @if (activeTab() === 'history') {
     <div class="animate-fade-in">
-      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8 text-center py-16 sm:py-20">
-        <div
-          class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-6"
-        >
-          <lucide-icon [name]="icons.Clock" class="h-10 w-10 text-base-content/20"></lucide-icon>
-        </div>
-        <h3 class="font-bold text-xl text-base-content mb-2">
-          {{ 'VEHICLE.DETAIL.HISTORY.TITLE' | translate }}
-        </h3>
-        <p class="text-base-content/60 max-w-xs mx-auto">
-          {{ 'VEHICLE.DETAIL.HISTORY.DESC' | translate }}
-        </p>
+      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8">
+        @if (activityLoading()) {
+          <div class="text-center py-16">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+          </div>
+        } @else if (activityTimeline().length === 0) {
+          <div class="text-center py-16 sm:py-20">
+            <div
+              class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <lucide-icon [name]="icons.Clock" class="h-10 w-10 text-base-content/20"></lucide-icon>
+            </div>
+            <h3 class="font-bold text-xl text-base-content mb-2">
+              {{ 'VEHICLE.DETAIL.HISTORY.TITLE' | translate }}
+            </h3>
+            <p class="text-base-content/60 max-w-xs mx-auto">
+              {{ 'VEHICLE.DETAIL.HISTORY.DESC' | translate }}
+            </p>
+          </div>
+        } @else {
+          <div class="relative">
+            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-base-300/80"></div>
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-y-6 md:gap-y-5 md:gap-x-6">
+              @for (event of activityTimeline(); track event.occurredAt.toISOString() + event.message; let i = $index) {
+                <article
+                  class="rounded-2xl border border-base-200 bg-base-100 p-4 shadow-sm hover:shadow-md transition-shadow"
+                  [class]="getTimelineCardClass(i)"
+                >
+                  <p class="text-base font-bold text-base-content leading-tight">{{ event.message }}</p>
+                  <p class="mt-1 text-sm text-base-content/60">{{ event.occurredAt | date: 'dd/MM/yy HH:mm' }}</p>
+                  <div class="mt-2 flex items-center gap-2 text-xs text-base-content/50">
+                    <lucide-icon [name]="icons.User" class="h-4 w-4"></lucide-icon>
+                    <span>{{ event.actorName || 'system' }}</span>
+                  </div>
+                </article>
+                <div
+                  class="hidden md:flex items-center justify-center md:col-start-2"
+                >
+                  <span class="h-3.5 w-3.5 rounded-full bg-primary border-2 border-base-100 shadow"></span>
+                </div>
+                <div class="hidden md:block" [class]="i % 2 === 0 ? 'md:col-start-3' : 'md:col-start-1'"></div>
+              }
+            </div>
+          </div>
+        }
       </div>
     </div>
   }

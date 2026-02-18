@@ -39,6 +39,18 @@ export const routes: Routes = [
           import('./features/inspection/inspection.component').then((m) => m.InspectionComponent),
       },
       {
+        path: 'inspection/:productId',
+        loadComponent: () =>
+          import('./features/inspection/inspection.component').then((m) => m.InspectionComponent),
+      },
+      {
+        path: 'inspection-history',
+        loadComponent: () =>
+          import('./features/inspection-history/inspection-history.component').then(
+            (m) => m.InspectionHistoryComponent,
+          ),
+      },
+      {
         path: 'scheduling',
         loadComponent: () =>
           import('./features/scheduling/scheduling.component').then((m) => m.SchedulingComponent),
