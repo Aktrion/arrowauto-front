@@ -1,9 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+﻿import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../core/services/user.service';
 import { VehicleService } from '../vehicles/services/vehicle.service';
-import { OperationService } from '../../shared/services/operation.service';
+import { OperationService } from '../../shared/services/service.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../shared/icons';
 
@@ -217,3 +217,4 @@ export class SchedulingComponent {
       });
   }
 }
+

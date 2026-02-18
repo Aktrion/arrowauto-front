@@ -16,6 +16,8 @@ interface BackendProduct {
   _id?: string;
   id?: string;
   vehicleId?: string;
+  services?: string[];
+  // Legacy compatibility field
   operations?: string[];
   statusId?: string;
 }
@@ -27,7 +29,7 @@ export class OperationService {
   private readonly http = inject(HttpClient);
   private readonly vehicleService = inject(VehicleService);
   private readonly statusStepsApiUrl = `${environment.apiUrl}/status-steps`;
-  private readonly productsApiUrl = `${environment.apiUrl}/products`;
+  private readonly vehicleInstancesApiUrl = `${environment.apiUrl}/vehicle-instances`;
 
   private _operations = signal<Operation[]>([]);
   private _vehicleOperations = signal<VehicleOperation[]>([]);
@@ -65,7 +67,7 @@ export class OperationService {
 
   loadVehicleOperationsFromProducts() {
     return this.http
-      .get<BackendProduct[]>(this.productsApiUrl)
+      .get<BackendProduct[]>(this.vehicleInstancesApiUrl)
       .pipe(catchError(() => of([])))
       .subscribe((products) => {
         const flattened: VehicleOperation[] = [];
@@ -77,7 +79,10 @@ export class OperationService {
           if (!productId || !vehicleId) return;
 
           mapByVehicle.set(vehicleId, productId);
-          const parsed = this.parseProductOperations(product.operations || [], vehicleId);
+          const parsed = this.parseProductOperations(
+            product.services || product.operations || [],
+            vehicleId,
+          );
           if (parsed.length > 0) {
             flattened.push(...parsed);
           }
@@ -201,11 +206,16 @@ export class OperationService {
       return of(null);
     }
 
+    const serializedServices = operations.map((op) =>
+      JSON.stringify(this.normalizeOperationForStore(op)),
+    );
     const payload = {
-      operations: operations.map((op) => JSON.stringify(this.normalizeOperationForStore(op))),
+      services: serializedServices,
+      // Legacy compatibility field
+      operations: serializedServices,
     };
 
-    return this.http.patch(`${this.productsApiUrl}/${productId}`, payload).pipe(
+    return this.http.patch(`${this.vehicleInstancesApiUrl}/${productId}`, payload).pipe(
       tap(() => {
         const all = this._vehicleOperations().filter((item) => item.vehicleId !== vehicleId);
         this._vehicleOperations.set([...all, ...operations]);

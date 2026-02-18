@@ -10,7 +10,7 @@ import { InspectionService } from '../inspection/services/inspection.service';
 
 interface InspectionHistoryItem {
   vehicleId: string;
-  productId: string;
+  vehicleInstanceId: string;
   plate: string;
   makeModel: string;
   pointsCount: number;
@@ -78,8 +78,8 @@ export class InspectionHistoryComponent {
     this.historyPage.set(1);
   }
 
-  editInspectionFromHistory(productId: string): void {
-    this.router.navigate(['/inspection', productId]);
+  editInspectionFromHistory(vehicleInstanceId: string): void {
+    this.router.navigate(['/inspection', vehicleInstanceId]);
   }
 
   loadInspectionHistory(): void {
@@ -87,7 +87,7 @@ export class InspectionHistoryComponent {
     this.historyError.set(null);
 
     forkJoin({
-      products: this.vehicleService.getAllProducts(),
+      products: this.vehicleService.getAllVehicleInstances(),
       inspectionValues: this.inspectionService.getAllInspectionValues(),
     }).subscribe({
       next: ({ products, inspectionValues }) => {
@@ -124,8 +124,8 @@ export class InspectionHistoryComponent {
 
         const history: InspectionHistoryItem[] = [];
         products.forEach((product: any) => {
-          const productId = this.normalizeId(product?._id || product?.id);
-          if (!productId) return;
+          const vehicleInstanceId = this.normalizeId(product?._id || product?.id);
+          if (!vehicleInstanceId) return;
 
           const productValueIds = Array.isArray(product?.inspectionValueIds)
             ? product.inspectionValueIds.map((id: any) => this.normalizeId(id)).filter(Boolean)
@@ -163,7 +163,7 @@ export class InspectionHistoryComponent {
 
           history.push({
             vehicleId: productVehicleId || '',
-            productId,
+            vehicleInstanceId,
             plate: vehicle?.licensePlate || 'N/A',
             makeModel: `${vehicle?.make || ''} ${vehicle?.model || vehicle?.vehicleModel || ''}`.trim() || 'Unknown',
             pointsCount: values.length,

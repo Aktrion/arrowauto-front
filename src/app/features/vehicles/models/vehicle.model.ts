@@ -29,7 +29,7 @@ export interface Vehicle {
   updatedAt?: Date;
 }
 
-export interface Product {
+export interface VehicleInstance {
   id?: string;
   code?: string; // autogen, unique
   vehicleId?: string;
@@ -56,16 +56,23 @@ export interface Product {
   distanceUnit: 'miles' | 'km';
 }
 
-export type ProductActivityEventType =
+// Legacy alias during migration
+export type Product = VehicleInstance;
+
+export type VehicleInstanceActivityEventType =
   | 'product_created'
   | 'status_changed'
+  | 'services_updated'
   | 'operations_updated'
   | 'movements_updated';
 
-export interface ProductActivityEvent {
-  type: ProductActivityEventType;
+export interface VehicleInstanceActivityEvent {
+  type: VehicleInstanceActivityEventType;
   occurredAt: Date;
   actorName?: string;
   message: string;
   metadata?: Record<string, unknown>;
 }
+
+// Legacy alias during migration
+export type ProductActivityEvent = VehicleInstanceActivityEvent;

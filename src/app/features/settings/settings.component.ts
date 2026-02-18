@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+﻿import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { OperationService } from '../../shared/services/operation.service';
+import { OperationService } from '../../shared/services/service.service';
 import { InspectionService } from '../inspection/services/inspection.service';
 import { UserService } from '../../core/services/user.service';
 import { LucideAngularModule } from 'lucide-angular';
@@ -72,3 +72,4 @@ export class SettingsComponent {
       .slice(0, 2);
   }
 }
+

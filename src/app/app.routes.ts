@@ -39,7 +39,7 @@ export const routes: Routes = [
           import('./features/inspection/inspection.component').then((m) => m.InspectionComponent),
       },
       {
-        path: 'inspection/:productId',
+        path: 'inspection/:vehicleInstanceId',
         loadComponent: () =>
           import('./features/inspection/inspection.component').then((m) => m.InspectionComponent),
       },

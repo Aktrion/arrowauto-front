@@ -24,6 +24,8 @@ interface BackendInspectionBlock {
 export interface BackendInspectionValue {
   _id?: string;
   id?: string;
+  vehicleInstanceId?: string;
+  // Legacy compatibility field
   productId?: string;
   inspectionPointId?: string;
   inspectionPoint?: { _id?: string; id?: string };
@@ -103,7 +105,7 @@ export class InspectionService {
     });
   }
 
-  getInspectionValuesByProduct(productId: string) {
+  getInspectionValuesByProduct(vehicleInstanceId: string) {
     return this.http
       .post<{ data?: BackendInspectionValue[] } | BackendInspectionValue[]>(
         `${this.valuesApiUrl}/search`,
@@ -113,8 +115,8 @@ export class InspectionService {
         sortBy: 'createdAt',
         sortOrder: 'asc',
         filters: {
-          productId: {
-            value: productId,
+          vehicleInstanceId: {
+            value: vehicleInstanceId,
             operator: 'equals',
           },
         },

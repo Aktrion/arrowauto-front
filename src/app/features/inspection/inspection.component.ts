@@ -30,7 +30,7 @@ export class InspectionComponent implements OnInit {
   activeInspectionPoints = signal(this.inspectionService.inspectionPoints());
 
   selectedVehicleId = signal<string | null>(null);
-  selectedProductId = signal<string | null>(null);
+  selectedVehicleInstanceId = signal<string | null>(null);
   activeCategory = signal<string>('all');
   inspectionResults = signal<Map<string, Partial<InspectionResult>>>(new Map());
   isSaving = signal(false);
@@ -98,14 +98,16 @@ export class InspectionComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const productId = this.route.snapshot.paramMap.get('productId');
-    if (productId) {
-      this.selectInspectionByProductId(productId);
+    const vehicleInstanceId =
+      this.route.snapshot.paramMap.get('vehicleInstanceId') ||
+      this.route.snapshot.paramMap.get('productId');
+    if (vehicleInstanceId) {
+      this.selectInspectionByProductId(vehicleInstanceId);
     }
   }
 
   private selectInspectionByProductId(productId: string): void {
-    this.vehicleService.getProductById(productId).subscribe((product) => {
+    this.vehicleService.getVehicleInstanceById(productId).subscribe((product) => {
       const vehicleId = product?.vehicleId;
       if (!vehicleId) {
         this.saveError.set('No se encontrÃ³ el vehÃ­culo para esta inspecciÃ³n.');
@@ -157,7 +159,7 @@ export class InspectionComponent implements OnInit {
     explicitTemplateId?: string,
   ): void {
     this.selectedVehicleId.set(vehicleId);
-    this.selectedProductId.set(explicitProductId || null);
+    this.selectedVehicleInstanceId.set(explicitProductId || null);
     this.saveError.set(null);
     this.saveSuccess.set(false);
     this.inspectionResults.set(new Map());
@@ -177,7 +179,7 @@ export class InspectionComponent implements OnInit {
         : of([]);
 
     if (productId) {
-      this.selectedProductId.set(productId);
+      this.selectedVehicleInstanceId.set(productId);
     }
 
     forkJoin({ points: points$, values: values$ }).subscribe(({ points, values }) => {
@@ -300,7 +302,8 @@ export class InspectionComponent implements OnInit {
     const vehicleId = this.selectedVehicleId();
     if (!vehicleId) return;
 
-    const productId = this.selectedProductId() || this.vehicleService.getProductIdByVehicleId(vehicleId);
+    const productId =
+      this.selectedVehicleInstanceId() || this.vehicleService.getProductIdByVehicleId(vehicleId);
     if (!productId) {
       this.saveError.set('No product linked to this vehicle.');
       this.notificationService.error('No product linked to this vehicle.');
@@ -313,6 +316,8 @@ export class InspectionComponent implements OnInit {
       if (!point) return of(null);
 
       const payload = {
+        vehicleInstanceId: productId,
+        // Legacy compatibility field
         productId,
         inspectionPointId: pointId,
         type: point.type || 'standard',
@@ -363,7 +368,8 @@ export class InspectionComponent implements OnInit {
   }
 
   private refreshCurrentVehicleResults(vehicleId: string): void {
-    const productId = this.selectedProductId() || this.vehicleService.getProductIdByVehicleId(vehicleId);
+    const productId =
+      this.selectedVehicleInstanceId() || this.vehicleService.getProductIdByVehicleId(vehicleId);
     if (!productId) {
       return;
     }

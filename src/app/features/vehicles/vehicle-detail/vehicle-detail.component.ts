@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+﻿import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +9,7 @@ import { of, switchMap } from 'rxjs';
 import { ICONS } from '../../../shared/icons';
 import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
-import { OperationService } from '../../../shared/services/operation.service';
+import { OperationService } from '../../../shared/services/service.service';
 import { OperationStatus, VehicleOperation } from '../../../shared/models';
 import {
   Product,
@@ -294,3 +294,4 @@ export class VehicleDetailComponent implements OnInit {
     });
   }
 }
+
