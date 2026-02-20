@@ -59,6 +59,8 @@ import {
   CheckCircle2,
   Wrench,
   DollarSign,
+  ArrowRight,
+  Printer,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -122,4 +124,6 @@ export const ICONS = {
   CheckCircle2,
   Wrench,
   DollarSign,
+  ArrowRight,
+  Printer,
 };

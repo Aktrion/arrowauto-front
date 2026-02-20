@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { OperationService } from '../../shared/services/service.service';
 import { UserService } from '../../core/services/user.service';
+import { ClientService } from '../clients/services/client.service';
 import { VehicleOperation } from '../../core/models';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../shared/icons';
@@ -19,6 +20,7 @@ export class InvoicingComponent {
   private vehicleService = inject(VehicleService);
   private operationService = inject(OperationService);
   private userService = inject(UserService);
+  private clientService = inject(ClientService);
 
   searchQuery = '';
   searchField: 'all' | 'job' | 'plate' | 'operation' | 'status' = 'all';
@@ -56,35 +58,35 @@ export class InvoicingComponent {
         (item) =>
           item.op.status === 'pending' ||
           item.op.status === 'scheduled' ||
-          item.op.status === 'in_progress'
+          item.op.status === 'in_progress',
       );
     } else if (tab === 'completed') {
       ops = ops.filter((item) => item.op.status === 'completed');
     } else if (tab === 'invoiced') {
-      ops = ops.filter((item) => item.op.status === 'invoiced' || (item.op as any).invoiced === true);
+      ops = ops.filter(
+        (item) => item.op.status === 'invoiced' || (item.op as any).invoiced === true,
+      );
     }
 
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      ops = ops.filter(
-        (item) => {
-          const job = item.product?.vehicle?.jobNumber?.toLowerCase() || '';
-          const plate = item.product?.vehicle?.licensePlate?.toLowerCase() || '';
-          const operation = item.op.operation?.name?.toLowerCase() || '';
-          const status = item.op.status.toLowerCase();
+      ops = ops.filter((item) => {
+        const job = item.product?.vehicle?.jobNumber?.toLowerCase() || '';
+        const plate = item.product?.vehicle?.licensePlate?.toLowerCase() || '';
+        const operation = item.op.operation?.name?.toLowerCase() || '';
+        const status = item.op.status.toLowerCase();
 
-          if (this.searchField === 'job') return job.includes(query);
-          if (this.searchField === 'plate') return plate.includes(query);
-          if (this.searchField === 'operation') return operation.includes(query);
-          if (this.searchField === 'status') return status.includes(query);
-          return (
-            job.includes(query) ||
-            plate.includes(query) ||
-            operation.includes(query) ||
-            status.includes(query)
-          );
-        },
-      );
+        if (this.searchField === 'job') return job.includes(query);
+        if (this.searchField === 'plate') return plate.includes(query);
+        if (this.searchField === 'operation') return operation.includes(query);
+        if (this.searchField === 'status') return status.includes(query);
+        return (
+          job.includes(query) ||
+          plate.includes(query) ||
+          operation.includes(query) ||
+          status.includes(query)
+        );
+      });
     }
 
     return ops;
@@ -103,12 +105,12 @@ export class InvoicingComponent {
     () =>
       this.allOperations().filter(
         (i) =>
-          i.op.status === 'pending' || i.op.status === 'scheduled' || i.op.status === 'in_progress'
-      ).length
+          i.op.status === 'pending' || i.op.status === 'scheduled' || i.op.status === 'in_progress',
+      ).length,
   );
 
   readyToInvoiceCount = computed(
-    () => this.allOperations().filter((i) => i.op.status === 'completed').length
+    () => this.allOperations().filter((i) => i.op.status === 'completed').length,
   );
 
   invoicedTodayCount = computed(
@@ -133,6 +135,42 @@ export class InvoicingComponent {
   allSelected = computed(() => {
     const filtered = this.filteredOperations();
     return filtered.length > 0 && filtered.every((item) => this.selectedIds().has(item.op.id));
+  });
+
+  invoicePreviewData = computed(() => {
+    const ids = Array.from(this.selectedIds());
+    if (!ids.length) return null;
+
+    const selectedOps = this.allOperations().filter((item) => ids.includes(item.op.id));
+    const total = selectedOps.reduce((sum, item) => sum + this.calculateTotal(item.op), 0);
+    const tax = total * 0.21;
+
+    // Group by vehicle for better display
+    const byVehicleId = new Map<string, typeof selectedOps>();
+    selectedOps.forEach((item) => {
+      const vId = item.op.vehicleId;
+      const list = byVehicleId.get(vId) || [];
+      list.push(item);
+      byVehicleId.set(vId, list);
+    });
+
+    const groups = Array.from(byVehicleId.values()).map((opsList) => {
+      return {
+        vehicle: opsList[0].product?.vehicle,
+        client: this.getClientName(opsList[0].product?.customerId),
+        operations: opsList,
+        vehicleTotal: opsList.reduce((sum, it) => sum + this.calculateTotal(it.op), 0),
+      };
+    });
+
+    return {
+      groups,
+      subtotal: total,
+      tax: tax,
+      grandTotal: total + tax,
+      invoiceNumber: 'INV-' + Math.floor(100000 + Math.random() * 900000),
+      date: new Date(),
+    };
   });
 
   setTab(tab: 'pending' | 'completed' | 'invoiced'): void {
@@ -226,7 +264,9 @@ export class InvoicingComponent {
     const operation = this.allOperations().find((item) => item.op.id === id);
     this.operationService.bulkMarkInvoiced([id]).subscribe(() => {
       if (operation?.op.vehicleId) {
-        this.vehicleService.updateProductStatusByVehicleId(operation.op.vehicleId, 'invoiced').subscribe();
+        this.vehicleService
+          .updateProductStatusByVehicleId(operation.op.vehicleId, 'invoiced')
+          .subscribe();
       }
     });
   }
@@ -271,5 +311,10 @@ export class InvoicingComponent {
     if (this.currentPage() <= 1) return;
     this.currentPage.update((p) => p - 1);
   }
-}
 
+  getClientName(clientId?: string): string {
+    if (!clientId) return 'Walk-in Client';
+    const client = this.clientService.getClientById(clientId);
+    return client?.name ?? 'Walk-in Client';
+  }
+}

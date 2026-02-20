@@ -376,6 +376,27 @@ export class VehicleDetailComponent implements OnInit {
     });
   }
 
+  updateOperationField(operation: VehicleOperation, field: 'duration' | 'rate', event: Event) {
+    if (!operation.id || !operation.operation) return;
+    const value = parseFloat((event.target as HTMLInputElement).value) || 0;
+
+    const updatedOp = { ...operation.operation };
+    if (field === 'duration') {
+      updatedOp.estimatedDuration = value;
+    } else {
+      updatedOp.defaultPrice = value;
+    }
+
+    const updates: Partial<VehicleOperation> = { operation: updatedOp };
+    if (field === 'duration') updates.actualDuration = value;
+    if (field === 'rate') updates.hourlyRate = value;
+
+    this.operationService.updateVehicleOperation(operation.id, updates).subscribe({
+      next: () => this.notificationService.success('Operation details updated.'),
+      error: () => this.notificationService.error('Failed to update operation details.'),
+    });
+  }
+
   private loadActivityTimeline(vehicleId: string) {
     this.activityLoading.set(true);
     this.vehicleService.getActivityTimelineByVehicleId(vehicleId).subscribe({
@@ -388,5 +409,16 @@ export class VehicleDetailComponent implements OnInit {
         this.activityLoading.set(false);
       },
     });
+  }
+
+  goToInspection() {
+    const vehicleId = this.product().id || this.routeId();
+    if (!vehicleId) return;
+    const instanceId = this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
+    if (!instanceId) {
+      this.notificationService.warning('Vehicle has no inspection instance. Create one first.');
+      return;
+    }
+    this.router.navigate(['/inspection', instanceId]);
   }
 }

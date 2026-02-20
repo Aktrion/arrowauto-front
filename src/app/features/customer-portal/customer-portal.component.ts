@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
-import { of, switchMap } from 'rxjs';
+import { of, switchMap, forkJoin } from 'rxjs';
 import { ICONS } from '../../shared/icons';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import {
@@ -12,6 +12,7 @@ import {
   InspectionService,
 } from '../inspection/services/inspection.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { OperationService } from '../../shared/services/service.service';
 
 interface RepairItem {
   id: string;
@@ -37,6 +38,7 @@ export class CustomerPortalComponent implements OnInit {
   private readonly vehicleService = inject(VehicleService);
   private readonly inspectionService = inject(InspectionService);
   private readonly notificationService = inject(NotificationService);
+  private readonly operationService = inject(OperationService);
 
   vehicleData = {
     plate: '-',
@@ -134,19 +136,37 @@ export class CustomerPortalComponent implements OnInit {
     if (!vehicleId) return;
 
     this.isSubmittingApproval.set(true);
-    this.vehicleService
-      .updateProductStatusByVehicleId(vehicleId, 'in_progress')
-      .subscribe({
-        next: () => {
-          (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
-          this.notificationService.success('Repairs approved successfully.');
-          this.isSubmittingApproval.set(false);
-        },
-        error: () => {
-          this.notificationService.error('Failed to submit approval.');
-          this.isSubmittingApproval.set(false);
-        },
+
+    const allOps = this.operationService.getVehicleOperations(vehicleId);
+    const opsToUpdate = allOps.filter((o) => (o as any).inspectionValueId);
+
+    const requests = opsToUpdate.map((op) => {
+      const isApproved = this.cartIds().has((op as any).inspectionValueId);
+      return this.operationService.updateVehicleOperation(op.id, {
+        status: isApproved ? 'pending' : 'cancelled',
       });
+    });
+
+    const updateProcess$ = requests.length
+      ? forkJoin(requests).pipe(
+          switchMap(() =>
+            this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'in_progress'),
+          ),
+        )
+      : this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'in_progress');
+
+    updateProcess$.subscribe({
+      next: () => {
+        (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
+        this.notificationService.success('Repairs approved successfully.');
+        this.isSubmittingApproval.set(false);
+        this.operationService.refresh();
+      },
+      error: () => {
+        this.notificationService.error('Failed to submit approval.');
+        this.isSubmittingApproval.set(false);
+      },
+    });
   }
 
   private loadPortalData(vehicleId: string) {
@@ -179,10 +199,7 @@ export class CustomerPortalComponent implements OnInit {
       .pipe(
         switchMap((candidateIds) => {
           const orderedIds = preferredProductId
-            ? [
-                preferredProductId,
-                ...candidateIds.filter((id) => id !== preferredProductId),
-              ]
+            ? [preferredProductId, ...candidateIds.filter((id) => id !== preferredProductId)]
             : candidateIds;
 
           if (!orderedIds.length) {
@@ -198,9 +215,7 @@ export class CustomerPortalComponent implements OnInit {
       .subscribe();
   }
 
-  private tryLoadFirstInspectionData(
-    productIds: string[],
-  ): Observable<BackendInspectionValue[]> {
+  private tryLoadFirstInspectionData(productIds: string[]): Observable<BackendInspectionValue[]> {
     const [currentId, ...rest] = productIds;
     if (!currentId) {
       this.currentProductId.set(null);
@@ -236,10 +251,7 @@ export class CustomerPortalComponent implements OnInit {
       .filter((value) => value.value === 'red' || value.value === 'yellow')
       .map((value) => {
         const pointId =
-          value.inspectionPointId ||
-          value.inspectionPoint?._id ||
-          value.inspectionPoint?.id ||
-          '';
+          value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
         const point = pointMap.get(pointId);
         const costs = this.readCosts(value.comments || []);
         return {
@@ -247,9 +259,7 @@ export class CustomerPortalComponent implements OnInit {
           name: point?.name || 'Inspection Item',
           category: point?.category || 'General',
           severity: value.value === 'red' ? 'major' : 'minor',
-          comment:
-            (value.comments || []).find((comment) => !comment.startsWith('__')) ||
-            '',
+          comment: (value.comments || []).find((comment) => !comment.startsWith('__')) || '',
           partsCost: costs.partsCost,
           laborCost: costs.laborCost,
           photos: value.mediaUrls || [],
@@ -257,16 +267,10 @@ export class CustomerPortalComponent implements OnInit {
         };
       });
 
-    const grouped = new Map<
-      string,
-      Array<{ name: string; status: 'ok' | 'warning' | 'defect' }>
-    >();
+    const grouped = new Map<string, Array<{ name: string; status: 'ok' | 'warning' | 'defect' }>>();
     values.forEach((value) => {
       const pointId =
-        value.inspectionPointId ||
-        value.inspectionPoint?._id ||
-        value.inspectionPoint?.id ||
-        '';
+        value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
       const point = pointMap.get(pointId);
       if (!point) return;
       const category = point.category || 'General';
@@ -277,23 +281,17 @@ export class CustomerPortalComponent implements OnInit {
       grouped.set(category, list);
     });
 
-    this.inspectionCategories = Array.from(grouped.entries()).map(
-      ([name, categoryPoints]) => {
-        const okCount = categoryPoints.filter(
-          (point) => point.status === 'ok',
-        ).length;
-        const hasDefect = categoryPoints.some(
-          (point) => point.status === 'defect',
-        );
-        return {
-          name,
-          status: hasDefect ? 'warning' : 'ok',
-          okCount,
-          totalCount: categoryPoints.length,
-          points: categoryPoints,
-        };
-      },
-    );
+    this.inspectionCategories = Array.from(grouped.entries()).map(([name, categoryPoints]) => {
+      const okCount = categoryPoints.filter((point) => point.status === 'ok').length;
+      const hasDefect = categoryPoints.some((point) => point.status === 'defect');
+      return {
+        name,
+        status: hasDefect ? 'warning' : 'ok',
+        okCount,
+        totalCount: categoryPoints.length,
+        points: categoryPoints,
+      };
+    });
   }
 
   private readCosts(comments: string[]) {

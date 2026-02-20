@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, forkJoin } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Operation, OperationStatus, VehicleOperation } from '../models';
 import { VehicleService } from '../../features/vehicles/services/vehicle.service';
@@ -66,31 +66,65 @@ export class OperationService {
   }
 
   loadVehicleOperationsFromProducts() {
-    return this.http
-      .get<BackendProduct[]>(this.vehicleInstancesApiUrl)
-      .pipe(catchError(() => of([])))
-      .subscribe((products) => {
-        const flattened: VehicleOperation[] = [];
-        const mapByVehicle = new Map<string, string>();
+    return forkJoin({
+      products: this.http
+        .get<BackendProduct[]>(this.vehicleInstancesApiUrl)
+        .pipe(catchError(() => of([]))),
+      opInstances: this.http
+        .get<any[]>(`${environment.apiUrl}/operation-instances`)
+        .pipe(catchError(() => of([]))),
+    }).subscribe(({ products, opInstances }) => {
+      const flattened: VehicleOperation[] = [];
+      const mapByVehicle = new Map<string, string>();
+      const productToVehicle = new Map<string, string>();
 
-        products.forEach((product) => {
-          const productId = product._id || product.id || '';
-          const vehicleId = product.vehicleId || '';
-          if (!productId || !vehicleId) return;
+      products.forEach((product) => {
+        const productId = product._id || product.id || '';
+        const vehicleId = product.vehicleId || '';
+        if (!productId || !vehicleId) return;
 
-          mapByVehicle.set(vehicleId, productId);
-          const parsed = this.parseProductOperations(
-            product.services || product.operations || [],
-            vehicleId,
-          );
-          if (parsed.length > 0) {
-            flattened.push(...parsed);
-          }
-        });
+        mapByVehicle.set(vehicleId, productId);
+        productToVehicle.set(productId, vehicleId);
 
-        this._productIdByVehicleId.set(mapByVehicle);
-        this._vehicleOperations.set(flattened);
+        const parsed = this.parseProductOperations(
+          product.services || product.operations || [],
+          vehicleId,
+        );
+        if (parsed.length > 0) {
+          flattened.push(...parsed);
+        }
       });
+
+      opInstances.forEach((oi) => {
+        if (!oi.vehicleInstanceId) return;
+        const vId = productToVehicle.get(oi.vehicleInstanceId) || oi.vehicleInstanceId;
+        const isPendingEstimation = oi.status === 'pending_estimation';
+        flattened.push({
+          id: oi._id || oi.id,
+          vehicleId: vId,
+          operationId: oi.operationId,
+          operation: {
+            id: oi.operationId,
+            code: isPendingEstimation ? 'EST' : 'OP',
+            name: oi.comments?.split('\n')[0] || 'Inspection Repair',
+            description: oi.comments,
+            estimatedDuration: oi.timeAllowed || 60,
+            defaultPrice: oi.ratePerHour || 80,
+            category: 'repair',
+          },
+          status: oi.status || 'pending',
+          actualPrice: oi.actualPrice,
+          hourlyRate: oi.ratePerHour,
+          notes: oi.comments,
+          assignedUserId: oi.assignedUser,
+          scheduledDate: oi.scheduledDate ? new Date(oi.scheduledDate) : undefined,
+          inspectionValueId: oi.inspectionValueId,
+        } as any);
+      });
+
+      this._productIdByVehicleId.set(mapByVehicle);
+      this._vehicleOperations.set(flattened);
+    });
   }
 
   getOperationById(id: string): Operation | undefined {
@@ -194,6 +228,28 @@ export class OperationService {
       ...current,
       ...updates,
     };
+
+    const isMongoId = /^[a-f\d]{24}$/i.test(id);
+    if (isMongoId) {
+      const payload: any = {
+        status: updates.status,
+        actualPrice: updates.actualPrice,
+        assignedUser: updates.assignedUserId,
+        scheduledDate: updates.scheduledDate,
+      };
+      // remove undefined keys to avoid overriding with nulls unnecesarily
+      Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
+
+      return this.http.patch(`${environment.apiUrl}/operation-instances/${id}`, payload).pipe(
+        tap(() => {
+          const vehicleOps = this._vehicleOperations().map((item) =>
+            item.id === id ? updated : item,
+          );
+          this._vehicleOperations.set(vehicleOps);
+        }),
+        map(() => updated),
+      );
+    }
 
     const vehicleOps = this.getVehicleOperations(current.vehicleId).map((item) =>
       item.id === id ? updated : item,
