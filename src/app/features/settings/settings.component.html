@@ -128,40 +128,157 @@
               <h3 class="form-section-title">Service Operations</h3>
               <p class="form-section-description">Define the services you offer</p>
             </div>
-            <button class="btn-premium">
-              <lucide-icon [name]="icons.Plus" class="h-5 w-5 mr-2"></lucide-icon>
-              Add Operation
-            </button>
+            @if (!showOperationForm()) {
+              <button class="btn-premium" (click)="openAddOperation()">
+                <lucide-icon [name]="icons.Plus" class="h-5 w-5 mr-2"></lucide-icon>
+                Add Operation
+              </button>
+            }
           </div>
 
+          <!-- Inline Add/Edit Form -->
+          @if (showOperationForm()) {
+            <div
+              class="p-5 mb-6 bg-base-200/50 rounded-2xl border border-primary/20 space-y-4 animate-slide-up"
+            >
+              <h4 class="font-semibold text-base-content">
+                {{ editingOperationId() ? 'Edit Operation' : 'New Operation' }}
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-base-content mb-1"
+                    >Short Name *</label
+                  >
+                  <input
+                    type="text"
+                    [ngModel]="operationForm().shortName"
+                    (ngModelChange)="updateFormField('shortName', $event)"
+                    placeholder="e.g. CW, INS, REP"
+                    class="w-full px-4 py-3 bg-base-100 border border-base-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-base-content mb-1"
+                    >Description</label
+                  >
+                  <input
+                    type="text"
+                    [ngModel]="operationForm().description"
+                    (ngModelChange)="updateFormField('description', $event)"
+                    placeholder="e.g. Car Wash"
+                    class="w-full px-4 py-3 bg-base-100 border border-base-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-base-content mb-1"
+                    >Default Duration (min)</label
+                  >
+                  <input
+                    type="number"
+                    [ngModel]="operationForm().defaultDuration"
+                    (ngModelChange)="updateFormField('defaultDuration', +$event)"
+                    min="1"
+                    class="w-full px-4 py-3 bg-base-100 border border-base-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-base-content mb-1"
+                    >Default Rate (£/hour)</label
+                  >
+                  <input
+                    type="number"
+                    [ngModel]="operationForm().defaultRatePerHour"
+                    (ngModelChange)="updateFormField('defaultRatePerHour', +$event)"
+                    min="0"
+                    step="0.5"
+                    class="w-full px-4 py-3 bg-base-100 border border-base-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+              </div>
+              <div class="flex justify-end gap-3 pt-2">
+                <button
+                  class="px-5 py-2.5 rounded-xl text-base-content/70 hover:bg-base-300 transition-colors font-medium"
+                  (click)="cancelOperationForm()"
+                  [disabled]="savingOperation()"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="btn-premium"
+                  (click)="saveOperation()"
+                  [disabled]="savingOperation() || !operationForm().shortName.trim()"
+                >
+                  @if (savingOperation()) {
+                    <span class="loading loading-spinner loading-sm mr-2"></span>
+                  }
+                  <lucide-icon [name]="icons.Check" class="h-5 w-5 mr-2"></lucide-icon>
+                  {{ editingOperationId() ? 'Update' : 'Create' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Operations list -->
           <div class="space-y-3">
             @for (op of operations(); track op.id) {
               <div
                 class="flex items-center gap-4 p-4 bg-base-200/50 rounded-xl hover:bg-base-200 transition-colors"
               >
                 <div
-                  class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold"
+                  class="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold text-sm"
                 >
-                  {{ op.code }}
+                  {{ op.shortName }}
                 </div>
                 <div class="flex-1">
-                  <p class="font-semibold text-base-content">{{ op.name }}</p>
+                  <p class="font-semibold text-base-content">
+                    {{ op.description || op.shortName }}
+                  </p>
                   <p class="text-sm text-base-content/60">
-                    {{ op.estimatedDuration }} min • £{{ op.defaultPrice }}
+                    {{ op.defaultDuration }} min • £{{ op.defaultRatePerHour }}/hr
                   </p>
                 </div>
                 <div class="flex items-center gap-2">
-                  <button
-                    class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
-                  >
-                    <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
-                  </button>
-                  <button
-                    class="btn btn-ghost btn-sm btn-square hover:bg-error/10 hover:text-error"
-                  >
-                    <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
-                  </button>
+                  <!-- Delete confirmation -->
+                  @if (deleteConfirmId() === op.id) {
+                    <span class="text-sm text-error font-medium mr-2">Delete?</span>
+                    <button
+                      class="btn btn-ghost btn-sm btn-square hover:bg-error/10 hover:text-error"
+                      (click)="deleteOperation(op.id)"
+                    >
+                      <lucide-icon [name]="icons.Check" class="h-4 w-4"></lucide-icon>
+                    </button>
+                    <button
+                      class="btn btn-ghost btn-sm btn-square hover:bg-base-300"
+                      (click)="cancelDelete()"
+                    >
+                      <lucide-icon [name]="icons.X" class="h-4 w-4"></lucide-icon>
+                    </button>
+                  } @else {
+                    <button
+                      class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
+                      (click)="openEditOperation(op)"
+                    >
+                      <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
+                    </button>
+                    <button
+                      class="btn btn-ghost btn-sm btn-square hover:bg-error/10 hover:text-error"
+                      (click)="confirmDeleteOperation(op.id)"
+                    >
+                      <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
+                    </button>
+                  }
                 </div>
+              </div>
+            }
+
+            @if (operations().length === 0) {
+              <div class="text-center py-12 text-base-content/40">
+                <lucide-icon
+                  [name]="icons.Briefcase"
+                  class="h-12 w-12 mx-auto mb-3 opacity-30"
+                ></lucide-icon>
+                <p class="font-medium">No operations defined yet</p>
+                <p class="text-sm mt-1">Click "Add Operation" to create your first service</p>
               </div>
             }
           </div>
@@ -320,7 +437,9 @@
 
       <!-- Save Button -->
       <!-- Save Button -->
-      @if (activeSection() !== 'inspection-templates' && activeSection() !== 'tyre-configurations') {
+      @if (
+        activeSection() !== 'inspection-templates' && activeSection() !== 'tyre-configurations'
+      ) {
         <div class="flex justify-end mt-6">
           <button class="btn-premium">
             <lucide-icon [name]="icons.Check" class="h-5 w-5 mr-2"></lucide-icon>
@@ -331,5 +450,3 @@
     </div>
   </div>
 </div>
-
-
