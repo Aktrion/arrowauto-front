@@ -95,24 +95,18 @@ export class VehicleService {
   loadVehicles() {
     this.loaded.set(false);
     return forkJoin({
-      vehicles: this.http
-        .get<any>(this.vehiclesApiUrl)
-        .pipe(
-          map((response) => this.normalizeArrayResponse<BackendVehicle>(response)),
-          catchError(() => of([])),
-        ),
-      vehicleInstances: this.http
-        .get<any>(this.vehicleInstancesApiUrl)
-        .pipe(
-          map((response) => this.normalizeArrayResponse<BackendVehicleInstance>(response)),
-          catchError(() => of([])),
-        ),
-      statusSteps: this.http
-        .get<any>(this.statusStepsApiUrl)
-        .pipe(
-          map((response) => this.normalizeArrayResponse<BackendStatusStep>(response)),
-          catchError(() => of([])),
-        ),
+      vehicles: this.http.get<any>(this.vehiclesApiUrl).pipe(
+        map((response) => this.normalizeArrayResponse<BackendVehicle>(response)),
+        catchError(() => of([])),
+      ),
+      vehicleInstances: this.http.get<any>(this.vehicleInstancesApiUrl).pipe(
+        map((response) => this.normalizeArrayResponse<BackendVehicleInstance>(response)),
+        catchError(() => of([])),
+      ),
+      statusSteps: this.http.get<any>(this.statusStepsApiUrl).pipe(
+        map((response) => this.normalizeArrayResponse<BackendStatusStep>(response)),
+        catchError(() => of([])),
+      ),
     }).subscribe(({ vehicles, vehicleInstances, statusSteps }) => {
       this._statusSteps.set(statusSteps);
       const statusById = new Map(
@@ -121,7 +115,9 @@ export class VehicleService {
       const latestVehicleInstanceByVehicleId = new Map<string, BackendVehicleInstance>();
 
       vehicleInstances.forEach((vehicleInstance) => {
-        const vehicleId = this.extractEntityId(vehicleInstance.vehicleId || vehicleInstance.vehicle);
+        const vehicleId = this.extractEntityId(
+          vehicleInstance.vehicleId || vehicleInstance.vehicle,
+        );
         if (!vehicleId) return;
         const current = latestVehicleInstanceByVehicleId.get(vehicleId);
         if (!current) {
@@ -129,7 +125,9 @@ export class VehicleService {
           return;
         }
         const currentDate = current.updatedAt ? new Date(current.updatedAt).getTime() : 0;
-        const instanceDate = vehicleInstance.updatedAt ? new Date(vehicleInstance.updatedAt).getTime() : 0;
+        const instanceDate = vehicleInstance.updatedAt
+          ? new Date(vehicleInstance.updatedAt).getTime()
+          : 0;
         if (instanceDate >= currentDate) {
           latestVehicleInstanceByVehicleId.set(vehicleId, vehicleInstance);
         }
@@ -141,9 +139,14 @@ export class VehicleService {
           const vehicleId = vehicle._id || vehicle.id || '';
           const vehicleInstance = latestVehicleInstanceByVehicleId.get(vehicleId);
           if (vehicleInstance?._id || vehicleInstance?.id) {
-            this.productIdByVehicleId.set(vehicleId, vehicleInstance._id || vehicleInstance.id || '');
+            this.productIdByVehicleId.set(
+              vehicleId,
+              vehicleInstance._id || vehicleInstance.id || '',
+            );
           }
-          const statusName = vehicleInstance?.statusId ? statusById.get(vehicleInstance.statusId) : '';
+          const statusName = vehicleInstance?.statusId
+            ? statusById.get(vehicleInstance.statusId)
+            : '';
           return this.mapToProduct(vehicle, vehicleInstance, statusName);
         }),
       );
@@ -239,35 +242,30 @@ export class VehicleService {
     return this.getVehicleInstanceById(productId);
   }
 
-  updateProductStatusByVehicleId(
-    vehicleId: string,
-    target: VehicleStatus,
-  ) {
+  updateProductStatusByVehicleId(vehicleId: string, target: VehicleStatus) {
     const productId = this.productIdByVehicleId.get(vehicleId);
     const statusId = this.resolveStatusStepId(target);
     if (!productId || !statusId) {
       return of(null);
     }
 
-    return this.http
-      .patch(`${this.vehicleInstancesApiUrl}/${productId}`, { statusId })
-      .pipe(
-        tap(() => {
-          this._vehicles.update((vehicles) =>
-            vehicles.map((item) =>
-              item.vehicleId === vehicleId || item.id === vehicleId
-                ? {
-                    ...item,
-                    status: target,
-                    updatedAt: new Date(),
-                  }
-                : item,
-            ),
-          );
-          this.loadVehicles();
-        }),
-        catchError(() => of(null)),
-      );
+    return this.http.patch(`${this.vehicleInstancesApiUrl}/${productId}`, { statusId }).pipe(
+      tap(() => {
+        this._vehicles.update((vehicles) =>
+          vehicles.map((item) =>
+            item.vehicleId === vehicleId || item.id === vehicleId
+              ? {
+                  ...item,
+                  status: target,
+                  updatedAt: new Date(),
+                }
+              : item,
+          ),
+        );
+        this.loadVehicles();
+      }),
+      catchError(() => of(null)),
+    );
   }
 
   findVehicleByPlate(licensePlate: string) {
@@ -288,13 +286,55 @@ export class VehicleService {
       );
   }
 
+  lookupVehicle(field: 'vin' | 'licensePlate', value: string) {
+    if (!value || value.trim().length < 3) return of(null);
+    return this.http
+      .get<BackendVehicle | null>(`${this.vehiclesApiUrl}/lookup`, {
+        params: { field, value: value.trim() },
+      })
+      .pipe(
+        map((res) => (res ? this.mapVehicle(res) : null)),
+        catchError(() => of(null)),
+      );
+  }
+
+  addVehicleInstanceForExistingVehicle(
+    existingVehicleId: string,
+    product: Partial<VehicleInstance>,
+  ) {
+    return this.http
+      .post<BackendVehicleInstance>(this.vehicleInstancesApiUrl, {
+        vehicleId: existingVehicleId,
+        customerId: product.customerId || undefined,
+        inspectionTemplateId: product.inspectionTemplateId || undefined,
+        code: `PRD-${Date.now().toString().slice(-6)}`,
+      })
+      .pipe(
+        switchMap((createdVehicleInstance) =>
+          this.http
+            .get<BackendVehicle>(`${this.vehiclesApiUrl}/${existingVehicleId}`)
+            .pipe(map((freshVehicle) => ({ freshVehicle, createdVehicleInstance }))),
+        ),
+        map(({ freshVehicle, createdVehicleInstance }) => {
+          const created = this.mapToProduct(freshVehicle, createdVehicleInstance);
+          if (createdVehicleInstance?._id || createdVehicleInstance?.id) {
+            this.productIdByVehicleId.set(
+              created.vehicleId || '',
+              createdVehicleInstance._id || createdVehicleInstance.id || '',
+            );
+          }
+          return created;
+        }),
+        tap((created) => this._vehicles.update((vehicles) => [created, ...vehicles])),
+        catchError(() => of(null)),
+      );
+  }
+
   addVehicleProduct(
     product: Omit<VehicleInstance, 'id' | 'createdAt' | 'updatedAt' | 'jobNumber' | 'status'>,
   ) {
     const payload = {
-      vin:
-        product.vehicle?.vin?.trim() ||
-        this.generateFallbackVin(product.vehicle?.licensePlate),
+      vin: product.vehicle?.vin?.trim() || this.generateFallbackVin(product.vehicle?.licensePlate),
       licensePlate: product.vehicle?.licensePlate?.trim() || '',
       make: product.vehicle?.make?.trim() || '',
       model: product.vehicle?.model?.trim() || '',
@@ -354,7 +394,9 @@ export class VehicleService {
         }
 
         return this.http
-          .get<BackendProductActivityResponse>(`${this.vehicleInstancesApiUrl}/${productId}/activity`)
+          .get<BackendProductActivityResponse>(
+            `${this.vehicleInstancesApiUrl}/${productId}/activity`,
+          )
           .pipe(
             map((response) =>
               (response.data || []).map((event) => ({
@@ -390,41 +432,43 @@ export class VehicleService {
       nextEntryDate: vehicle?.next_entry,
     };
 
-    return this.http.patch<BackendVehicle>(`${this.vehiclesApiUrl}/${target.vehicleId}`, payload).pipe(
-      tap((updatedVehicle) => {
-        this._vehicles.update((vehicles) =>
-          vehicles.map((item) =>
-            item.id === target.id
-              ? {
-                  ...item,
-                  customerId: updates.customerId ?? item.customerId,
-                  vehicle: this.mapVehicle(updatedVehicle),
-                  updatedAt: new Date(),
-                }
-              : item,
-          ),
-        );
-      }),
-      switchMap(() => {
-        const productId = this.productIdByVehicleId.get(target.vehicleId!);
-        if (!productId) {
-          return of(null);
-        }
-        const productPayload: Record<string, any> = {};
-        if ('customerId' in updates) {
-          productPayload['customerId'] = updates.customerId || null;
-        }
-        if ('inspectionTemplateId' in updates) {
-          productPayload['inspectionTemplateId'] = updates.inspectionTemplateId || null;
-        }
-        if (Object.keys(productPayload).length === 0) {
-          return of(null);
-        }
-        return this.http
-          .patch(`${this.vehicleInstancesApiUrl}/${productId}`, productPayload)
-          .pipe(catchError(() => of(null)));
-      }),
-    );
+    return this.http
+      .patch<BackendVehicle>(`${this.vehiclesApiUrl}/${target.vehicleId}`, payload)
+      .pipe(
+        tap((updatedVehicle) => {
+          this._vehicles.update((vehicles) =>
+            vehicles.map((item) =>
+              item.id === target.id
+                ? {
+                    ...item,
+                    customerId: updates.customerId ?? item.customerId,
+                    vehicle: this.mapVehicle(updatedVehicle),
+                    updatedAt: new Date(),
+                  }
+                : item,
+            ),
+          );
+        }),
+        switchMap(() => {
+          const productId = this.productIdByVehicleId.get(target.vehicleId!);
+          if (!productId) {
+            return of(null);
+          }
+          const productPayload: Record<string, any> = {};
+          if ('customerId' in updates) {
+            productPayload['customerId'] = updates.customerId || null;
+          }
+          if ('inspectionTemplateId' in updates) {
+            productPayload['inspectionTemplateId'] = updates.inspectionTemplateId || null;
+          }
+          if (Object.keys(productPayload).length === 0) {
+            return of(null);
+          }
+          return this.http
+            .patch(`${this.vehicleInstancesApiUrl}/${productId}`, productPayload)
+            .pipe(catchError(() => of(null)));
+        }),
+      );
   }
 
   private mapToProduct(
@@ -476,9 +520,7 @@ export class VehicleService {
     return 'pending';
   }
 
-  private resolveStatusStepId(
-    target: VehicleStatus,
-  ): string | undefined {
+  private resolveStatusStepId(target: VehicleStatus): string | undefined {
     const statusSteps = this._statusSteps();
     const matchers: Record<typeof target, string[]> = {
       pending: ['pending', 'received', 'check in'],

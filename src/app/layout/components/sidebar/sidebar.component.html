@@ -197,6 +197,28 @@
         </li>
         <li>
           <a
+            routerLink="/tasks"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? 'Tasks' : ''"
+          >
+            <lucide-icon
+              [name]="icons.Wrench"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              Tasks
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
             routerLink="/invoicing"
             routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
             class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
@@ -214,6 +236,28 @@
               [class.hidden]="collapsed"
             >
               {{ 'SHELL.SIDEBAR.INVOICING' | translate }}
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            routerLink="/estimation"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? 'Estimation' : ''"
+          >
+            <lucide-icon
+              [name]="icons.DollarSign"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              Estimation
             </span>
           </a>
         </li>
@@ -335,4 +379,3 @@
     </div>
   </nav>
 </aside>
-

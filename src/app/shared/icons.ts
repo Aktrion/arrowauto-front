@@ -57,6 +57,8 @@ import {
   MoreVertical,
   GripVertical,
   CheckCircle2,
+  Wrench,
+  DollarSign,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -118,4 +120,6 @@ export const ICONS = {
   MoreVertical,
   GripVertical,
   CheckCircle2,
+  Wrench,
+  DollarSign,
 };

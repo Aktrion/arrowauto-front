@@ -5,16 +5,22 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { of, switchMap } from 'rxjs';
+import { of, Subject, switchMap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import { ICONS } from '../../../shared/icons';
 import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
 import { OperationService } from '../../../shared/services/service.service';
+import {
+  OperationApiService,
+  OperationMaster,
+} from '../../../shared/services/operation-api.service';
 import { OperationStatus, VehicleOperation } from '../../../shared/models';
 import {
   Product,
   ProductActivityEvent,
   Vehicle,
+  VehicleInstance,
   VehicleStatus,
 } from '../models/vehicle.model';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -33,8 +39,12 @@ export class VehicleDetailComponent implements OnInit {
   private vehicleService = inject(VehicleService);
   private clientService = inject(ClientService);
   private operationService = inject(OperationService);
+  private operationApiService = inject(OperationApiService);
   private notificationService = inject(NotificationService);
   private inspectionTemplatesService = inject(InspectionTemplatesService);
+
+  masterOperations = this.operationApiService.operations;
+  selectedOperationId = signal('');
 
   isNew = signal(false);
   product = signal<Partial<Product>>({
@@ -53,6 +63,10 @@ export class VehicleDetailComponent implements OnInit {
   activityLoading = signal(false);
   operationSaving = signal<Record<string, boolean>>({});
   hpiResult = signal(false);
+  foundVehicle = signal<Vehicle | null>(null);
+  existingVehicleId = signal<string | null>(null);
+  lookupLoading = signal(false);
+  private lookupSubject$ = new Subject<{ field: 'vin' | 'licensePlate'; value: string }>();
   private routeId = signal<string>('');
   private initialStatus = signal<VehicleStatus>('pending');
   readonly statusOptions: VehicleStatus[] = [
@@ -91,6 +105,26 @@ export class VehicleDetailComponent implements OnInit {
         this.router.navigate(['/vehicles']);
       }
     });
+
+    // Debounced lookup for duplicate detection
+    this.lookupSubject$
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged((a, b) => a.field === b.field && a.value === b.value),
+        filter((v) => v.value.trim().length >= 3),
+      )
+      .subscribe(({ field, value }) => {
+        this.lookupLoading.set(true);
+        this.vehicleService.lookupVehicle(field, value).subscribe((vehicle) => {
+          this.lookupLoading.set(false);
+          if (vehicle) {
+            this.foundVehicle.set(vehicle);
+          } else {
+            this.foundVehicle.set(null);
+            this.existingVehicleId.set(null);
+          }
+        });
+      });
   }
 
   ngOnInit() {
@@ -125,6 +159,30 @@ export class VehicleDetailComponent implements OnInit {
     this.initialStatus.set('pending');
   }
 
+  onFieldLookup(field: 'vin' | 'licensePlate', value: string) {
+    if (!this.isNew()) return;
+    this.lookupSubject$.next({ field, value });
+  }
+
+  useExistingVehicle() {
+    const vehicle = this.foundVehicle();
+    if (!vehicle) return;
+    this.product.update((p) => ({
+      ...p,
+      vehicle: {
+        ...p.vehicle!,
+        ...vehicle,
+      },
+    }));
+    this.existingVehicleId.set(vehicle.id || null);
+    this.hpiResult.set(true);
+  }
+
+  dismissDuplicate() {
+    this.foundVehicle.set(null);
+    this.existingVehicleId.set(null);
+  }
+
   performHPICheck() {
     const plate = this.product().vehicle?.licensePlate;
     if (!plate) return;
@@ -151,13 +209,27 @@ export class VehicleDetailComponent implements OnInit {
     if (!p.vehicle?.licensePlate || !p.vehicle?.make || !p.vehicle?.model) return;
 
     if (this.isNew()) {
-      this.vehicleService.addVehicleProduct(p as any).subscribe({
-        next: () => {
-          this.notificationService.success('Vehicle created successfully.');
-          this.router.navigate(['/vehicles']);
-        },
-        error: () => this.notificationService.error('Failed to create vehicle.'),
-      });
+      const existingId = this.existingVehicleId();
+      if (existingId) {
+        // Link to existing vehicle instead of creating a new one
+        this.vehicleService.addVehicleInstanceForExistingVehicle(existingId, p as any).subscribe({
+          next: () => {
+            this.notificationService.success(
+              'Vehicle instance created and linked to existing vehicle.',
+            );
+            this.router.navigate(['/vehicles']);
+          },
+          error: () => this.notificationService.error('Failed to create vehicle instance.'),
+        });
+      } else {
+        this.vehicleService.addVehicleProduct(p as any).subscribe({
+          next: () => {
+            this.notificationService.success('Vehicle created successfully.');
+            this.router.navigate(['/vehicles']);
+          },
+          error: () => this.notificationService.error('Failed to create vehicle.'),
+        });
+      }
     } else {
       this.vehicleService
         .updateVehicleProduct(p.id!, p as any)
@@ -186,18 +258,42 @@ export class VehicleDetailComponent implements OnInit {
     return this.operationService.getVehicleOperations(vehicleId);
   }
 
+  addOperationFromMaster() {
+    const id = this.selectedOperationId();
+    const vehicleId = this.product().id;
+    if (!id || !vehicleId) return;
+
+    const master = this.operationApiService.getById(id);
+    if (!master) return;
+
+    this.operationService.addVehicleOperationFromMaster(vehicleId, master).subscribe({
+      next: () => {
+        this.selectedOperationId.set('');
+        this.notificationService.success(`Operation "${master.shortName}" added.`);
+      },
+      error: () => this.notificationService.error('Failed to add operation.'),
+    });
+  }
+
+  removeOperation(op: VehicleOperation) {
+    const vehicleId = this.product().id;
+    if (!vehicleId || !op.id) return;
+
+    this.operationService.removeVehicleOperation(vehicleId, op.id).subscribe({
+      next: () => this.notificationService.success('Operation removed.'),
+      error: () => this.notificationService.error('Failed to remove operation.'),
+    });
+  }
+
   getOperationsStats(vehicleId: string) {
     const operations = this.getVehicleOperations(vehicleId);
     const completed = operations.filter(
-      (operation) =>
-        operation.status === 'completed' || operation.status === 'invoiced',
+      (operation) => operation.status === 'completed' || operation.status === 'invoiced',
     ).length;
     return {
       total: operations.length,
       completed,
-      progress: operations.length
-        ? Math.round((completed / operations.length) * 100)
-        : 0,
+      progress: operations.length ? Math.round((completed / operations.length) * 100) : 0,
     };
   }
 
@@ -294,4 +390,3 @@ export class VehicleDetailComponent implements OnInit {
     });
   }
 }
-

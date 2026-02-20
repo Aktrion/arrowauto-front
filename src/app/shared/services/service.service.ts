@@ -128,6 +128,47 @@ export class OperationService {
     );
   }
 
+  addVehicleOperationFromMaster(
+    vehicleId: string,
+    master: {
+      id: string;
+      shortName: string;
+      description?: string;
+      defaultDuration: number;
+      defaultRatePerHour: number;
+    },
+  ): Observable<VehicleOperation | null> {
+    const vehicleOps = this.getVehicleOperations(vehicleId);
+    const operation: Operation = {
+      id: master.id,
+      code: master.shortName.slice(0, 6).toUpperCase(),
+      name: master.shortName,
+      description: master.description,
+      estimatedDuration: master.defaultDuration,
+      defaultPrice: master.defaultRatePerHour,
+      category: 'other',
+    };
+    const newOperation: VehicleOperation = {
+      id: `${vehicleId}-${master.id}-${Date.now()}`,
+      vehicleId,
+      operationId: master.id,
+      operation,
+      status: 'pending',
+      hourlyRate: master.defaultRatePerHour,
+    };
+
+    return this.persistVehicleOperations(vehicleId, [...vehicleOps, newOperation]).pipe(
+      map(() => newOperation),
+    );
+  }
+
+  removeVehicleOperation(vehicleId: string, operationInstanceId: string): Observable<unknown> {
+    const vehicleOps = this.getVehicleOperations(vehicleId).filter(
+      (op) => op.id !== operationInstanceId,
+    );
+    return this.persistVehicleOperations(vehicleId, vehicleOps);
+  }
+
   assignVehicleOperation(
     operationId: string,
     payload: { assignedUserId: string; scheduledDate: Date; scheduledTime: string },
@@ -154,13 +195,11 @@ export class OperationService {
       ...updates,
     };
 
-    const vehicleOps = this
-      .getVehicleOperations(current.vehicleId)
-      .map((item) => (item.id === id ? updated : item));
-
-    return this.persistVehicleOperations(current.vehicleId, vehicleOps).pipe(
-      map(() => updated),
+    const vehicleOps = this.getVehicleOperations(current.vehicleId).map((item) =>
+      item.id === id ? updated : item,
     );
+
+    return this.persistVehicleOperations(current.vehicleId, vehicleOps).pipe(map(() => updated));
   }
 
   bulkMarkInvoiced(ids: string[]): Observable<unknown> {
@@ -229,7 +268,8 @@ export class OperationService {
     return rawOperations.map((raw, idx) => {
       try {
         const parsed = JSON.parse(raw) as VehicleOperation;
-        const operation = knownOperations.find((op) => op.id === parsed.operationId) || parsed.operation;
+        const operation =
+          knownOperations.find((op) => op.id === parsed.operationId) || parsed.operation;
         return {
           ...parsed,
           id: parsed.id || `${vehicleId}-${parsed.operationId || idx}`,

@@ -56,9 +56,19 @@ export const routes: Routes = [
           import('./features/scheduling/scheduling.component').then((m) => m.SchedulingComponent),
       },
       {
+        path: 'tasks',
+        loadComponent: () =>
+          import('./features/tasks/tasks.component').then((m) => m.TasksComponent),
+      },
+      {
         path: 'invoicing',
         loadComponent: () =>
           import('./features/invoicing/invoicing.component').then((m) => m.InvoicingComponent),
+      },
+      {
+        path: 'estimation',
+        loadComponent: () =>
+          import('./features/estimation/estimation.component').then((m) => m.EstimationComponent),
       },
       {
         path: 'clients',
