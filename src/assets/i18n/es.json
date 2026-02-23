@@ -6,7 +6,8 @@
     "SIDEBAR": {
       "MAIN": "Principal",
       "DASHBOARD": "Panel de Control",
-      "VEHICLES": "Vehículos",
+      "VEHICLES_INSTANCES": "Instancias de Vehículos",
+      "VEHICLES_DATABASE": "Base de datos de Vehículos",
       "OPERATIONS": "Operaciones",
       "INSPECTION": "Inspección",
       "INSPECTION_HISTORY": "Historial de inspecciones",

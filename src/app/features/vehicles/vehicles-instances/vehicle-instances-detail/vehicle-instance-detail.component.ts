@@ -7,32 +7,32 @@ import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { of, Subject, switchMap } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
-import { ICONS } from '../../../shared/icons';
-import { VehicleService } from '../services/vehicle.service';
-import { ClientService } from '../../clients/services/client.service';
-import { OperationService } from '../../../shared/services/service.service';
+import { ICONS } from '../../../../shared/icons';
+import { VehicleService } from '../../services/vehicle.service';
+import { ClientService } from '../../../clients/services/client.service';
+import { OperationService } from '../../../../shared/services/service.service';
 import {
   OperationApiService,
   OperationMaster,
-} from '../../../shared/services/operation-api.service';
-import { OperationStatus, VehicleOperation } from '../../../shared/models';
+} from '../../../../shared/services/operation-api.service';
+import { OperationStatus, VehicleOperation } from '../../../../shared/models';
 import {
   Product,
   ProductActivityEvent,
   Vehicle,
   VehicleInstance,
   VehicleStatus,
-} from '../models/vehicle.model';
-import { NotificationService } from '../../../core/services/notification.service';
-import { InspectionTemplatesService } from '../../settings/inspection-templates/services/inspection-templates.service';
+} from '../../models/vehicle.model';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { InspectionTemplatesService } from '../../../settings/inspection-templates/services/inspection-templates.service';
 
 @Component({
-  selector: 'app-vehicle-detail',
+  selector: 'app-vehicle-instance-detail',
   standalone: true,
   imports: [CommonModule, DatePipe, FormsModule, RouterLink, LucideAngularModule, TranslateModule],
-  templateUrl: './vehicle-detail.component.html',
+  templateUrl: './vehicle-instance-detail.component.html',
 })
-export class VehicleDetailComponent implements OnInit {
+export class VehicleInstanceDetailComponent implements OnInit {
   icons = ICONS;
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -174,7 +174,7 @@ export class VehicleDetailComponent implements OnInit {
         ...vehicle,
       },
     }));
-    this.existingVehicleId.set(vehicle.id || null);
+    this.existingVehicleId.set(vehicle._id || null);
     this.hpiResult.set(true);
   }
 
@@ -232,13 +232,13 @@ export class VehicleDetailComponent implements OnInit {
       }
     } else {
       this.vehicleService
-        .updateVehicleProduct(p.id!, p as any)
+        .updateVehicleProduct(p._id!, p as any)
         .pipe(
           switchMap(() => {
-            if (!p.id || !p.status || p.status === this.initialStatus()) {
+            if (!p._id || !p.status || p.status === this.initialStatus()) {
               return of(null);
             }
-            return this.vehicleService.updateProductStatusByVehicleId(p.id, p.status);
+            return this.vehicleService.updateProductStatusByVehicleId(p._id, p.status);
           }),
         )
         .subscribe({
@@ -260,7 +260,7 @@ export class VehicleDetailComponent implements OnInit {
 
   addOperationFromMaster() {
     const id = this.selectedOperationId();
-    const vehicleId = this.product().id;
+    const vehicleId = this.product()._id;
     if (!id || !vehicleId) return;
 
     const master = this.operationApiService.getById(id);
@@ -276,7 +276,7 @@ export class VehicleDetailComponent implements OnInit {
   }
 
   removeOperation(op: VehicleOperation) {
-    const vehicleId = this.product().id;
+    const vehicleId = this.product()._id;
     if (!vehicleId || !op.id) return;
 
     this.operationService.removeVehicleOperation(vehicleId, op.id).subscribe({
@@ -340,7 +340,7 @@ export class VehicleDetailComponent implements OnInit {
   setActiveTab(tab: 'details' | 'operations' | 'history') {
     this.activeTab.set(tab);
     if (tab === 'history') {
-      const vehicleId = this.product().id || this.routeId();
+      const vehicleId = this.product()._id || this.routeId();
       if (vehicleId) {
         this.loadActivityTimeline(vehicleId);
       }

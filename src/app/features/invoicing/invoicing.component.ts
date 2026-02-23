@@ -43,7 +43,7 @@ export class InvoicingComponent {
 
     return vehicleOps.map((op) => ({
       op,
-      product: vehicles.find((v) => v.id === op.vehicleId),
+      product: vehicles.find((v) => v._id === op.vehicleId),
     }));
   });
 
@@ -56,35 +56,35 @@ export class InvoicingComponent {
         (item) =>
           item.op.status === 'pending' ||
           item.op.status === 'scheduled' ||
-          item.op.status === 'in_progress'
+          item.op.status === 'in_progress',
       );
     } else if (tab === 'completed') {
       ops = ops.filter((item) => item.op.status === 'completed');
     } else if (tab === 'invoiced') {
-      ops = ops.filter((item) => item.op.status === 'invoiced' || (item.op as any).invoiced === true);
+      ops = ops.filter(
+        (item) => item.op.status === 'invoiced' || (item.op as any).invoiced === true,
+      );
     }
 
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      ops = ops.filter(
-        (item) => {
-          const job = item.product?.vehicle?.jobNumber?.toLowerCase() || '';
-          const plate = item.product?.vehicle?.licensePlate?.toLowerCase() || '';
-          const operation = item.op.operation?.name?.toLowerCase() || '';
-          const status = item.op.status.toLowerCase();
+      ops = ops.filter((item) => {
+        const job = item.product?.vehicle?.jobNumber?.toLowerCase() || '';
+        const plate = item.product?.vehicle?.licensePlate?.toLowerCase() || '';
+        const operation = item.op.operation?.name?.toLowerCase() || '';
+        const status = item.op.status.toLowerCase();
 
-          if (this.searchField === 'job') return job.includes(query);
-          if (this.searchField === 'plate') return plate.includes(query);
-          if (this.searchField === 'operation') return operation.includes(query);
-          if (this.searchField === 'status') return status.includes(query);
-          return (
-            job.includes(query) ||
-            plate.includes(query) ||
-            operation.includes(query) ||
-            status.includes(query)
-          );
-        },
-      );
+        if (this.searchField === 'job') return job.includes(query);
+        if (this.searchField === 'plate') return plate.includes(query);
+        if (this.searchField === 'operation') return operation.includes(query);
+        if (this.searchField === 'status') return status.includes(query);
+        return (
+          job.includes(query) ||
+          plate.includes(query) ||
+          operation.includes(query) ||
+          status.includes(query)
+        );
+      });
     }
 
     return ops;
@@ -103,12 +103,12 @@ export class InvoicingComponent {
     () =>
       this.allOperations().filter(
         (i) =>
-          i.op.status === 'pending' || i.op.status === 'scheduled' || i.op.status === 'in_progress'
-      ).length
+          i.op.status === 'pending' || i.op.status === 'scheduled' || i.op.status === 'in_progress',
+      ).length,
   );
 
   readyToInvoiceCount = computed(
-    () => this.allOperations().filter((i) => i.op.status === 'completed').length
+    () => this.allOperations().filter((i) => i.op.status === 'completed').length,
   );
 
   invoicedTodayCount = computed(
@@ -226,7 +226,9 @@ export class InvoicingComponent {
     const operation = this.allOperations().find((item) => item.op.id === id);
     this.operationService.bulkMarkInvoiced([id]).subscribe(() => {
       if (operation?.op.vehicleId) {
-        this.vehicleService.updateProductStatusByVehicleId(operation.op.vehicleId, 'invoiced').subscribe();
+        this.vehicleService
+          .updateProductStatusByVehicleId(operation.op.vehicleId, 'invoiced')
+          .subscribe();
       }
     });
   }
@@ -272,4 +274,3 @@ export class InvoicingComponent {
     this.currentPage.update((p) => p - 1);
   }
 }
-

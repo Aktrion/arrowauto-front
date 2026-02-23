@@ -14,9 +14,9 @@
       </div>
       <div class="inspection-metric-chip">
         <span class="inspection-metric-label">Checked</span>
-        <span class="inspection-metric-value"
-          >{{ countByStatus('ok') + countByStatus('warning') + countByStatus('defect') }}</span
-        >
+        <span class="inspection-metric-value">{{
+          countByStatus('ok') + countByStatus('warning') + countByStatus('defect')
+        }}</span>
       </div>
       <div class="inspection-metric-chip">
         <span class="inspection-metric-label">Estimated</span>
@@ -34,11 +34,11 @@
         </div>
 
         <div class="inspection-vehicle-list custom-scrollbar">
-          @for (vehicle of vehiclesForInspection(); track vehicle.id) {
+          @for (vehicle of vehiclesForInspection(); track vehicle.vehicleId) {
             <button
               class="inspection-vehicle-item"
-              [class.selected]="selectedVehicleId() === vehicle.id"
-              (click)="selectVehicle(vehicle.id!)"
+              [class.selected]="selectedVehicleId() === vehicle.vehicleId"
+              (click)="selectVehicle(vehicle.vehicleId!)"
             >
               <div class="inspection-vehicle-avatar">
                 {{ vehicle.vehicle?.make?.charAt(0) || 'V' }}
@@ -53,7 +53,10 @@
             </button>
           } @empty {
             <div class="inspection-empty-small">
-              <lucide-icon [name]="icons.FileSearch" class="h-8 w-8 mx-auto mb-2 opacity-50"></lucide-icon>
+              <lucide-icon
+                [name]="icons.FileSearch"
+                class="h-8 w-8 mx-auto mb-2 opacity-50"
+              ></lucide-icon>
               No vehicles pending inspection
             </div>
           }
@@ -162,11 +165,13 @@
                               getPointStatus(point.id) !== 'not_inspected' &&
                               (getPointStatus(point.id) === 'warning' ||
                                 getPointStatus(point.id) === 'defect') &&
-                              (getPointPartsCost(point.id) + getPointLaborCost(point.id) > 0)
+                              getPointPartsCost(point.id) + getPointLaborCost(point.id) > 0
                             ) {
                               <p class="inspection-point-cost">
                                 Est. &pound;{{
-                                  (getPointPartsCost(point.id) + getPointLaborCost(point.id)).toFixed(2)
+                                  (
+                                    getPointPartsCost(point.id) + getPointLaborCost(point.id)
+                                  ).toFixed(2)
                                 }}
                               </p>
                             }
@@ -292,7 +297,9 @@
             </div>
             <div class="tyre-legend-item">
               <div class="tyre-status-indicator status-acceptable"></div>
-              <span class="text-xs font-bold uppercase tracking-wider text-warning">Acceptable</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-warning"
+                >Acceptable</span
+              >
             </div>
             <div class="tyre-legend-item">
               <div class="tyre-status-indicator status-good"></div>
@@ -300,7 +307,9 @@
             </div>
             <div class="tyre-legend-item">
               <div class="tyre-status-indicator bg-base-200 border-base-300"></div>
-              <span class="text-xs font-bold uppercase tracking-wider text-base-content/50">Unknown</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-base-content/50"
+                >Unknown</span
+              >
             </div>
           </div>
 
@@ -330,7 +339,9 @@
                         )
                       "
                     ></div>
-                    <p class="tyre-control-title">Passenger Side Front <span class="tyre-code">NSF</span></p>
+                    <p class="tyre-control-title">
+                      Passenger Side Front <span class="tyre-code">NSF</span>
+                    </p>
                     <div class="tyre-inputs">
                       <span class="text-xs text-base-content/60">Inner</span>
                       <input
@@ -383,7 +394,9 @@
                         )
                       "
                     ></div>
-                    <p class="tyre-control-title">Driver Side Front <span class="tyre-code">OSF</span></p>
+                    <p class="tyre-control-title">
+                      Driver Side Front <span class="tyre-code">OSF</span>
+                    </p>
                     <div class="tyre-inputs">
                       <input
                         class="tyre-input"
@@ -436,7 +449,9 @@
                         )
                       "
                     ></div>
-                    <p class="tyre-control-title">Passenger Side Rear <span class="tyre-code">NSR</span></p>
+                    <p class="tyre-control-title">
+                      Passenger Side Rear <span class="tyre-code">NSR</span>
+                    </p>
                     <div class="tyre-inputs">
                       <span class="text-xs text-base-content/60">Inner</span>
                       <input
@@ -489,7 +504,9 @@
                         )
                       "
                     ></div>
-                    <p class="tyre-control-title">Driver Side Rear <span class="tyre-code">OSR</span></p>
+                    <p class="tyre-control-title">
+                      Driver Side Rear <span class="tyre-code">OSR</span>
+                    </p>
                     <div class="tyre-inputs">
                       <input
                         class="tyre-input"
@@ -552,7 +569,10 @@
       } @else {
         <section class="inspection-empty card-premium">
           <div class="inspection-empty-icon">
-            <lucide-icon [name]="icons.CircleCheckBig" class="h-9 w-9 text-base-content/35"></lucide-icon>
+            <lucide-icon
+              [name]="icons.CircleCheckBig"
+              class="h-9 w-9 text-base-content/35"
+            ></lucide-icon>
           </div>
           <h3 class="inspection-empty-title">Ready to inspect</h3>
           <p class="inspection-empty-copy">
@@ -563,4 +583,3 @@
     </main>
   </div>
 </div>
-

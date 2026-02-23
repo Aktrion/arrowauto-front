@@ -6,7 +6,8 @@
     "SIDEBAR": {
       "MAIN": "Main",
       "DASHBOARD": "Dashboard",
-      "VEHICLES": "Vehicles",
+      "VEHICLES_INSTANCES": "Vehicles Instances",
+      "VEHICLES_DATABASE": "Vehicles Database",
       "OPERATIONS": "Operations",
       "INSPECTION": "Inspection",
       "INSPECTION_HISTORY": "Inspection History",

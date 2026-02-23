@@ -1,4 +1,5 @@
 import { Client } from '../../clients/models/client.model';
+import { BackendInspectionValue } from '../../inspection/services/inspection.service';
 
 export type VehicleStatus =
   | 'pending'
@@ -10,7 +11,7 @@ export type VehicleStatus =
   | 'invoiced';
 
 export interface Vehicle {
-  id?: string;
+  _id?: string;
   licensePlate: string;
   make: string;
   model: string;
@@ -30,7 +31,7 @@ export interface Vehicle {
 }
 
 export interface VehicleInstance {
-  id?: string;
+  _id?: string;
   code?: string; // autogen, unique
   vehicleId?: string;
   vehicle?: Vehicle;
@@ -46,7 +47,8 @@ export interface VehicleInstance {
   checkOutDate?: Date;
   createdAt?: Date;
   updatedAt?: Date;
-  // inspectionValues: InspectionValue[];
+  inspectionValues?: BackendInspectionValue[];
+  inspectionValueIds?: string[];
   // repairs: Repair[];
   // operations: Operation[];
   // customerCommunications: CustomerCommunication[];
@@ -76,3 +78,34 @@ export interface VehicleInstanceActivityEvent {
 
 // Legacy alias during migration
 export type ProductActivityEvent = VehicleInstanceActivityEvent;
+
+export interface BackendSearchResponse<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  totalPages: number;
+  total: number;
+}
+
+export interface BackendStatusStep {
+  _id?: string;
+  id?: string;
+  name?: string;
+  order?: number;
+}
+
+export interface BackendProductActivityEvent {
+  type?: string;
+  occurredAt?: string;
+  actorName?: string;
+  message?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface BackendProductActivityResponse {
+  vehicleInstanceId?: string;
+  // Legacy compatibility field
+  productId?: string;
+  total?: number;
+  data?: BackendProductActivityEvent[];
+}

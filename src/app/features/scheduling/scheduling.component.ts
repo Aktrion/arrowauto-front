@@ -50,10 +50,7 @@ export class SchedulingComponent {
       const date = new Date(start);
       date.setDate(start.getDate() + i);
       const totalHours = 8 * this.operators().length;
-      const scheduledHours = Math.min(
-        totalHours,
-        Math.ceil((pendingCount / 7) * 0.75) + (i % 2),
-      );
+      const scheduledHours = Math.min(totalHours, Math.ceil((pendingCount / 7) * 0.75) + (i % 2));
       days.push({
         date,
         dayName: dayNames[date.getDay()],
@@ -88,7 +85,7 @@ export class SchedulingComponent {
       .map((vo) => ({
         ...vo,
         vehiclePlate:
-          vehicles.find((v) => v.id === vo.vehicleId)?.vehicle?.licensePlate || 'Unknown',
+          vehicles.find((v) => v._id === vo.vehicleId)?.vehicle?.licensePlate || 'Unknown',
       }));
   });
 
@@ -171,14 +168,14 @@ export class SchedulingComponent {
 
   getAvailableHours(): number {
     const day = this.weekDays().find(
-      (d) => d.date.toDateString() === this.selectedDay().toDateString()
+      (d) => d.date.toDateString() === this.selectedDay().toDateString(),
     );
     return day ? day.totalHours - day.scheduledHours : 0;
   }
 
   getSlotTask(
     operatorId: string,
-    time: string
+    time: string,
   ): { code: string; name: string; status: string } | null {
     const op = this.scheduledOperations().find(
       (item) => item.assignedUserId === operatorId && item.scheduledTime === time,
@@ -217,4 +214,3 @@ export class SchedulingComponent {
       });
   }
 }
-

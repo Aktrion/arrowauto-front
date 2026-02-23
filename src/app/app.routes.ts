@@ -22,15 +22,24 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
-        path: 'vehicles',
+        path: 'vehicles-instances',
         loadComponent: () =>
-          import('./features/vehicles/vehicles.component').then((m) => m.VehiclesComponent),
+          import('./features/vehicles/vehicles-instances/vehicles-instances.component').then(
+            (m) => m.VehiclesInstancesComponent,
+          ),
       },
       {
-        path: 'vehicles/:id',
+        path: 'vehicles-database',
         loadComponent: () =>
-          import('./features/vehicles/vehicle-detail/vehicle-detail.component').then(
-            (m) => m.VehicleDetailComponent,
+          import('./features/vehicles/vehicles-database/vehicles-database.component').then(
+            (m) => m.VehiclesDatabaseComponent,
+          ),
+      },
+      {
+        path: 'vehicles-instances/:id',
+        loadComponent: () =>
+          import('./features/vehicles/vehicles-instances/vehicle-instances-detail/vehicle-instance-detail.component').then(
+            (m) => m.VehicleInstanceDetailComponent,
           ),
       },
       {

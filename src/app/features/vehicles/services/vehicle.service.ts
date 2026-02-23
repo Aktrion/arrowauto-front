@@ -7,71 +7,10 @@ import {
   VehicleInstanceActivityEvent,
   Vehicle,
   VehicleStatus,
+  BackendStatusStep,
+  BackendSearchResponse,
+  BackendProductActivityResponse,
 } from '../models/vehicle.model';
-
-interface BackendVehicle {
-  _id?: string;
-  id?: string;
-  vin?: string;
-  licensePlate: string;
-  make: string;
-  model?: string;
-  vehicleModel?: string;
-  description?: string;
-  colour?: string;
-  registrationDate?: string;
-  engine?: string;
-  nextEntryDate?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface BackendVehicleInstance {
-  _id?: string;
-  id?: string;
-  vehicleId?: string | { _id?: string; id?: string };
-  vehicle?: { _id?: string; id?: string };
-  customerId?: string;
-  statusId?: string;
-  inspectionTemplateId?: string;
-  inspectionValueIds?: string[];
-  services?: string[];
-  // Legacy compatibility field
-  operations?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface BackendProductActivityEvent {
-  type?: string;
-  occurredAt?: string;
-  actorName?: string;
-  message?: string;
-  metadata?: Record<string, unknown>;
-}
-
-interface BackendProductActivityResponse {
-  vehicleInstanceId?: string;
-  // Legacy compatibility field
-  productId?: string;
-  total?: number;
-  data?: BackendProductActivityEvent[];
-}
-
-interface BackendStatusStep {
-  _id?: string;
-  id?: string;
-  name?: string;
-  order?: number;
-}
-
-interface BackendSearchResponse<T> {
-  data: T[];
-  page: number;
-  limit: number;
-  totalPages: number;
-  total: number;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -96,11 +35,11 @@ export class VehicleService {
     this.loaded.set(false);
     return forkJoin({
       vehicles: this.http.get<any>(this.vehiclesApiUrl).pipe(
-        map((response) => this.normalizeArrayResponse<BackendVehicle>(response)),
+        map((response) => this.normalizeArrayResponse<Vehicle>(response)),
         catchError(() => of([])),
       ),
       vehicleInstances: this.http.get<any>(this.vehicleInstancesApiUrl).pipe(
-        map((response) => this.normalizeArrayResponse<BackendVehicleInstance>(response)),
+        map((response) => this.normalizeArrayResponse<VehicleInstance>(response)),
         catchError(() => of([])),
       ),
       statusSteps: this.http.get<any>(this.statusStepsApiUrl).pipe(
@@ -112,7 +51,7 @@ export class VehicleService {
       const statusById = new Map(
         statusSteps.map((step) => [step._id || step.id || '', step.name || '']),
       );
-      const latestVehicleInstanceByVehicleId = new Map<string, BackendVehicleInstance>();
+      const latestVehicleInstanceByVehicleId = new Map<string, VehicleInstance>();
 
       vehicleInstances.forEach((vehicleInstance) => {
         const vehicleId = this.extractEntityId(
@@ -136,12 +75,12 @@ export class VehicleService {
       this.productIdByVehicleId.clear();
       this._vehicles.set(
         vehicles.map((vehicle) => {
-          const vehicleId = vehicle._id || vehicle.id || '';
+          const vehicleId = vehicle._id || vehicle._id || '';
           const vehicleInstance = latestVehicleInstanceByVehicleId.get(vehicleId);
-          if (vehicleInstance?._id || vehicleInstance?.id) {
+          if (vehicleInstance?._id || vehicleInstance?._id) {
             this.productIdByVehicleId.set(
               vehicleId,
-              vehicleInstance._id || vehicleInstance.id || '',
+              vehicleInstance._id || vehicleInstance._id || '',
             );
           }
           const statusName = vehicleInstance?.statusId
@@ -155,7 +94,7 @@ export class VehicleService {
   }
 
   getVehicleById(id: string): VehicleInstance | undefined {
-    return this._vehicles().find((v) => v.id === id || v.vehicleId === id);
+    return this._vehicles().find((v) => v._id === id || v.vehicleId === id);
   }
 
   getVehicleByPlate(plate: string): VehicleInstance | undefined {
@@ -176,7 +115,7 @@ export class VehicleService {
   getProductCandidatesByVehicleId(vehicleId: string) {
     const preferredId = this.productIdByVehicleId.get(vehicleId);
 
-    return this.http.get<BackendVehicleInstance[]>(this.vehicleInstancesApiUrl).pipe(
+    return this.http.get<VehicleInstance[]>(this.vehicleInstancesApiUrl).pipe(
       map((vehicleInstances) => {
         const candidates = vehicleInstances
           .filter((vehicleInstance) => vehicleInstance.vehicleId === vehicleId)
@@ -190,7 +129,7 @@ export class VehicleService {
             const bUpdatedAt = b.updatedAt || b.createdAt || '';
             return new Date(bUpdatedAt).getTime() - new Date(aUpdatedAt).getTime();
           })
-          .map((vehicleInstance) => vehicleInstance._id || vehicleInstance.id || '')
+          .map((vehicleInstance) => vehicleInstance._id || vehicleInstance._id || '')
           .filter(Boolean);
 
         if (preferredId) {
@@ -206,7 +145,7 @@ export class VehicleService {
   getAllVehicleInstances() {
     return this.http.get<any>(this.vehicleInstancesApiUrl).pipe(
       map((response) =>
-        this.normalizeArrayResponse<BackendVehicleInstance>(response).map((vehicleInstance) => ({
+        this.normalizeArrayResponse<VehicleInstance>(response).map((vehicleInstance) => ({
           ...vehicleInstance,
           vehicleId: this.extractEntityId(vehicleInstance.vehicleId || vehicleInstance.vehicle),
         })),
@@ -223,12 +162,12 @@ export class VehicleService {
   getVehicleInstanceById(vehicleInstanceId: string) {
     return this.http.get<any>(`${this.vehicleInstancesApiUrl}/${vehicleInstanceId}`).pipe(
       map((product) =>
-        this.normalizeSingleResponse<BackendVehicleInstance>(product)
+        this.normalizeSingleResponse<VehicleInstance>(product)
           ? {
-              ...this.normalizeSingleResponse<BackendVehicleInstance>(product),
+              ...this.normalizeSingleResponse<VehicleInstance>(product),
               vehicleId: this.extractEntityId(
-                this.normalizeSingleResponse<BackendVehicleInstance>(product)?.vehicleId ||
-                  this.normalizeSingleResponse<BackendVehicleInstance>(product)?.vehicle,
+                this.normalizeSingleResponse<VehicleInstance>(product)?.vehicleId ||
+                  this.normalizeSingleResponse<VehicleInstance>(product)?.vehicle,
               ),
             }
           : null,
@@ -253,7 +192,7 @@ export class VehicleService {
       tap(() => {
         this._vehicles.update((vehicles) =>
           vehicles.map((item) =>
-            item.vehicleId === vehicleId || item.id === vehicleId
+            item.vehicleId === vehicleId || item._id === vehicleId
               ? {
                   ...item,
                   status: target,
@@ -270,7 +209,7 @@ export class VehicleService {
 
   findVehicleByPlate(licensePlate: string) {
     return this.http
-      .post<BackendSearchResponse<BackendVehicle>>(`${this.vehiclesApiUrl}/search`, {
+      .post<BackendSearchResponse<Vehicle>>(`${this.vehiclesApiUrl}/search`, {
         page: 1,
         limit: 1,
         filters: {
@@ -289,7 +228,7 @@ export class VehicleService {
   lookupVehicle(field: 'vin' | 'licensePlate', value: string) {
     if (!value || value.trim().length < 3) return of(null);
     return this.http
-      .get<BackendVehicle | null>(`${this.vehiclesApiUrl}/lookup`, {
+      .get<Vehicle | null>(`${this.vehiclesApiUrl}/lookup`, {
         params: { field, value: value.trim() },
       })
       .pipe(
@@ -303,7 +242,7 @@ export class VehicleService {
     product: Partial<VehicleInstance>,
   ) {
     return this.http
-      .post<BackendVehicleInstance>(this.vehicleInstancesApiUrl, {
+      .post<VehicleInstance>(this.vehicleInstancesApiUrl, {
         vehicleId: existingVehicleId,
         customerId: product.customerId || undefined,
         inspectionTemplateId: product.inspectionTemplateId || undefined,
@@ -312,15 +251,15 @@ export class VehicleService {
       .pipe(
         switchMap((createdVehicleInstance) =>
           this.http
-            .get<BackendVehicle>(`${this.vehiclesApiUrl}/${existingVehicleId}`)
+            .get<Vehicle>(`${this.vehiclesApiUrl}/${existingVehicleId}`)
             .pipe(map((freshVehicle) => ({ freshVehicle, createdVehicleInstance }))),
         ),
         map(({ freshVehicle, createdVehicleInstance }) => {
           const created = this.mapToProduct(freshVehicle, createdVehicleInstance);
-          if (createdVehicleInstance?._id || createdVehicleInstance?.id) {
+          if (createdVehicleInstance?._id || createdVehicleInstance?._id) {
             this.productIdByVehicleId.set(
               created.vehicleId || '',
-              createdVehicleInstance._id || createdVehicleInstance.id || '',
+              createdVehicleInstance._id || createdVehicleInstance._id || '',
             );
           }
           return created;
@@ -345,31 +284,31 @@ export class VehicleService {
       nextEntryDate: product.vehicle?.next_entry || undefined,
     };
 
-    return this.http.post<BackendVehicle>(this.vehiclesApiUrl, payload).pipe(
+    return this.http.post<Vehicle>(this.vehiclesApiUrl, payload).pipe(
       switchMap((createdVehicle) => {
-        const vehicleId = createdVehicle._id || createdVehicle.id || '';
+        const vehicleId = createdVehicle._id || createdVehicle._id || '';
         return this.http
-          .post<BackendVehicleInstance>(this.vehicleInstancesApiUrl, {
+          .post<VehicleInstance>(this.vehicleInstancesApiUrl, {
             vehicleId,
             customerId: product.customerId || undefined,
             inspectionTemplateId: product.inspectionTemplateId || undefined,
             code: `PRD-${Date.now().toString().slice(-6)}`,
           })
           .pipe(
-            catchError(() => of(undefined as unknown as BackendVehicleInstance)),
+            catchError(() => of(undefined as unknown as VehicleInstance)),
             switchMap((createdVehicleInstance) =>
               this.http
-                .get<BackendVehicle>(`${this.vehiclesApiUrl}/${vehicleId}`)
+                .get<Vehicle>(`${this.vehiclesApiUrl}/${vehicleId}`)
                 .pipe(map((freshVehicle) => ({ freshVehicle, createdVehicleInstance }))),
             ),
           );
       }),
       map(({ freshVehicle, createdVehicleInstance }) => {
         const created = this.mapToProduct(freshVehicle, createdVehicleInstance);
-        if (createdVehicleInstance?._id || createdVehicleInstance?.id) {
+        if (createdVehicleInstance?._id || createdVehicleInstance?._id) {
           this.productIdByVehicleId.set(
             created.vehicleId || '',
-            createdVehicleInstance._id || createdVehicleInstance.id || '',
+            createdVehicleInstance._id || createdVehicleInstance._id || '',
           );
         }
         return created;
@@ -382,7 +321,7 @@ export class VehicleService {
     const knownProductId = this.productIdByVehicleId.get(vehicleId);
     const productId$ = knownProductId
       ? of(knownProductId)
-      : this.http.get<BackendVehicleInstance[]>(this.vehicleInstancesApiUrl).pipe(
+      : this.http.get<VehicleInstance[]>(this.vehicleInstancesApiUrl).pipe(
           map((products) => this.resolveLatestProductIdByVehicleId(products, vehicleId)),
           catchError(() => of(undefined)),
         );
@@ -420,7 +359,7 @@ export class VehicleService {
     }
 
     const vehicle = updates.vehicle || target.vehicle;
-    const payload: Partial<BackendVehicle> = {
+    const payload: Partial<Vehicle> = {
       vin: vehicle?.vin,
       licensePlate: vehicle?.licensePlate,
       make: vehicle?.make,
@@ -429,56 +368,54 @@ export class VehicleService {
       colour: vehicle?.colour,
       registrationDate: vehicle?.registrationDate,
       engine: vehicle?.engine,
-      nextEntryDate: vehicle?.next_entry,
+      next_entry: vehicle?.next_entry,
     };
 
-    return this.http
-      .patch<BackendVehicle>(`${this.vehiclesApiUrl}/${target.vehicleId}`, payload)
-      .pipe(
-        tap((updatedVehicle) => {
-          this._vehicles.update((vehicles) =>
-            vehicles.map((item) =>
-              item.id === target.id
-                ? {
-                    ...item,
-                    customerId: updates.customerId ?? item.customerId,
-                    vehicle: this.mapVehicle(updatedVehicle),
-                    updatedAt: new Date(),
-                  }
-                : item,
-            ),
-          );
-        }),
-        switchMap(() => {
-          const productId = this.productIdByVehicleId.get(target.vehicleId!);
-          if (!productId) {
-            return of(null);
-          }
-          const productPayload: Record<string, any> = {};
-          if ('customerId' in updates) {
-            productPayload['customerId'] = updates.customerId || null;
-          }
-          if ('inspectionTemplateId' in updates) {
-            productPayload['inspectionTemplateId'] = updates.inspectionTemplateId || null;
-          }
-          if (Object.keys(productPayload).length === 0) {
-            return of(null);
-          }
-          return this.http
-            .patch(`${this.vehicleInstancesApiUrl}/${productId}`, productPayload)
-            .pipe(catchError(() => of(null)));
-        }),
-      );
+    return this.http.patch<Vehicle>(`${this.vehiclesApiUrl}/${target.vehicleId}`, payload).pipe(
+      tap((updatedVehicle) => {
+        this._vehicles.update((vehicles) =>
+          vehicles.map((item) =>
+            item._id === target._id
+              ? {
+                  ...item,
+                  customerId: updates.customerId ?? item.customerId,
+                  vehicle: this.mapVehicle(updatedVehicle),
+                  updatedAt: new Date(),
+                }
+              : item,
+          ),
+        );
+      }),
+      switchMap(() => {
+        const productId = this.productIdByVehicleId.get(target.vehicleId!);
+        if (!productId) {
+          return of(null);
+        }
+        const productPayload: Record<string, any> = {};
+        if ('customerId' in updates) {
+          productPayload['customerId'] = updates.customerId || null;
+        }
+        if ('inspectionTemplateId' in updates) {
+          productPayload['inspectionTemplateId'] = updates.inspectionTemplateId || null;
+        }
+        if (Object.keys(productPayload).length === 0) {
+          return of(null);
+        }
+        return this.http
+          .patch(`${this.vehicleInstancesApiUrl}/${productId}`, productPayload)
+          .pipe(catchError(() => of(null)));
+      }),
+    );
   }
 
   private mapToProduct(
-    vehicle: BackendVehicle,
-    product?: BackendVehicleInstance,
+    vehicle: Vehicle,
+    product?: VehicleInstance,
     statusName?: string,
   ): VehicleInstance {
-    const vehicleId = vehicle._id || vehicle.id || '';
+    const vehicleId = vehicle._id || vehicle._id || '';
     return {
-      id: vehicleId,
+      _id: vehicleId,
       vehicleId,
       customerId: product?.customerId,
       statusId: product?.statusId,
@@ -491,19 +428,19 @@ export class VehicleService {
     };
   }
 
-  private mapVehicle(vehicle: BackendVehicle): Vehicle {
+  private mapVehicle(vehicle: Vehicle): Vehicle {
     const createdAt = vehicle.createdAt ? new Date(vehicle.createdAt) : undefined;
     return {
-      id: vehicle._id || vehicle.id,
+      _id: vehicle._id || vehicle._id,
       licensePlate: vehicle.licensePlate,
       make: vehicle.make,
-      model: vehicle.model || vehicle.vehicleModel || '',
+      model: vehicle.model || vehicle.model || '',
       description: vehicle.description,
       colour: vehicle.colour || '',
       vin: vehicle.vin,
       registrationDate: vehicle.registrationDate,
       engine: vehicle.engine,
-      next_entry: vehicle.nextEntryDate,
+      next_entry: vehicle.next_entry,
       createdAt,
       updatedAt: vehicle.updatedAt ? new Date(vehicle.updatedAt) : undefined,
     };
@@ -549,7 +486,7 @@ export class VehicleService {
     return `VIN-${normalized.slice(0, 8).padEnd(8, 'X')}-${Date.now().toString().slice(-6)}`;
   }
 
-  private resolveLatestProductIdByVehicleId(products: BackendVehicleInstance[], vehicleId: string) {
+  private resolveLatestProductIdByVehicleId(products: VehicleInstance[], vehicleId: string) {
     const candidates = products.filter((product) => product.vehicleId === vehicleId);
     if (candidates.length === 0) {
       return undefined;
@@ -564,7 +501,7 @@ export class VehicleService {
       return productDate >= currentDate ? product : current;
     }, candidates[0]);
 
-    const productId = latest._id || latest.id;
+    const productId = latest._id || latest._id;
     if (productId) {
       this.productIdByVehicleId.set(vehicleId, productId);
     }

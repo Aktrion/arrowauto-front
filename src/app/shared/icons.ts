@@ -59,6 +59,7 @@ import {
   CheckCircle2,
   Wrench,
   DollarSign,
+  Database,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -122,4 +123,5 @@ export const ICONS = {
   CheckCircle2,
   Wrench,
   DollarSign,
+  Database,
 };

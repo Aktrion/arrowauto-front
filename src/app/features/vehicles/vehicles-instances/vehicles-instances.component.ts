@@ -4,18 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../shared/icons';
-import { VehicleService } from './services/vehicle.service';
-import { ClientService } from '../clients/services/client.service';
-import { Product } from '../../core/models';
+import { ICONS } from '../../../shared/icons';
+import { VehicleService } from '../services/vehicle.service';
+import { ClientService } from '../../clients/services/client.service';
+import { Product } from '../models/vehicle.model';
 
 @Component({
-  selector: 'app-vehicles',
+  selector: 'app-vehicles-instances',
   standalone: true,
   imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule, TranslateModule],
-  templateUrl: './vehicles.component.html',
+  templateUrl: './vehicles-instances.component.html',
 })
-export class VehiclesComponent {
+export class VehiclesInstancesComponent {
   icons = ICONS;
   private vehicleService = inject(VehicleService);
   private clientService = inject(ClientService);
@@ -64,29 +64,27 @@ export class VehiclesComponent {
 
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (v) => {
-          const plate = v.vehicle?.licensePlate?.toLowerCase() || '';
-          const make = v.vehicle?.make?.toLowerCase() || '';
-          const model = v.vehicle?.model?.toLowerCase() || '';
-          const job = v.vehicle?.jobNumber?.toLowerCase() || '';
-          const client = this.getClientName(v.customerId).toLowerCase();
+      filtered = filtered.filter((v) => {
+        const plate = v.vehicle?.licensePlate?.toLowerCase() || '';
+        const make = v.vehicle?.make?.toLowerCase() || '';
+        const model = v.vehicle?.model?.toLowerCase() || '';
+        const job = v.vehicle?.jobNumber?.toLowerCase() || '';
+        const client = this.getClientName(v.customerId).toLowerCase();
 
-          if (this.searchField === 'plate') return plate.includes(query);
-          if (this.searchField === 'make') return make.includes(query);
-          if (this.searchField === 'model') return model.includes(query);
-          if (this.searchField === 'job') return job.includes(query);
-          if (this.searchField === 'client') return client.includes(query);
+        if (this.searchField === 'plate') return plate.includes(query);
+        if (this.searchField === 'make') return make.includes(query);
+        if (this.searchField === 'model') return model.includes(query);
+        if (this.searchField === 'job') return job.includes(query);
+        if (this.searchField === 'client') return client.includes(query);
 
-          return (
-            plate.includes(query) ||
-            make.includes(query) ||
-            model.includes(query) ||
-            job.includes(query) ||
-            client.includes(query)
-          );
-        },
-      );
+        return (
+          plate.includes(query) ||
+          make.includes(query) ||
+          model.includes(query) ||
+          job.includes(query) ||
+          client.includes(query)
+        );
+      });
     }
 
     if (this.statusFilter) {
