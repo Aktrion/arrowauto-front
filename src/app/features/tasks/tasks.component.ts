@@ -24,14 +24,29 @@ export class TasksComponent {
   icons = ICONS;
 
   filterStatus = signal<string>('all');
+  searchQuery = signal<string>('');
 
   allOperations = computed(() => this.operationService.vehicleOperations());
 
   filteredOperations = computed(() => {
-    const ops = this.allOperations();
+    let ops = this.allOperations();
     const status = this.filterStatus();
-    if (status === 'all') return ops;
-    return ops.filter((op) => op.status === status);
+
+    if (status !== 'all') {
+      ops = ops.filter((op) => op.status === status);
+    }
+
+    const query = this.searchQuery().toLowerCase().trim();
+    if (query) {
+      ops = ops.filter((op) => {
+        const vehicleInfo = this.getVehicleName(op.vehicleId).toLowerCase();
+        const opName = op.operation?.name?.toLowerCase() || '';
+        const opCode = op.operation?.code?.toLowerCase() || '';
+        return vehicleInfo.includes(query) || opName.includes(query) || opCode.includes(query);
+      });
+    }
+
+    return ops;
   });
 
   statusCounts = computed(() => {

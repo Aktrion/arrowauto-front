@@ -14,6 +14,46 @@
     </a>
   </div>
 
+  <!-- Quick Search -->
+  <div
+    class="card-premium rounded-xl p-4 flex flex-col sm:flex-row gap-3 animate-slide-up stagger-1"
+  >
+    <div class="flex-1 relative">
+      <lucide-icon
+        [name]="icons.Search"
+        class="h-5 w-5 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40"
+      ></lucide-icon>
+      <input
+        type="text"
+        class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm shadow-inner"
+        placeholder="Quick locate vehicle..."
+        [(ngModel)]="searchQuery"
+        (keydown.enter)="quickSearch()"
+      />
+    </div>
+    <div class="flex gap-2 w-full sm:w-auto">
+      <select
+        class="select select-bordered bg-base-200 border-0 rounded-xl text-sm flex-1 sm:w-40"
+        [(ngModel)]="searchField"
+      >
+        <option value="plate">Plate / VIN</option>
+        <option value="job">Job Number</option>
+      </select>
+      <button
+        class="btn btn-primary shadow-lg shadow-primary/20 whitespace-nowrap"
+        (click)="quickSearch()"
+        [disabled]="isSearching || !searchQuery.trim()"
+      >
+        @if (isSearching) {
+          <span class="loading loading-spinner loading-sm"></span>
+        } @else {
+          <lucide-icon [name]="icons.ArrowRight" class="h-4 w-4"></lucide-icon>
+          Find
+        }
+      </button>
+    </div>
+  </div>
+
   <!-- Stats Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <!-- Active Vehicles -->
@@ -253,7 +293,7 @@
           {{ 'DASHBOARD.QUICK_ACTIONS.TITLE' | translate }}
         </h2>
         <div class="grid grid-cols-2 gap-3">
-          <a routerLink="/vehicles" class="action-card">
+          <a routerLink="/vehicles/new" class="action-card">
             <div class="action-card-icon">
               <lucide-icon [name]="icons.Plus" class="h-6 w-6"></lucide-icon>
             </div>

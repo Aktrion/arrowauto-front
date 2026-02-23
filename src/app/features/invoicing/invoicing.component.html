@@ -9,7 +9,7 @@
       <div class="form-control relative group">
         <lucide-icon
           [name]="icons.Search"
-          class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors"
+          class="h-5 w-5 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors"
         ></lucide-icon>
         <input
           type="text"
@@ -266,7 +266,10 @@
                         </button>
                       }
                       @if (item.op.status === 'completed') {
-                        <button class="btn btn-outline btn-primary btn-xs" (click)="markAsInvoiced(item.op.id)">
+                        <button
+                          class="btn btn-outline btn-primary btn-xs"
+                          (click)="markAsInvoiced(item.op.id)"
+                        >
                           Invoice
                         </button>
                       }
@@ -305,7 +308,11 @@
           <button class="join-item btn btn-sm btn-ghost cursor-default">
             Page {{ currentPage() }} / {{ totalPages() }}
           </button>
-          <button class="join-item btn btn-sm" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+          <button
+            class="join-item btn btn-sm"
+            [disabled]="currentPage() >= totalPages()"
+            (click)="nextPage()"
+          >
             Next
           </button>
         </div>
@@ -326,6 +333,13 @@
                 Cancel
               </button>
               <button
+                class="btn btn-sm btn-outline btn-neutral"
+                onclick="document.getElementById('invoice_preview_modal').showModal()"
+              >
+                <lucide-icon [name]="icons.Eye" class="h-4 w-4 mr-1"></lucide-icon>
+                Preview
+              </button>
+              <button
                 class="btn btn-sm btn-primary shadow-lg shadow-primary/20"
                 (click)="invoiceSelection()"
               >
@@ -338,6 +352,158 @@
       }
     </div>
   </div>
+
+  <!-- Invoice Preview Modal -->
+  <dialog id="invoice_preview_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box w-11/12 max-w-3xl bg-base-100 p-0 overflow-hidden shadow-2xl rounded-2xl">
+      @if (invoicePreviewData(); as preview) {
+        <div class="p-8 sm:p-12 bg-white text-black min-h-[600px] relative">
+          <!-- Header -->
+          <div class="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
+            <div>
+              <h2 class="text-3xl font-black text-slate-800 tracking-tight">INVOICE</h2>
+              <p class="text-slate-500 mt-1 font-medium">{{ preview.invoiceNumber }}</p>
+            </div>
+            <div class="text-right">
+              <div class="font-bold text-xl text-primary flex items-center justify-end gap-2">
+                <lucide-icon [name]="icons.Wrench" class="h-6 w-6"></lucide-icon>
+                ArrowAuto
+              </div>
+              <p class="text-sm text-slate-500 mt-1">
+                123 Mechanics Way<br />London, UK AB1 2CD<br />contact&#64;arrowauto.co.uk
+              </p>
+            </div>
+          </div>
+
+          <!-- Dates & Info -->
+          <div class="flex justify-between items-end mb-10">
+            <div>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Bill To</p>
+              <p class="font-bold text-slate-800 text-lg">
+                {{ preview.groups[0]?.client || 'Walk-in Client' }}
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Date</p>
+              <p class="font-semibold text-slate-800">{{ preview.date | date: 'longDate' }}</p>
+            </div>
+          </div>
+
+          <!-- Grouped Operations -->
+          <div class="space-y-8">
+            @for (group of preview.groups; track group.vehicle?.id) {
+              <div>
+                <div
+                  class="bg-slate-50 py-3 px-4 rounded-xl mb-4 border border-slate-100 flex justify-between items-center"
+                >
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs"
+                    >
+                      {{ group.vehicle?.make?.charAt(0) || '?' }}
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-800">
+                        {{ group.vehicle?.licensePlate || 'Unknown Plate' }}
+                      </p>
+                      <p class="text-xs text-slate-500 font-medium">
+                        {{ group.vehicle?.make }} {{ group.vehicle?.model }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                      Subtotal
+                    </p>
+                    <p class="font-bold text-slate-800">
+                      &pound;{{ group.vehicleTotal.toFixed(2) }}
+                    </p>
+                  </div>
+                </div>
+
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="text-slate-400 border-b border-slate-100">
+                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px]">
+                        Description
+                      </th>
+                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px] text-center">
+                        Hrs/Qty
+                      </th>
+                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px] text-right">
+                        Rate
+                      </th>
+                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px] text-right">
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-slate-700 divide-y divide-slate-50">
+                    @for (item of group.operations; track item.op.id) {
+                      <tr class="group hover:bg-slate-50/50">
+                        <td class="py-3 font-medium">{{ item.op.operation?.name }}</td>
+                        <td class="py-3 text-center text-slate-500">
+                          {{
+                            item.op.actualDuration
+                              ? (item.op.actualDuration / 60).toFixed(1)
+                              : '1.0'
+                          }}
+                        </td>
+                        <td class="py-3 text-right text-slate-500">
+                          &pound;{{
+                            (item.op.hourlyRate || item.op.operation?.defaultPrice || 0).toFixed(2)
+                          }}
+                        </td>
+                        <td class="py-3 text-right font-semibold text-slate-800">
+                          &pound;{{ calculateTotal(item.op).toFixed(2) }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+
+          <!-- Totals -->
+          <div class="mt-12 border-t border-slate-200 pt-8 flex justify-end">
+            <div class="w-64 space-y-3">
+              <div class="flex justify-between text-sm text-slate-500 font-medium">
+                <span>Subtotal</span>
+                <span>&pound;{{ preview.subtotal.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-sm text-slate-500 font-medium">
+                <span>VAT (21%)</span>
+                <span>&pound;{{ preview.tax.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between items-end pt-4 border-t border-slate-200">
+                <span class="text-sm font-bold text-slate-800 uppercase tracking-widest"
+                  >Total Due</span
+                >
+                <span class="text-2xl font-black text-primary"
+                  >&pound;{{ preview.grandTotal.toFixed(2) }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Modal Actions (Sticky Bottom) -->
+      <div class="bg-base-200/50 p-4 border-t border-base-300 flex justify-end gap-3">
+        <form method="dialog">
+          <button class="btn btn-ghost hover:bg-base-300">Close</button>
+        </form>
+        <button class="btn btn-primary" onclick="window.print()">
+          <lucide-icon [name]="icons.Printer" class="h-4 w-4 mr-1"></lucide-icon>
+          Print Invoice
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-neutral/80 backdrop-blur-sm">
+      <button>close</button>
+    </form>
+  </dialog>
 
   <!-- Complete Operation Modal -->
   <dialog id="complete_modal" class="modal modal-bottom sm:modal-middle">
@@ -469,4 +635,3 @@
     </form>
   </dialog>
 </div>
-

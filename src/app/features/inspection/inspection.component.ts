@@ -1,5 +1,5 @@
 ﻿import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import {
   InspectionPointStatus,
@@ -18,10 +18,12 @@ import { NotificationService } from '../../core/services/notification.service';
   standalone: true,
   imports: [LucideAngularModule],
   templateUrl: './inspection.component.html',
+  styleUrl: './inspection.component.css',
 })
 export class InspectionComponent implements OnInit {
   icons = ICONS;
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly inspectionService = inject(InspectionService);
   private readonly vehicleService = inject(VehicleService);
   private readonly notificationService = inject(NotificationService);
@@ -39,6 +41,14 @@ export class InspectionComponent implements OnInit {
 
   vehiclesForInspection = computed(() =>
     this.vehicleService.vehicles().filter((v) => v.status === 'inspection' || v.status === 'in_progress'),
+  );
+  selectedVehicle = computed(() => {
+    const vehicleId = this.selectedVehicleId();
+    if (!vehicleId) return undefined;
+    return this.vehicleService.getVehicleById(vehicleId);
+  });
+  inspectedCount = computed(
+    () => this.countByStatus('ok') + this.countByStatus('warning') + this.countByStatus('defect'),
   );
 
   categories = computed(() => {
@@ -103,15 +113,17 @@ export class InspectionComponent implements OnInit {
       this.route.snapshot.paramMap.get('productId');
     if (vehicleInstanceId) {
       this.selectInspectionByProductId(vehicleInstanceId);
+      return;
     }
+    this.router.navigate(['/inspection']);
   }
 
   private selectInspectionByProductId(productId: string): void {
     this.vehicleService.getVehicleInstanceById(productId).subscribe((product) => {
       const vehicleId = product?.vehicleId;
       if (!vehicleId) {
-        this.saveError.set('No se encontrÃ³ el vehÃ­culo para esta inspecciÃ³n.');
-        this.notificationService.error('No se encontrÃ³ el vehÃ­culo para esta inspecciÃ³n.');
+        this.saveError.set('No se encontró el vehículo para esta inspección.');
+        this.notificationService.error('No se encontró el vehículo para esta inspección.');
         return;
       }
       const inspectionValueIds = Array.isArray((product as any)?.inspectionValueIds)
@@ -520,6 +532,10 @@ export class InspectionComponent implements OnInit {
     if (typeof nested === 'string') return nested;
     if (nested && typeof nested === 'object') return this.normalizeId(nested as any);
     return '';
+  }
+
+  backToInspectionList(): void {
+    this.router.navigate(['/inspection']);
   }
 }
 

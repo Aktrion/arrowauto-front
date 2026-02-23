@@ -45,7 +45,9 @@ export const routes: Routes = [
       {
         path: 'inspection',
         loadComponent: () =>
-          import('./features/inspection/inspection.component').then((m) => m.InspectionComponent),
+          import('./features/inspection/inspection-list.component').then(
+            (m) => m.InspectionListComponent,
+          ),
       },
       {
         path: 'inspection/:vehicleInstanceId',
@@ -70,6 +72,13 @@ export const routes: Routes = [
           import('./features/tasks/tasks.component').then((m) => m.TasksComponent),
       },
       {
+        path: 'pending-operations',
+        loadComponent: () =>
+          import('./features/pending-operations/pending-operations.component').then(
+            (m) => m.PendingOperationsComponent,
+          ),
+      },
+      {
         path: 'invoicing',
         loadComponent: () =>
           import('./features/invoicing/invoicing.component').then((m) => m.InvoicingComponent),
@@ -88,6 +97,13 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then((m) => m.SettingsComponent),
+      },
+      {
+        path: 'customer-approvals',
+        loadComponent: () =>
+          import('./features/customer-approvals/customer-approvals.component').then(
+            (m) => m.CustomerApprovalsComponent,
+          ),
       },
     ],
   },

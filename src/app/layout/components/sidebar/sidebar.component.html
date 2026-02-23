@@ -166,11 +166,6 @@
             >
               {{ 'SHELL.SIDEBAR.INSPECTION' | translate }}
             </span>
-            <span
-              *ngIf="!collapsed"
-              class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-lg bg-warning/20 text-warning"
-              >3</span
-            >
           </a>
         </li>
         <li>
@@ -241,6 +236,28 @@
         </li>
         <li>
           <a
+            routerLink="/pending-operations"
+            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? 'Pending Ops' : ''"
+          >
+            <lucide-icon
+              [name]="icons.List"
+              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+            ></lucide-icon>
+            <span
+              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
+              [class.opacity-0]="collapsed"
+              [class.w-0]="collapsed"
+              [class.hidden]="collapsed"
+            >
+              Pending Ops
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
             routerLink="/invoicing"
             routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
             class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
@@ -303,22 +320,17 @@
       <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
         <li>
           <a
-            routerLink="/customer-portal"
+            routerLink="/customer-approvals"
             routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
             class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
             [class.justify-center]="collapsed"
-            [title]="collapsed ? ('SHELL.SIDEBAR.CUSTOMER_PORTAL' | translate) : ''"
+            [title]="collapsed ? 'Approvals' : ''"
           >
             <div class="relative">
               <lucide-icon
                 [name]="icons.User"
                 class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
               ></lucide-icon>
-              <span
-                *ngIf="collapsed"
-                class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-error text-[8px] flex items-center justify-center rounded-full text-white font-bold ring-2 ring-white"
-                >2</span
-              >
             </div>
             <span
               class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap overflow-hidden"
@@ -326,13 +338,8 @@
               [class.w-0]="collapsed"
               [class.hidden]="collapsed"
             >
-              {{ 'SHELL.SIDEBAR.CUSTOMER_PORTAL' | translate }}
+              Approvals
             </span>
-            <span
-              *ngIf="!collapsed"
-              class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-lg bg-error/20 text-error"
-              >2</span
-            >
           </a>
         </li>
       </ul>

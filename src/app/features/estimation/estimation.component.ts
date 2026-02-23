@@ -153,9 +153,9 @@ export class EstimationComponent {
 
     this.http.post(this.communicationsApiUrl, payload).subscribe({
       next: () => {
-        // Update vehicle instance status to pending_approval
+        // Update vehicle instance status to awaiting_approval
         this.vehicleService
-          .updateProductStatusByVehicleId(vehicleId, 'pending_approval' as any)
+          .updateProductStatusByVehicleId(vehicleId, 'awaiting_approval')
           .subscribe({
             next: () => {
               this.notificationService.success(`Estimation sent to client for ${vehicleName}.`);

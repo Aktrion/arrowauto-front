@@ -1,0 +1,156 @@
+﻿<div class="space-y-6">
+  <section
+    class="card-premium rounded-2xl p-4 sm:p-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 bg-[radial-gradient(circle_at_100%_0%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_40%),var(--color-base-100)]"
+  >
+    <div>
+      <p class="text-[11px] uppercase tracking-[0.14em] font-bold text-base-content/50 mb-1">Operations / Inspection Queue</p>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Vehicle Inspection Queue</h1>
+      <p class="text-sm text-base-content/65 mt-2 max-w-2xl">
+        Selecciona un vehiculo de la cola para abrir su flujo de inspeccion.
+      </p>
+    </div>
+    <div class="grid grid-cols-3 gap-2 w-full lg:w-auto lg:min-w-[340px]">
+      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">Total</p>
+        <p class="text-sm sm:text-base font-extrabold">{{ statusCounts().all }}</p>
+      </div>
+      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">Inspection</p>
+        <p class="text-sm sm:text-base font-extrabold">{{ statusCounts().inspection }}</p>
+      </div>
+      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">In Progress</p>
+        <p class="text-sm sm:text-base font-extrabold">{{ statusCounts().in_progress }}</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="card-premium rounded-xl p-4">
+    <div class="flex flex-col lg:flex-row gap-4">
+      <div class="flex-1 relative">
+        <lucide-icon [name]="icons.Search" class="h-5 w-5 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40"></lucide-icon>
+        <input
+          type="text"
+          placeholder="Search by plate, make, model or job number..."
+          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </div>
+
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-wrap gap-2">
+          <button class="px-4 py-2 rounded-xl text-sm font-medium transition-all" [class]="statusFilter() === 'all' ? 'bg-primary text-white shadow-glow-primary' : 'bg-base-200 text-base-content/70 hover:bg-base-300'" (click)="setStatusFilter('all')">All</button>
+          <button class="px-4 py-2 rounded-xl text-sm font-medium transition-all" [class]="statusFilter() === 'inspection' ? 'bg-warning text-white' : 'bg-base-200 text-base-content/70 hover:bg-base-300'" (click)="setStatusFilter('inspection')">Inspection</button>
+          <button class="px-4 py-2 rounded-xl text-sm font-medium transition-all" [class]="statusFilter() === 'in_progress' ? 'bg-info text-white' : 'bg-base-200 text-base-content/70 hover:bg-base-300'" (click)="setStatusFilter('in_progress')">In Progress</button>
+        </div>
+
+        <div class="divider divider-horizontal hidden lg:flex"></div>
+
+        <div class="join bg-base-200 p-1 rounded-xl hidden lg:flex">
+          <button class="join-item btn btn-sm border-0 transition-all" [class]="!isTableView() ? 'bg-base-100 text-primary shadow-sm' : 'bg-transparent text-base-content/50'" (click)="toggleView(false)" title="Grid View">
+            <lucide-icon [name]="icons.LayoutGrid" class="h-4 w-4"></lucide-icon>
+          </button>
+          <button class="join-item btn btn-sm border-0 transition-all" [class]="isTableView() ? 'bg-base-100 text-primary shadow-sm' : 'bg-transparent text-base-content/50'" (click)="toggleView(true)" title="Table View">
+            <lucide-icon [name]="icons.Table" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isTableView()) {
+    <div class="hidden lg:block overflow-x-auto card-premium rounded-2xl border border-base-200 animate-slide-up">
+      <table class="table table-zebra w-full overflow-hidden">
+        <thead>
+          <tr class="bg-base-200/50 text-base-content/70 border-0">
+            <th class="pl-6 w-20">Actions</th>
+            <th>Vehicle</th>
+            <th>License Plate</th>
+            <th>Job Number</th>
+            <th>Status</th>
+            <th class="pr-6">Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (vehicle of paginatedVehicles(); track vehicle.id) {
+            <tr class="hover:bg-primary/5 transition-colors border-b border-base-200/50">
+              <td class="pl-6">
+                <button class="btn btn-ghost btn-xs text-primary hover:bg-primary/10" [disabled]="!getVehicleInstanceId(vehicle.id)" (click)="openInspection(vehicle.id)" title="Open inspection">
+                  <lucide-icon [name]="icons.Eye" class="h-4 w-4"></lucide-icon>
+                </button>
+              </td>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white">
+                    {{ vehicle.vehicle?.make?.charAt(0) || 'V' }}
+                  </div>
+                  <div><div class="font-bold text-base-content">{{ vehicle.vehicle?.make }} {{ vehicle.vehicle?.model }}</div></div>
+                </div>
+              </td>
+              <td><span class="px-3 py-1 bg-warning text-warning-content font-mono font-bold rounded shadow-sm border border-black/10 text-sm">{{ vehicle.vehicle?.licensePlate }}</span></td>
+              <td><code class="text-xs font-semibold text-primary/80 bg-primary/5 px-2 py-1 rounded">{{ vehicle.vehicle?.jobNumber || 'N/A' }}</code></td>
+              <td><span class="status-badge text-[10px] uppercase font-bold tracking-wider" [class]="getStatusBadgeClass(vehicle.status)">{{ formatStatus(vehicle.status) }}</span></td>
+              <td class="pr-6 text-sm text-base-content/60">{{ vehicle.updatedAt || vehicle.createdAt | date: 'mediumDate' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center py-20">
+                <div class="flex flex-col items-center gap-3">
+                  <div class="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center"><lucide-icon [name]="icons.CircleHelp" class="h-8 w-8 text-base-content/20"></lucide-icon></div>
+                  <p class="text-base-content/60 font-medium">No vehicles in inspection queue.</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" [class.lg:hidden]="isTableView()">
+    @for (vehicle of paginatedVehicles(); track vehicle.id) {
+      <div class="vehicle-card animate-slide-up">
+        <div class="vehicle-card-status"><span class="status-badge" [class]="getStatusBadgeClass(vehicle.status)">{{ formatStatus(vehicle.status) }}</span></div>
+        <div class="vehicle-card-header">
+          <div class="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold text-xl shadow-lg">{{ vehicle.vehicle?.make?.charAt(0) || 'V' }}</div>
+          <div class="flex-1 min-w-0">
+            <p class="vehicle-plate text-base-content">{{ vehicle.vehicle?.licensePlate }}</p>
+            <p class="text-sm text-base-content/60">{{ vehicle.vehicle?.make }} {{ vehicle.vehicle?.model }}</p>
+          </div>
+        </div>
+
+        <div class="vehicle-card-body">
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div><span class="text-base-content/50 text-xs">Job Number</span><p class="font-mono font-semibold text-base-content">{{ vehicle.vehicle?.jobNumber || 'N/A' }}</p></div>
+            <div><span class="text-base-content/50 text-xs">Updated</span><p class="font-semibold text-base-content">{{ vehicle.updatedAt || vehicle.createdAt | date: 'shortDate' }}</p></div>
+          </div>
+
+          <div class="flex items-center gap-2 mt-4 pt-4 border-t border-base-200">
+            <button class="btn btn-primary btn-sm w-full" [disabled]="!getVehicleInstanceId(vehicle.id)" (click)="openInspection(vehicle.id)">
+              Inspect
+              <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4 ml-1"></lucide-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="col-span-full">
+        <div class="empty-state">
+          <div class="empty-state-icon"><lucide-icon [name]="icons.CircleHelp" class="h-10 w-10"></lucide-icon></div>
+          <h3 class="empty-state-title">No vehicles in queue</h3>
+          <p class="empty-state-description">No hay vehiculos en estado inspeccion o en progreso.</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="flex items-center justify-between card-premium rounded-xl p-3">
+    <p class="text-sm text-base-content/60">Showing {{ paginatedVehicles().length }} of {{ filteredVehicles().length }}</p>
+    <div class="join">
+      <button class="join-item btn btn-sm" [disabled]="currentPage() <= 1" (click)="prevPage()">Prev</button>
+      <button class="join-item btn btn-sm btn-ghost cursor-default">Page {{ currentPage() }} / {{ totalPages() }}</button>
+      <button class="join-item btn btn-sm" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Next</button>
+    </div>
+  </div>
+</div>

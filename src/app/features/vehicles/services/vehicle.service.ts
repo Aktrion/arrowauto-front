@@ -282,6 +282,7 @@ export class VehicleService {
       registrationDate: product.vehicle?.registrationDate || undefined,
       engine: product.vehicle?.engine?.trim() || undefined,
       nextEntryDate: product.vehicle?.next_entry || undefined,
+      mileage: product.vehicle?.mileage || undefined,
     };
 
     return this.http.post<Vehicle>(this.vehiclesApiUrl, payload).pipe(
@@ -368,7 +369,8 @@ export class VehicleService {
       colour: vehicle?.colour,
       registrationDate: vehicle?.registrationDate,
       engine: vehicle?.engine,
-      next_entry: vehicle?.next_entry,
+      nextEntryDate: vehicle?.next_entry,
+      mileage: vehicle?.mileage,
     };
 
     return this.http.patch<Vehicle>(`${this.vehiclesApiUrl}/${target.vehicleId}`, payload).pipe(
@@ -440,7 +442,8 @@ export class VehicleService {
       vin: vehicle.vin,
       registrationDate: vehicle.registrationDate,
       engine: vehicle.engine,
-      next_entry: vehicle.next_entry,
+      next_entry: vehicle.nextEntryDate,
+      mileage: vehicle.mileage,
       createdAt,
       updatedAt: vehicle.updatedAt ? new Date(vehicle.updatedAt) : undefined,
     };

@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { DecimalPipe } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { VehicleService } from '../vehicles/services/vehicle.service';
@@ -12,8 +13,16 @@ import { ICONS } from '../../shared/icons';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, LucideAngularModule, TranslateModule],
+  imports: [
+    CommonModule,
+    RouterLink,
+    DecimalPipe,
+    LucideAngularModule,
+    TranslateModule,
+    FormsModule,
+  ],
   templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
   icons = ICONS;
@@ -21,6 +30,11 @@ export class DashboardComponent {
   private userService = inject(UserService);
   private clientService = inject(ClientService);
   private dashboardService = inject(DashboardService);
+  private router = inject(Router);
+
+  searchQuery = '';
+  searchField = 'plate';
+  isSearching = false;
 
   vehicles = this.vehicleService.vehicles;
   operators = this.userService.operatorsByRole;
@@ -69,5 +83,34 @@ export class DashboardComponent {
       invoiced: 4,
     };
     return progress[status] || 0;
+  }
+
+  quickSearch(): void {
+    if (!this.searchQuery.trim()) return;
+    this.isSearching = true;
+
+    // Simulate search delay for UX
+    setTimeout(() => {
+      this.isSearching = false;
+      const lowerQuery = this.searchQuery.trim().toLowerCase();
+
+      const found = this.vehicles().find((v) => {
+        if (this.searchField === 'plate') {
+          return (
+            v.vehicle?.licensePlate?.toLowerCase().includes(lowerQuery) ||
+            v.vehicle?.vin?.toLowerCase().includes(lowerQuery)
+          );
+        } else {
+          return v.vehicle?.jobNumber?.toLowerCase().includes(lowerQuery);
+        }
+      });
+
+      if (found) {
+        this.router.navigate(['/vehicles', found.id]);
+      } else {
+        // Just navigate to the list with query params
+        this.router.navigate(['/vehicles'], { queryParams: { q: lowerQuery } });
+      }
+    }, 400);
   }
 }
