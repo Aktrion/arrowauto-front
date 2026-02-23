@@ -22,6 +22,7 @@ import { ICONS } from '../../shared/icons';
     FormsModule,
   ],
   templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
   icons = ICONS;

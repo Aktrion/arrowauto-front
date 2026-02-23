@@ -1,0 +1,60 @@
+.vehicle-card {
+  position: relative;
+  background: var(--color-base-100);
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 80%, transparent);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.vehicle-card-status {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.vehicle-card-header {
+  padding: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-base-200) 0%,
+    color-mix(in oklab, var(--color-base-300) 75%, transparent) 100%
+  );
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.vehicle-card-body {
+  padding: 1.5rem;
+}
+
+.vehicle-plate {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.progress-tracker {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.progress-step {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-base-300);
+}
+
+.progress-step.completed {
+  background: var(--gradient-success);
+}
+
+.progress-step.current {
+  background: var(--gradient-primary);
+  animation: pulse 2s infinite;
+}

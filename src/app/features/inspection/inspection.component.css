@@ -1,0 +1,346 @@
+.tyre-wear-record {
+  margin-top: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 85%, transparent);
+  background: color-mix(in oklab, var(--color-base-100) 95%, transparent);
+  padding: 1rem;
+}
+
+.tyre-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.9rem;
+}
+
+.tyre-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 85%, transparent);
+  background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+  padding: 0.35rem 0.6rem;
+}
+
+.tyre-status-indicator {
+  width: 28px;
+  height: 28px;
+  border: 2px solid color-mix(in oklab, var(--color-base-content) 18%, transparent);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  flex-shrink: 0;
+  background: var(--color-base-100);
+}
+
+.tyre-status-indicator::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 9999px;
+  border: 1px dashed color-mix(in oklab, var(--color-base-content) 20%, transparent);
+}
+
+.tyre-status-indicator:hover {
+  transform: scale(1.08);
+}
+
+.tyre-status-indicator.status-good {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-success) 12%, transparent);
+}
+.tyre-status-indicator.status-good::after {
+  background: var(--color-success);
+  border: none;
+}
+
+.tyre-status-indicator.status-acceptable {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-warning) 12%, transparent);
+}
+.tyre-status-indicator.status-acceptable::after {
+  background: var(--color-warning);
+  border: none;
+}
+
+.tyre-status-indicator.status-attention {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-error) 12%, transparent);
+}
+.tyre-status-indicator.status-attention::after {
+  background: var(--color-error);
+  border: none;
+}
+
+.tyre-status-indicator.selected {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.car-diagram-container {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  min-height: 520px;
+  margin: 0 auto;
+  padding: 0 230px;
+}
+
+.tyre-record-canvas {
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at top, color-mix(in oklab, var(--color-primary) 8%, transparent), transparent 38%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-base-100) 95%, transparent),
+      color-mix(in oklab, var(--color-base-200) 88%, transparent)
+    );
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 88%, transparent);
+  padding: 1rem 0.75rem;
+}
+
+.car-body {
+  width: 120px;
+  height: 330px;
+  background: linear-gradient(180deg, #f2f3f6 0%, #e7e9ee 100%);
+  border: 2px solid color-mix(in oklab, var(--color-base-content) 35%, transparent);
+  border-radius: 30px 30px 40px 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.car-window {
+  background: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 5px;
+}
+
+.car-window.front {
+  top: 50px;
+  width: 90px;
+  height: 45px;
+  border-radius: 40% 40% 10% 10%;
+}
+
+.car-window.rear {
+  bottom: 50px;
+  width: 90px;
+  height: 35px;
+  border-radius: 10% 10% 40% 40%;
+}
+
+.tyre-control {
+  position: absolute;
+  width: 208px;
+}
+
+.tyre-control.front-left {
+  top: 40px;
+  left: 10px;
+  text-align: right;
+}
+
+.tyre-control.front-right {
+  top: 40px;
+  right: 10px;
+  text-align: left;
+}
+
+.tyre-control.rear-left {
+  bottom: 78px;
+  left: 10px;
+  text-align: right;
+}
+
+.tyre-control.rear-right {
+  bottom: 78px;
+  right: 10px;
+  text-align: left;
+}
+
+.tyre-control.spare {
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: 120px;
+}
+
+@media (max-width: 768px) {
+  .car-diagram-container {
+    min-height: 480px;
+    padding: 0 190px;
+  }
+
+  .tyre-control {
+    width: 170px;
+  }
+
+  .tyre-control.front-left,
+  .tyre-control.rear-left {
+    left: 8px;
+  }
+
+  .tyre-control.front-right,
+  .tyre-control.rear-right {
+    right: 8px;
+  }
+}
+
+.tyre-control-card {
+  background: color-mix(in oklab, var(--color-base-100) 96%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 88%, transparent);
+  border-radius: 0.875rem;
+  padding: 0.65rem 0.7rem 0.75rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tyre-control-card-left {
+  align-items: flex-end;
+}
+
+.tyre-control-card-right {
+  align-items: flex-start;
+}
+
+.tyre-control-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: color-mix(in oklab, var(--color-base-content) 90%, transparent);
+  margin-top: 0.1rem;
+}
+
+.tyre-code {
+  display: inline-flex;
+  margin-left: 0.3rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  padding: 0.15rem 0.35rem;
+  background: color-mix(in oklab, var(--color-primary) 13%, transparent);
+  color: var(--color-primary-darkest);
+}
+
+.tyre-control.front-left .tyre-inputs,
+.tyre-control.rear-left .tyre-inputs {
+  display: grid;
+  grid-template-columns: auto 78px;
+  gap: 0.4rem 0.55rem;
+  margin-top: 0.25rem;
+  align-items: center;
+  justify-items: end;
+}
+
+.tyre-control.front-right .tyre-inputs,
+.tyre-control.rear-right .tyre-inputs {
+  display: grid;
+  grid-template-columns: 78px auto;
+  gap: 0.4rem 0.55rem;
+  margin-top: 0.25rem;
+  align-items: center;
+  justify-items: start;
+}
+
+.tyre-input {
+  width: 78px;
+  height: 2.1rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid color-mix(in oklab, var(--color-base-300) 90%, transparent);
+  border-radius: 0.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--color-base-100);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.03);
+}
+
+.tyre-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 20%, transparent);
+}
+
+.status-toggle {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-base-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--color-base-200);
+  color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+}
+
+.status-toggle.active-ok {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
+}
+
+.status-toggle.active-warning {
+  background: var(--color-warning);
+  border-color: var(--color-warning);
+  color: white;
+}
+
+.status-toggle.active-defect {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+}
+
+@media (max-width: 560px) {
+  .car-diagram-container {
+    min-height: 440px;
+    padding: 0 150px;
+  }
+
+  .tyre-control {
+    width: 138px;
+  }
+
+  .tyre-control.front-left,
+  .tyre-control.rear-left {
+    left: 4px;
+  }
+
+  .tyre-control.front-right,
+  .tyre-control.rear-right {
+    right: 4px;
+  }
+
+  .tyre-control.front-left .tyre-inputs,
+  .tyre-control.rear-left .tyre-inputs {
+    grid-template-columns: auto 66px;
+    gap: 0.35rem 0.45rem;
+  }
+
+  .tyre-control.front-right .tyre-inputs,
+  .tyre-control.rear-right .tyre-inputs {
+    grid-template-columns: 66px auto;
+    gap: 0.35rem 0.45rem;
+  }
+
+  .tyre-input {
+    width: 66px;
+    height: 1.95rem;
+    font-size: 0.78rem;
+  }
+}

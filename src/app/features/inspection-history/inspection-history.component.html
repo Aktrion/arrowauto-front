@@ -1,45 +1,34 @@
-<div class="inspection-page space-y-6">
-  <section class="inspection-hero card-premium">
+﻿<div class="space-y-6">
+  <section
+    class="card-premium rounded-2xl p-4 sm:p-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 bg-[radial-gradient(circle_at_100%_0%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_40%),var(--color-base-100)]"
+  >
     <div>
-      <p class="inspection-kicker">Operations / Inspection Archive</p>
-      <h1 class="inspection-title">Historial de inspecciones</h1>
-      <p class="inspection-subtitle">Consulta inspecciones guardadas y vuelve al editor por ID.</p>
+      <p class="text-[11px] uppercase tracking-[0.14em] font-bold text-base-content/50 mb-1">Operations / Inspection Archive</p>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Historial de inspecciones</h1>
+      <p class="text-sm text-base-content/65 mt-2">Consulta inspecciones guardadas y vuelve al editor por ID.</p>
     </div>
-    <div class="inspection-hero-metrics">
-      <div class="inspection-metric-chip">
-        <span class="inspection-metric-label">Registros</span>
-        <span class="inspection-metric-value">{{ filteredInspectionHistory().length }}</span>
+    <div class="grid grid-cols-2 gap-2 w-full lg:w-auto lg:min-w-[280px]">
+      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">Registros</p>
+        <p class="text-sm sm:text-base font-extrabold">{{ filteredInspectionHistory().length }}</p>
       </div>
-      <div class="inspection-metric-chip">
-        <span class="inspection-metric-label">Página</span>
-        <span class="inspection-metric-value">{{ historyPage() }} / {{ historyTotalPages() }}</span>
+      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">Pagina</p>
+        <p class="text-sm sm:text-base font-extrabold">{{ historyPage() }} / {{ historyTotalPages() }}</p>
       </div>
     </div>
   </section>
 
-  <section class="inspection-panel card-premium inspection-history-panel">
-    <div class="inspection-panel-head">
-      <div class="flex items-center gap-2">
-        <div class="form-control relative group">
-          <lucide-icon
-            [name]="icons.Search"
-            class="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40"
-          ></lucide-icon>
-          <input
-            type="text"
-            class="input input-sm input-bordered pl-8 w-44"
-            placeholder="Buscar..."
-            [ngModel]="historySearchQuery"
-            (ngModelChange)="onHistorySearchChange($event)"
-          />
+  <section class="card-premium rounded-2xl p-4 min-h-[40vh]">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+      <div class="flex items-center gap-2 flex-wrap">
+        <div class="form-control relative">
+          <lucide-icon [name]="icons.Search" class="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40"></lucide-icon>
+          <input type="text" class="input input-sm input-bordered pl-8 w-44" placeholder="Buscar..." [ngModel]="historySearchQuery" (ngModelChange)="onHistorySearchChange($event)" />
         </div>
-        <select
-          class="select select-sm select-bordered"
-          [ngModel]="historySearchField"
-          (ngModelChange)="setHistorySearchField($event)"
-        >
+        <select class="select select-sm select-bordered" [ngModel]="historySearchField" (ngModelChange)="setHistorySearchField($event)">
           <option value="all">Todos</option>
-          <option value="plate">Matrícula</option>
+          <option value="plate">Matricula</option>
           <option value="makeModel">Marca/Modelo</option>
         </select>
       </div>
@@ -50,18 +39,18 @@
     </div>
 
     @if (isLoadingHistory()) {
-      <div class="inspection-history-loading">Cargando historial...</div>
+      <div class="rounded-xl border border-dashed border-base-300 p-4 text-sm">Cargando historial...</div>
     } @else if (historyError()) {
-      <div class="inspection-history-error">{{ historyError() }}</div>
+      <div class="rounded-xl border border-dashed border-error/40 p-4 text-sm text-error">{{ historyError() }}</div>
     } @else if (!filteredInspectionHistory().length) {
-      <div class="inspection-empty-small">No hay inspecciones registradas todavía.</div>
+      <div class="rounded-xl border border-dashed border-base-300 p-4 text-sm text-base-content/70">No hay inspecciones registradas todavia.</div>
     } @else {
-      <div class="inspection-history-table-wrap">
+      <div class="overflow-auto rounded-xl border border-base-300/80">
         <table class="table w-full">
-          <thead>
+          <thead class="text-xs uppercase tracking-wider text-base-content/60 bg-base-200/70">
             <tr>
-              <th>Vehículo</th>
-              <th>Última actualización</th>
+              <th>Vehiculo</th>
+              <th>Ultima actualizacion</th>
               <th>Puntos</th>
               <th>Estado</th>
               <th>Costo estimado</th>
@@ -78,7 +67,7 @@
                 <td>{{ item.updatedAt ? (item.updatedAt | date: 'medium') : '-' }}</td>
                 <td>{{ item.pointsCount }}</td>
                 <td>
-                  <div class="inspection-history-status">
+                  <div class="inline-flex gap-3 text-xs font-bold">
                     <span class="text-success">OK {{ item.okCount }}</span>
                     <span class="text-warning">Warn {{ item.warningCount }}</span>
                     <span class="text-error">Defect {{ item.defectCount }}</span>
@@ -96,27 +85,15 @@
           </tbody>
         </table>
       </div>
+
       <div class="flex items-center justify-between mt-4">
-        <p class="text-sm text-base-content/60">
-          Mostrando {{ paginatedInspectionHistory().length }} de {{ filteredInspectionHistory().length }}
-        </p>
+        <p class="text-sm text-base-content/60">Mostrando {{ paginatedInspectionHistory().length }} de {{ filteredInspectionHistory().length }}</p>
         <div class="join">
-          <button class="join-item btn btn-sm" [disabled]="historyPage() <= 1" (click)="prevHistoryPage()">
-            Prev
-          </button>
-          <button class="join-item btn btn-sm btn-ghost cursor-default">
-            Página {{ historyPage() }} / {{ historyTotalPages() }}
-          </button>
-          <button
-            class="join-item btn btn-sm"
-            [disabled]="historyPage() >= historyTotalPages()"
-            (click)="nextHistoryPage()"
-          >
-            Next
-          </button>
+          <button class="join-item btn btn-sm" [disabled]="historyPage() <= 1" (click)="prevHistoryPage()">Prev</button>
+          <button class="join-item btn btn-sm btn-ghost cursor-default">Pagina {{ historyPage() }} / {{ historyTotalPages() }}</button>
+          <button class="join-item btn btn-sm" [disabled]="historyPage() >= historyTotalPages()" (click)="nextHistoryPage()">Next</button>
         </div>
       </div>
     }
   </section>
 </div>
-

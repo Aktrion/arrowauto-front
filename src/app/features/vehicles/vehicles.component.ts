@@ -14,6 +14,7 @@ import { Product } from '../../core/models';
   standalone: true,
   imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule, TranslateModule],
   templateUrl: './vehicles.component.html',
+  styleUrl: './vehicles.component.css',
 })
 export class VehiclesComponent {
   icons = ICONS;
