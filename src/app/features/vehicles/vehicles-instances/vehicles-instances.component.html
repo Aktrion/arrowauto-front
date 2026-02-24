@@ -27,8 +27,8 @@
           type="text"
           [placeholder]="'VEHICLES.SEARCH_PLACEHOLDER' | translate"
           class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm"
-          [(ngModel)]="searchQuery"
-          (input)="filterVehicles()"
+          (input)="onSearch(searchInput.value)"
+          #searchInput
         />
       </div>
       <select
@@ -51,7 +51,7 @@
           <button
             class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
             [class]="
-              statusFilter === ''
+              statusFilter() === ''
                 ? 'bg-primary text-white shadow-glow-primary'
                 : 'bg-base-200 text-base-content/70 hover:bg-base-300'
             "
@@ -62,7 +62,7 @@
           <button
             class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
             [class]="
-              statusFilter === 'pending'
+              statusFilter() === 'pending'
                 ? 'bg-primary text-white shadow-glow-primary'
                 : 'bg-base-200 text-base-content/70 hover:bg-base-300'
             "
@@ -73,7 +73,7 @@
           <button
             class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
             [class]="
-              statusFilter === 'inspection'
+              statusFilter() === 'inspection'
                 ? 'bg-warning text-white'
                 : 'bg-base-200 text-base-content/70 hover:bg-base-300'
             "
@@ -135,7 +135,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (product of paginatedVehicles(); track product._id) {
+          @for (product of vehicles(); track product._id) {
             <tr class="hover:bg-primary/5 transition-colors border-b border-base-200/50">
               <td class="pl-6">
                 <a
@@ -230,7 +230,7 @@
     class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
     [class.lg:hidden]="isTableView()"
   >
-    @for (product of paginatedVehicles(); track product._id; let i = $index) {
+    @for (product of vehicles(); track product._id; let i = $index) {
       <div class="vehicle-card animate-slide-up" [style.animation-delay]="i * 50 + 'ms'">
         <!-- Status Badge -->
         <div class="vehicle-card-status">
@@ -318,7 +318,10 @@
 
           <!-- Actions -->
           <div class="flex items-center gap-2 mt-4 pt-4 border-t border-base-200">
-            <a [routerLink]="['/vehicles', product._id]" class="btn btn-primary btn-sm w-full">
+            <a
+              [routerLink]="['/vehicles-instances', product._id]"
+              class="btn btn-primary btn-sm w-full"
+            >
               {{ 'VEHICLES.CARD.OPEN' | translate }}
               <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4 ml-1"></lucide-icon>
             </a>
@@ -345,18 +348,22 @@
 
   <div class="flex items-center justify-between card-premium rounded-xl p-3">
     <p class="text-sm text-base-content/60">
-      Showing {{ paginatedVehicles().length }} of {{ filteredVehicles().length }}
+      Showing {{ vehicles().length }} of {{ totalItems() }}
     </p>
     <div class="join">
-      <button class="join-item btn btn-sm" [disabled]="currentPage() <= 1" (click)="prevPage()">
+      <button
+        class="join-item btn btn-sm"
+        [disabled]="searchRequest.page <= 1"
+        (click)="prevPage()"
+      >
         Prev
       </button>
       <button class="join-item btn btn-sm btn-ghost cursor-default">
-        Page {{ currentPage() }} / {{ totalPages() }}
+        Page {{ searchRequest.page }} / {{ totalPages() }}
       </button>
       <button
         class="join-item btn btn-sm"
-        [disabled]="currentPage() >= totalPages()"
+        [disabled]="searchRequest.page >= totalPages()"
         (click)="nextPage()"
       >
         Next

@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -7,7 +7,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../../shared/icons';
 import { VehicleService } from '../services/vehicle.service';
 import { ClientService } from '../../clients/services/client.service';
-import { Product } from '../models/vehicle.model';
+import { VehicleInstance, Product } from '../models/vehicle.model';
+import { SearchRequest, FilterOperatorTypes } from '../../../shared/utils/search-request.class';
 
 @Component({
   selector: 'app-vehicles-instances',
@@ -15,38 +16,37 @@ import { Product } from '../models/vehicle.model';
   imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule, TranslateModule],
   templateUrl: './vehicles-instances.component.html',
 })
-export class VehiclesInstancesComponent {
+export class VehiclesInstancesComponent implements OnInit {
   icons = ICONS;
   private vehicleService = inject(VehicleService);
   private clientService = inject(ClientService);
   private router = inject(Router);
 
+  // SearchRequest manages state, pagination and fetching
+  searchRequest = new SearchRequest((params) => this.vehicleService.searchVehicles(params));
+
+  // State from Service
   vehicles = this.vehicleService.vehicles;
+  isLoading = this.searchRequest.isLoading$;
+  totalItems = signal(0);
+  totalPages = signal(1);
+
   clients = this.clientService.clients;
-  filteredVehicles = signal<Product[]>([]);
   isTableView = signal(true);
-  currentPage = signal(1);
-  readonly pageSize = 10;
 
-  searchQuery = '';
+  // Search and Filter state (now mapped to SearchRequest)
   searchField: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job' = 'all';
-  statusFilter = '';
+  statusFilter = signal('');
 
-  paginatedVehicles = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredVehicles().slice(start, start + this.pageSize);
-  });
+  constructor() {}
 
-  totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.filteredVehicles().length / this.pageSize)),
-  );
+  ngOnInit() {
+    this.vehicleService.getStatusSteps().subscribe();
 
-  constructor() {
-    effect(() => {
-      this.filteredVehicles.set(this.vehicles());
-      if (this.searchQuery || this.statusFilter) {
-        this.filterVehicles();
-      }
+    // SearchRequest handles its own reload/fetch cycle
+    this.searchRequest.loadData().subscribe((response) => {
+      this.totalItems.set(response.total);
+      this.totalPages.set(response.totalPages);
     });
   }
 
@@ -55,102 +55,53 @@ export class VehiclesInstancesComponent {
   }
 
   setStatusFilter(status: string): void {
-    this.statusFilter = status;
-    this.filterVehicles();
+    this.statusFilter.set(status);
+    if (status) {
+      this.searchRequest.addFilter('statusId', { value: status, operator: 'equals' });
+    } else {
+      this.searchRequest.removeFilter('statusId');
+    }
+    this.searchRequest.setPage(1);
+    this.searchRequest.reload();
   }
 
-  filterVehicles(): void {
-    let filtered = this.vehicles();
-
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter((v) => {
-        const plate = v.vehicle?.licensePlate?.toLowerCase() || '';
-        const make = v.vehicle?.make?.toLowerCase() || '';
-        const model = v.vehicle?.model?.toLowerCase() || '';
-        const job = v.vehicle?.jobNumber?.toLowerCase() || '';
-        const client = this.getClientName(v.customerId).toLowerCase();
-
-        if (this.searchField === 'plate') return plate.includes(query);
-        if (this.searchField === 'make') return make.includes(query);
-        if (this.searchField === 'model') return model.includes(query);
-        if (this.searchField === 'job') return job.includes(query);
-        if (this.searchField === 'client') return client.includes(query);
-
-        return (
-          plate.includes(query) ||
-          make.includes(query) ||
-          model.includes(query) ||
-          job.includes(query) ||
-          client.includes(query)
-        );
-      });
-    }
-
-    if (this.statusFilter) {
-      filtered = filtered.filter((v) => v.status === this.statusFilter);
-    }
-
-    this.filteredVehicles.set(filtered);
-    this.currentPage.set(1);
+  onSearch(query: string) {
+    this.searchRequest.search = query;
+    this.searchRequest.setPage(1);
+    this.searchRequest.reload();
   }
 
   setSearchField(field: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job') {
     this.searchField = field;
-    this.filterVehicles();
+    // In a real paginated API, we might need to adjust the backend filters
+    // For now, we use the general search property of SearchRequest
+    this.searchRequest.reload();
   }
 
   nextPage() {
-    if (this.currentPage() >= this.totalPages()) return;
-    this.currentPage.update((p) => p + 1);
+    if (this.searchRequest.page >= this.totalPages()) return;
+    this.searchRequest.setPage(this.searchRequest.page + 1);
+    this.searchRequest.reload();
   }
 
   prevPage() {
-    if (this.currentPage() <= 1) return;
-    this.currentPage.update((p) => p - 1);
+    if (this.searchRequest.page <= 1) return;
+    this.searchRequest.setPage(this.searchRequest.page - 1);
+    this.searchRequest.reload();
   }
 
   openNewVehicleModal(): void {
-    this.router.navigate(['/vehicles/new']);
+    this.router.navigate(['/vehicles-instances/new']);
   }
+
+  // Bridge to Service Helpers
+  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
+  getStatusBadgeClass = (s: string) => this.vehicleService.getStatusBadgeClass(s);
+  getProgress = (s: string) => this.vehicleService.getProgressStep(s);
+  getProgressPercent = (s: string) => this.vehicleService.getProgressPercent(s);
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    const client = this.clientService.getClientById(clientId);
-    return client?.name ?? 'Unknown';
-  }
-
-  formatStatus(status: string): string {
-    return status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-  }
-
-  getStatusBadgeClass(status: string): string {
-    const classes: Record<string, string> = {
-      pending: 'status-pending',
-      in_progress: 'status-in-progress',
-      inspection: 'status-inspection',
-      awaiting_approval: 'status-awaiting',
-      approved: 'status-completed',
-      completed: 'status-completed',
-      invoiced: 'status-completed',
-    };
-    return classes[status] || 'status-pending';
-  }
-
-  getProgress(status: string): number {
-    const progress: Record<string, number> = {
-      pending: 1,
-      inspection: 2,
-      awaiting_approval: 2,
-      in_progress: 3,
-      approved: 3,
-      completed: 4,
-      invoiced: 4,
-    };
-    return progress[status] || 0;
-  }
-
-  getProgressPercent(status: string): number {
-    return this.getProgress(status) * 25;
+    return this.clientService.getClientById(clientId)?.name ?? 'Unknown';
   }
 }

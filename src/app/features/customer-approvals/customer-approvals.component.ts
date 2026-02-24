@@ -5,7 +5,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
 import { VehicleService } from '../vehicles/services/vehicle.service';
-import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-customer-approvals',
@@ -21,7 +21,7 @@ import { NotificationService } from '../../core/services/notification.service';
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @for (vehicle of pendingVehicles(); track vehicle.id) {
+        @for (vehicle of pendingVehicles(); track vehicle._id) {
           <div
             class="card-premium rounded-2xl border border-warning/30 hover:border-warning/60 bg-warning/5 transition-all group overflow-hidden cursor-pointer"
             (click)="openPortal(vehicle.vehicleId!)"

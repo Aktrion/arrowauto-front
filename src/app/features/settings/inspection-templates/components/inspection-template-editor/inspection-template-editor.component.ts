@@ -1,8 +1,23 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import {
   InspectionTemplateStructure,
   InspectionTemplatesService,
@@ -10,7 +25,7 @@ import {
 } from '../../services/inspection-templates.service';
 import { TyreConfigurationsService } from '../../services/tyre-configurations.service';
 import { ICONS } from '../../../../../shared/icons';
-import { NotificationService } from '../../../../../core/services/notification.service';
+import { ToastService } from '../../../../../core/services/toast.service';
 
 type RequirementMode = 'required' | 'requiredIfNok' | 'optional';
 type PointType = 'standard' | 'tyre';
@@ -77,7 +92,7 @@ export class InspectionTemplateEditorComponent implements OnChanges {
 
   private templatesService = inject(InspectionTemplatesService);
   private tyreConfigsService = inject(TyreConfigurationsService);
-  private notificationService = inject(NotificationService);
+  private notificationService = inject(ToastService);
 
   tyreConfigs = this.tyreConfigsService.configurations;
   tyreCodeOptions = [
@@ -166,8 +181,7 @@ export class InspectionTemplateEditorComponent implements OnChanges {
 
     const hasInvalidTyreCode = state.blocks.some((block) =>
       block.points.some(
-        (point) =>
-          point.type === 'tyre' && (!point.tyrePosition || !point.tyrePosition.trim()),
+        (point) => point.type === 'tyre' && (!point.tyrePosition || !point.tyrePosition.trim()),
       ),
     );
     if (hasInvalidTyreCode) {

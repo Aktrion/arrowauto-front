@@ -1,559 +1,242 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { catchError, forkJoin, map, of, switchMap, tap, Observable } from 'rxjs';
 import {
   VehicleInstance,
+  Product,
   VehicleInstanceActivityEvent,
+  ProductActivityEvent,
   Vehicle,
   VehicleStatus,
   BackendStatusStep,
-  BackendSearchResponse,
   BackendProductActivityResponse,
 } from '../models/vehicle.model';
+import { SortOrder } from '../../../shared/utils/search-request.class';
+import { SearchRequestResponse } from '../../../core/models/request.model';
+
+import { VehiclesApiService } from './api/vehicles-api.service';
+import { VehicleInstancesApiService } from './api/vehicle-instances-api.service';
+import { StatusStepsApiService } from './api/status-steps-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehicleService {
-  private readonly http = inject(HttpClient);
-  private readonly vehiclesApiUrl = `${environment.apiUrl}/vehicles`;
-  private readonly vehicleInstancesApiUrl = `${environment.apiUrl}/vehicle-instances`;
-  private readonly statusStepsApiUrl = `${environment.apiUrl}/status-steps`;
+  private vehiclesApi = inject(VehiclesApiService);
+  private instanceApi = inject(VehicleInstancesApiService);
+  private statusStepsApi = inject(StatusStepsApiService);
 
-  private _vehicles = signal<VehicleInstance[]>([]);
-  private _statusSteps = signal<BackendStatusStep[]>([]);
-  readonly loaded = signal(false);
-  readonly vehicles = this._vehicles.asReadonly();
+  // State Management
+  vehicles = signal<Product[]>([]);
+  statusSteps = signal<BackendStatusStep[]>([]);
+  loaded = signal(false);
+
+  // Helper map for legacy components
   private productIdByVehicleId = new Map<string, string>();
 
-  constructor() {
-    this.loadVehicles();
+  /**
+   * Fetch all vehicle instances (Products)
+   */
+  getAllVehicleInstances(): Observable<Product[]> {
+    return this.instanceApi.findAll();
   }
 
-  loadVehicles() {
-    this.loaded.set(false);
-    return forkJoin({
-      vehicles: this.http.get<any>(this.vehiclesApiUrl).pipe(
-        map((response) => this.normalizeArrayResponse<Vehicle>(response)),
-        catchError(() => of([])),
-      ),
-      vehicleInstances: this.http.get<any>(this.vehicleInstancesApiUrl).pipe(
-        map((response) => this.normalizeArrayResponse<VehicleInstance>(response)),
-        catchError(() => of([])),
-      ),
-      statusSteps: this.http.get<any>(this.statusStepsApiUrl).pipe(
-        map((response) => this.normalizeArrayResponse<BackendStatusStep>(response)),
-        catchError(() => of([])),
-      ),
-    }).subscribe(({ vehicles, vehicleInstances, statusSteps }) => {
-      this._statusSteps.set(statusSteps);
-      const statusById = new Map(
-        statusSteps.map((step) => [step._id || step.id || '', step.name || '']),
-      );
-      const latestVehicleInstanceByVehicleId = new Map<string, VehicleInstance>();
+  /**
+   * Search vehicle instances with pagination
+   */
+  searchVehicles(params: any): Observable<SearchRequestResponse<Product>> {
+    return this.instanceApi.findByPagination(params).pipe(
+      tap((response) => {
+        this.vehicles.set(response.data);
+        this.loaded.set(true);
 
-      vehicleInstances.forEach((vehicleInstance) => {
-        const vehicleId = this.extractEntityId(
-          vehicleInstance.vehicleId || vehicleInstance.vehicle,
-        );
-        if (!vehicleId) return;
-        const current = latestVehicleInstanceByVehicleId.get(vehicleId);
-        if (!current) {
-          latestVehicleInstanceByVehicleId.set(vehicleId, vehicleInstance);
-          return;
-        }
-        const currentDate = current.updatedAt ? new Date(current.updatedAt).getTime() : 0;
-        const instanceDate = vehicleInstance.updatedAt
-          ? new Date(vehicleInstance.updatedAt).getTime()
-          : 0;
-        if (instanceDate >= currentDate) {
-          latestVehicleInstanceByVehicleId.set(vehicleId, vehicleInstance);
-        }
-      });
-
-      this.productIdByVehicleId.clear();
-      this._vehicles.set(
-        vehicles.map((vehicle) => {
-          const vehicleId = vehicle._id || vehicle._id || '';
-          const vehicleInstance = latestVehicleInstanceByVehicleId.get(vehicleId);
-          if (vehicleInstance?._id || vehicleInstance?._id) {
-            this.productIdByVehicleId.set(
-              vehicleId,
-              vehicleInstance._id || vehicleInstance._id || '',
-            );
+        // Update helper mapping
+        response.data.forEach((instance) => {
+          if (instance.vehicleId && instance._id) {
+            this.productIdByVehicleId.set(instance.vehicleId, instance._id);
           }
-          const statusName = vehicleInstance?.statusId
-            ? statusById.get(vehicleInstance.statusId)
-            : '';
-          return this.mapToProduct(vehicle, vehicleInstance, statusName);
-        }),
-      );
-      this.loaded.set(true);
-    });
-  }
-
-  getVehicleById(id: string): VehicleInstance | undefined {
-    return this._vehicles().find((v) => v._id === id || v.vehicleId === id);
-  }
-
-  getVehicleByPlate(plate: string): VehicleInstance | undefined {
-    return this._vehicles().find(
-      (v) => v.vehicle?.licensePlate.toLowerCase() === plate.toLowerCase(),
-    );
-  }
-
-  getVehicleInstanceIdByVehicleId(vehicleId: string): string | undefined {
-    return this.productIdByVehicleId.get(vehicleId);
-  }
-
-  // Legacy alias
-  getProductIdByVehicleId(vehicleId: string): string | undefined {
-    return this.getVehicleInstanceIdByVehicleId(vehicleId);
-  }
-
-  getProductCandidatesByVehicleId(vehicleId: string) {
-    const preferredId = this.productIdByVehicleId.get(vehicleId);
-
-    return this.http.get<VehicleInstance[]>(this.vehicleInstancesApiUrl).pipe(
-      map((vehicleInstances) => {
-        const candidates = vehicleInstances
-          .filter((vehicleInstance) => vehicleInstance.vehicleId === vehicleId)
-          .sort((a, b) => {
-            const aInspectionCount = (a.inspectionValueIds || []).length;
-            const bInspectionCount = (b.inspectionValueIds || []).length;
-            if (aInspectionCount !== bInspectionCount) {
-              return bInspectionCount - aInspectionCount;
-            }
-            const aUpdatedAt = a.updatedAt || a.createdAt || '';
-            const bUpdatedAt = b.updatedAt || b.createdAt || '';
-            return new Date(bUpdatedAt).getTime() - new Date(aUpdatedAt).getTime();
-          })
-          .map((vehicleInstance) => vehicleInstance._id || vehicleInstance._id || '')
-          .filter(Boolean);
-
-        if (preferredId) {
-          return [preferredId, ...candidates.filter((id) => id !== preferredId)];
-        }
-
-        return candidates;
+        });
       }),
-      catchError(() => of(preferredId ? [preferredId] : [])),
     );
   }
 
-  getAllVehicleInstances() {
-    return this.http.get<any>(this.vehicleInstancesApiUrl).pipe(
-      map((response) =>
-        this.normalizeArrayResponse<VehicleInstance>(response).map((vehicleInstance) => ({
-          ...vehicleInstance,
-          vehicleId: this.extractEntityId(vehicleInstance.vehicleId || vehicleInstance.vehicle),
-        })),
-      ),
+  /**
+   * Search base vehicles from database with pagination
+   */
+  searchDatabase(params: any): Observable<SearchRequestResponse<Vehicle>> {
+    return this.vehiclesApi.findByPagination(params);
+  }
+
+  /**
+   * Fetch all workflow status steps
+   */
+  getStatusSteps(): Observable<BackendStatusStep[]> {
+    return this.statusStepsApi.findAll().pipe(
+      tap((steps) => this.statusSteps.set(steps)),
       catchError(() => of([])),
     );
   }
 
-  // Legacy alias
-  getAllProducts() {
-    return this.getAllVehicleInstances();
+  /**
+   * Find a vehicle instance from the local signal
+   */
+  getVehicleById(id: string): Product | undefined {
+    return this.vehicles().find((v) => v._id === id);
   }
 
-  getVehicleInstanceById(vehicleInstanceId: string) {
-    return this.http.get<any>(`${this.vehicleInstancesApiUrl}/${vehicleInstanceId}`).pipe(
-      map((product) =>
-        this.normalizeSingleResponse<VehicleInstance>(product)
-          ? {
-              ...this.normalizeSingleResponse<VehicleInstance>(product),
-              vehicleId: this.extractEntityId(
-                this.normalizeSingleResponse<VehicleInstance>(product)?.vehicleId ||
-                  this.normalizeSingleResponse<VehicleInstance>(product)?.vehicle,
-              ),
-            }
-          : null,
-      ),
-      catchError(() => of(null)),
-    );
-  }
+  /**
+   * Load a single vehicle instance and update local state
+   */
+  loadOne(id: string): Observable<Product> {
+    return this.instanceApi.findOne(id).pipe(
+      tap((instance) => {
+        // Update helper mapping
+        if (instance.vehicleId && instance._id) {
+          this.productIdByVehicleId.set(instance.vehicleId, instance._id);
+        }
 
-  // Legacy alias
-  getProductById(productId: string) {
-    return this.getVehicleInstanceById(productId);
-  }
-
-  updateProductStatusByVehicleId(vehicleId: string, target: VehicleStatus) {
-    const productId = this.productIdByVehicleId.get(vehicleId);
-    const statusId = this.resolveStatusStepId(target);
-    if (!productId || !statusId) {
-      return of(null);
-    }
-
-    return this.http.patch(`${this.vehicleInstancesApiUrl}/${productId}`, { statusId }).pipe(
-      tap(() => {
-        this._vehicles.update((vehicles) =>
-          vehicles.map((item) =>
-            item.vehicleId === vehicleId || item._id === vehicleId
-              ? {
-                  ...item,
-                  status: target,
-                  updatedAt: new Date(),
-                }
-              : item,
-          ),
-        );
-        this.loadVehicles();
+        this.vehicles.update((v) => {
+          const exists = v.some((item) => item._id === id);
+          return exists ? v.map((item) => (item._id === id ? instance : item)) : [...v, instance];
+        });
       }),
-      catchError(() => of(null)),
     );
   }
 
-  findVehicleByPlate(licensePlate: string) {
-    return this.http
-      .post<BackendSearchResponse<Vehicle>>(`${this.vehiclesApiUrl}/search`, {
-        page: 1,
-        limit: 1,
-        filters: {
-          licensePlate: {
-            value: licensePlate.trim(),
-            operator: 'equals',
-          },
-        },
-      })
-      .pipe(
-        map((res) => (res.data?.[0] ? this.mapVehicle(res.data[0]) : null)),
-        catchError(() => of(null)),
-      );
+  /**
+   * Search for a vehicle by field (vin or license plate)
+   */
+  lookupVehicle(field: 'vin' | 'licensePlate', value: string): Observable<Vehicle | null> {
+    return this.vehiclesApi.lookup(field, value);
   }
 
-  lookupVehicle(field: 'vin' | 'licensePlate', value: string) {
-    if (!value || value.trim().length < 3) return of(null);
-    return this.http
-      .get<Vehicle | null>(`${this.vehiclesApiUrl}/lookup`, {
-        params: { field, value: value.trim() },
-      })
-      .pipe(
-        map((res) => (res ? this.mapVehicle(res) : null)),
-        catchError(() => of(null)),
-      );
+  /**
+   * Simple wrapper for license plate lookup
+   */
+  findVehicleByPlate(plate: string): Observable<Vehicle | null> {
+    return this.lookupVehicle('licensePlate', plate);
   }
 
+  /**
+   * Create a new vehicle AND its instance (Product)
+   */
+  addVehicleProduct(product: Partial<Product>): Observable<Product> {
+    return this.instanceApi.create(product as Product).pipe(
+      tap((newProduct) => {
+        this.vehicles.update((v) => [newProduct, ...v]);
+      }),
+    );
+  }
+
+  /**
+   * Create a new instance for an existing vehicle
+   */
   addVehicleInstanceForExistingVehicle(
-    existingVehicleId: string,
-    product: Partial<VehicleInstance>,
-  ) {
-    return this.http
-      .post<VehicleInstance>(this.vehicleInstancesApiUrl, {
-        vehicleId: existingVehicleId,
-        customerId: product.customerId || undefined,
-        inspectionTemplateId: product.inspectionTemplateId || undefined,
-        code: `PRD-${Date.now().toString().slice(-6)}`,
-      })
-      .pipe(
-        switchMap((createdVehicleInstance) =>
-          this.http
-            .get<Vehicle>(`${this.vehiclesApiUrl}/${existingVehicleId}`)
-            .pipe(map((freshVehicle) => ({ freshVehicle, createdVehicleInstance }))),
-        ),
-        map(({ freshVehicle, createdVehicleInstance }) => {
-          const created = this.mapToProduct(freshVehicle, createdVehicleInstance);
-          if (createdVehicleInstance?._id || createdVehicleInstance?._id) {
-            this.productIdByVehicleId.set(
-              created.vehicleId || '',
-              createdVehicleInstance._id || createdVehicleInstance._id || '',
-            );
-          }
-          return created;
-        }),
-        tap((created) => this._vehicles.update((vehicles) => [created, ...vehicles])),
-        catchError(() => of(null)),
-      );
-  }
-
-  addVehicleProduct(
-    product: Omit<VehicleInstance, 'id' | 'createdAt' | 'updatedAt' | 'jobNumber' | 'status'>,
-  ) {
-    const payload = {
-      vin: product.vehicle?.vin?.trim() || this.generateFallbackVin(product.vehicle?.licensePlate),
-      licensePlate: product.vehicle?.licensePlate?.trim() || '',
-      make: product.vehicle?.make?.trim() || '',
-      model: product.vehicle?.model?.trim() || '',
-      description: product.vehicle?.description?.trim() || undefined,
-      colour: product.vehicle?.colour?.trim() || undefined,
-      registrationDate: product.vehicle?.registrationDate || undefined,
-      engine: product.vehicle?.engine?.trim() || undefined,
-      nextEntryDate: product.vehicle?.next_entry || undefined,
-      mileage: product.vehicle?.mileage || undefined,
-    };
-
-    return this.http.post<Vehicle>(this.vehiclesApiUrl, payload).pipe(
-      switchMap((createdVehicle) => {
-        const vehicleId = createdVehicle._id || createdVehicle._id || '';
-        return this.http
-          .post<VehicleInstance>(this.vehicleInstancesApiUrl, {
-            vehicleId,
-            customerId: product.customerId || undefined,
-            inspectionTemplateId: product.inspectionTemplateId || undefined,
-            code: `PRD-${Date.now().toString().slice(-6)}`,
-          })
-          .pipe(
-            catchError(() => of(undefined as unknown as VehicleInstance)),
-            switchMap((createdVehicleInstance) =>
-              this.http
-                .get<Vehicle>(`${this.vehiclesApiUrl}/${vehicleId}`)
-                .pipe(map((freshVehicle) => ({ freshVehicle, createdVehicleInstance }))),
-            ),
-          );
-      }),
-      map(({ freshVehicle, createdVehicleInstance }) => {
-        const created = this.mapToProduct(freshVehicle, createdVehicleInstance);
-        if (createdVehicleInstance?._id || createdVehicleInstance?._id) {
-          this.productIdByVehicleId.set(
-            created.vehicleId || '',
-            createdVehicleInstance._id || createdVehicleInstance._id || '',
-          );
-        }
-        return created;
-      }),
-      tap((created) => this._vehicles.update((vehicles) => [created, ...vehicles])),
-    );
-  }
-
-  getActivityTimelineByVehicleId(vehicleId: string) {
-    const knownProductId = this.productIdByVehicleId.get(vehicleId);
-    const productId$ = knownProductId
-      ? of(knownProductId)
-      : this.http.get<VehicleInstance[]>(this.vehicleInstancesApiUrl).pipe(
-          map((products) => this.resolveLatestProductIdByVehicleId(products, vehicleId)),
-          catchError(() => of(undefined)),
-        );
-
-    return productId$.pipe(
-      switchMap((productId) => {
-        if (!productId) {
-          return of([] as VehicleInstanceActivityEvent[]);
-        }
-
-        return this.http
-          .get<BackendProductActivityResponse>(
-            `${this.vehicleInstancesApiUrl}/${productId}/activity`,
-          )
-          .pipe(
-            map((response) =>
-              (response.data || []).map((event) => ({
-                type: (event.type || 'movements_updated') as VehicleInstanceActivityEvent['type'],
-                occurredAt: event.occurredAt ? new Date(event.occurredAt) : new Date(),
-                actorName: event.actorName,
-                message: event.message || 'Event',
-                metadata: event.metadata || {},
-              })),
-            ),
-            catchError(() => of([] as VehicleInstanceActivityEvent[])),
-          );
+    vehicleId: string,
+    product: Partial<Product>,
+  ): Observable<Product> {
+    const newInstance = { ...product, vehicleId };
+    return this.instanceApi.create(newInstance as Product).pipe(
+      tap((newProduct) => {
+        this.vehicles.update((v) => [newProduct, ...v]);
       }),
     );
   }
 
-  updateVehicleProduct(id: string, updates: Partial<VehicleInstance>) {
-    const target = this.getVehicleById(id);
-    if (!target?.vehicleId) {
-      return of(null);
-    }
-
-    const vehicle = updates.vehicle || target.vehicle;
-    const payload: Partial<Vehicle> = {
-      vin: vehicle?.vin,
-      licensePlate: vehicle?.licensePlate,
-      make: vehicle?.make,
-      model: vehicle?.model,
-      description: vehicle?.description,
-      colour: vehicle?.colour,
-      registrationDate: vehicle?.registrationDate,
-      engine: vehicle?.engine,
-      nextEntryDate: vehicle?.next_entry,
-      mileage: vehicle?.mileage,
-    };
-
-    return this.http.patch<Vehicle>(`${this.vehiclesApiUrl}/${target.vehicleId}`, payload).pipe(
-      tap((updatedVehicle) => {
-        this._vehicles.update((vehicles) =>
-          vehicles.map((item) =>
-            item._id === target._id
-              ? {
-                  ...item,
-                  customerId: updates.customerId ?? item.customerId,
-                  vehicle: this.mapVehicle(updatedVehicle),
-                  updatedAt: new Date(),
-                }
-              : item,
-          ),
-        );
-      }),
-      switchMap(() => {
-        const productId = this.productIdByVehicleId.get(target.vehicleId!);
-        if (!productId) {
-          return of(null);
-        }
-        const productPayload: Record<string, any> = {};
-        if ('customerId' in updates) {
-          productPayload['customerId'] = updates.customerId || null;
-        }
-        if ('inspectionTemplateId' in updates) {
-          productPayload['inspectionTemplateId'] = updates.inspectionTemplateId || null;
-        }
-        if (Object.keys(productPayload).length === 0) {
-          return of(null);
-        }
-        return this.http
-          .patch(`${this.vehicleInstancesApiUrl}/${productId}`, productPayload)
-          .pipe(catchError(() => of(null)));
+  /**
+   * Update an existing vehicle instance
+   */
+  updateVehicleProduct(id: string, product: Partial<Product>): Observable<Product> {
+    return this.instanceApi.update(id, product).pipe(
+      tap((updated) => {
+        this.vehicles.update((v) => v.map((item) => (item._id === id ? updated : item)));
       }),
     );
   }
 
-  private mapToProduct(
-    vehicle: Vehicle,
-    product?: VehicleInstance,
-    statusName?: string,
-  ): VehicleInstance {
-    const vehicleId = vehicle._id || vehicle._id || '';
-    return {
-      _id: vehicleId,
-      vehicleId,
-      customerId: product?.customerId,
-      statusId: product?.statusId,
-      inspectionTemplateId: product?.inspectionTemplateId,
-      status: this.normalizeStatus(statusName),
-      vehicle: this.mapVehicle(vehicle),
-      distanceUnit: 'km',
-      createdAt: vehicle.createdAt ? new Date(vehicle.createdAt) : undefined,
-      updatedAt: vehicle.updatedAt ? new Date(vehicle.updatedAt) : undefined,
+  /**
+   * Update ONLY the status of a vehicle instance
+   */
+  updateProductStatusByVehicleId(id: string, status: VehicleStatus): Observable<Product> {
+    return this.instanceApi.update(id, { status }).pipe(
+      tap((updated) => {
+        this.vehicles.update((v) => v.map((item) => (item._id === id ? updated : item)));
+      }),
+    );
+  }
+
+  /**
+   * Fetch activity timeline for a vehicle instance
+   */
+  getActivityTimelineByVehicleId(id: string): Observable<ProductActivityEvent[]> {
+    return this.instanceApi.getActivity(id).pipe(
+      map((res) => {
+        // Map backend events to ProductActivityEvent
+        return (res.data || []).map((e: any) => ({
+          type: e.type,
+          occurredAt: e.occurredAt ? new Date(e.occurredAt) : new Date(),
+          actorName: e.actorName,
+          message: e.message,
+          metadata: e.metadata,
+        }));
+      }),
+      catchError(() => of([])),
+    );
+  }
+
+  /**
+   * Get the instance ID (Product ID) for a given Vehicle ID
+   */
+  getVehicleInstanceIdByVehicleId(vehicleId: string): string | undefined {
+    return this.productIdByVehicleId.get(vehicleId);
+  }
+
+  // --- UI Helpers ---
+
+  /**
+   * Format status string for display
+   */
+  formatStatus(status?: string): string {
+    if (!status) return 'Pending';
+    return status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+
+  /**
+   * Get CSS class for status badge
+   */
+  getStatusBadgeClass(status?: string): string {
+    if (!status) return 'status-pending';
+    const classes: Record<string, string> = {
+      pending: 'status-pending',
+      in_progress: 'status-in-progress',
+      inspection: 'status-inspection',
+      awaiting_approval: 'status-awaiting',
+      approved: 'status-completed',
+      completed: 'status-completed',
+      invoiced: 'status-completed',
     };
+    return classes[status] || 'status-pending';
   }
 
-  private mapVehicle(vehicle: Vehicle): Vehicle {
-    const createdAt = vehicle.createdAt ? new Date(vehicle.createdAt) : undefined;
-    return {
-      _id: vehicle._id || vehicle._id,
-      licensePlate: vehicle.licensePlate,
-      make: vehicle.make,
-      model: vehicle.model || vehicle.model || '',
-      description: vehicle.description,
-      colour: vehicle.colour || '',
-      vin: vehicle.vin,
-      registrationDate: vehicle.registrationDate,
-      engine: vehicle.engine,
-      next_entry: vehicle.nextEntryDate,
-      mileage: vehicle.mileage,
-      createdAt,
-      updatedAt: vehicle.updatedAt ? new Date(vehicle.updatedAt) : undefined,
+  /**
+   * Get progress step (1-4) based on status
+   */
+  getProgressStep(status?: string): number {
+    const progress: Record<string, number> = {
+      pending: 1,
+      inspection: 2,
+      awaiting_approval: 2,
+      in_progress: 3,
+      approved: 3,
+      completed: 4,
+      invoiced: 4,
     };
+    return progress[status || ''] || 0;
   }
 
-  private normalizeStatus(rawStatus?: string): VehicleStatus {
-    const raw = (rawStatus || '').trim().toLowerCase().replace(/\s+/g, '_');
-    if (raw.includes('inspection')) return 'inspection';
-    if (raw.includes('awaiting')) return 'awaiting_approval';
-    if (raw.includes('approved')) return 'approved';
-    if (raw.includes('completed')) return 'completed';
-    if (raw.includes('invoice')) return 'invoiced';
-    if (raw.includes('progress')) return 'in_progress';
-    return 'pending';
-  }
-
-  private resolveStatusStepId(target: VehicleStatus): string | undefined {
-    const statusSteps = this._statusSteps();
-    const matchers: Record<typeof target, string[]> = {
-      pending: ['pending', 'received', 'check in'],
-      inspection: ['inspection'],
-      in_progress: ['in progress', 'repair', 'working'],
-      awaiting_approval: ['awaiting approval', 'waiting approval', 'approval'],
-      approved: ['approved', 'authorised', 'authorized'],
-      completed: ['completed', 'ready'],
-      invoiced: ['invoiced', 'invoice'],
-    };
-    const keywords = matchers[target];
-
-    const found = statusSteps.find((step) => {
-      const normalized = (step.name || '').toLowerCase().replace(/[_-]/g, ' ');
-      return keywords.some((keyword) => normalized.includes(keyword));
-    });
-
-    if (found?._id || found?.id) {
-      return found._id || found.id;
-    }
-    return undefined;
-  }
-
-  private generateFallbackVin(licensePlate?: string): string {
-    const normalized = (licensePlate || 'UNKNOWN').replace(/[^A-Z0-9]/gi, '').toUpperCase();
-    return `VIN-${normalized.slice(0, 8).padEnd(8, 'X')}-${Date.now().toString().slice(-6)}`;
-  }
-
-  private resolveLatestProductIdByVehicleId(products: VehicleInstance[], vehicleId: string) {
-    const candidates = products.filter((product) => product.vehicleId === vehicleId);
-    if (candidates.length === 0) {
-      return undefined;
-    }
-
-    const latest = candidates.reduce((current, product) => {
-      if (!current) {
-        return product;
-      }
-      const currentDate = current.updatedAt ? new Date(current.updatedAt).getTime() : 0;
-      const productDate = product.updatedAt ? new Date(product.updatedAt).getTime() : 0;
-      return productDate >= currentDate ? product : current;
-    }, candidates[0]);
-
-    const productId = latest._id || latest._id;
-    if (productId) {
-      this.productIdByVehicleId.set(vehicleId, productId);
-    }
-    return productId;
-  }
-
-  private extractEntityId(
-    ref?: string | { _id?: any; id?: any; $oid?: string; toString?: () => string } | null,
-  ): string | undefined {
-    if (!ref) {
-      return undefined;
-    }
-    if (typeof ref === 'string') {
-      return ref;
-    }
-    const nestedId = ref._id || ref.id || ref.$oid;
-    if (typeof nestedId === 'string') {
-      return nestedId;
-    }
-    if (nestedId && typeof nestedId === 'object') {
-      const nested = this.extractEntityId(nestedId as any);
-      if (nested) return nested;
-    }
-    if (typeof ref.toString === 'function') {
-      const asString = ref.toString();
-      if (asString && asString !== '[object Object]') {
-        return asString;
-      }
-    }
-    return undefined;
-  }
-
-  private normalizeArrayResponse<T>(response: any): T[] {
-    if (Array.isArray(response)) {
-      return response as T[];
-    }
-    if (Array.isArray(response?.data)) {
-      return response.data as T[];
-    }
-    return [];
-  }
-
-  private normalizeSingleResponse<T>(response: any): T | null {
-    if (!response) {
-      return null;
-    }
-    if (response?.data && !Array.isArray(response.data)) {
-      return response.data as T;
-    }
-    return response as T;
+  /**
+   * Get progress percentage based on status
+   */
+  getProgressPercent(status?: string): number {
+    return this.getProgressStep(status) * 25;
   }
 }

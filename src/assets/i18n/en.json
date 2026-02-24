@@ -203,6 +203,16 @@
       "VIEW": "View",
       "MANAGE": "Manage",
       "OPEN": "Open details"
+    },
+    "DATABASE_TITLE": "Vehicles Database",
+    "DATABASE_SUBTITLE": "Master records of all vehicles in the system",
+    "SEARCH_DATABASE_PLACEHOLDER": "Search by VIN, Plate, Make...",
+    "DATABASE": {
+      "MAKE_MODEL": "Make & Model",
+      "LICENSE_PLATE": "License Plate",
+      "VIN": "VIN",
+      "YEAR": "Year",
+      "COLOR": "Color"
     }
   },
   "VEHICLE": {

@@ -391,7 +391,7 @@
 
           <!-- Grouped Operations -->
           <div class="space-y-8">
-            @for (group of preview.groups; track group.vehicle?.id) {
+            @for (group of preview.groups; track group.vehicle?._id) {
               <div>
                 <div
                   class="bg-slate-50 py-3 px-4 rounded-xl mb-4 border border-slate-100 flex justify-between items-center"

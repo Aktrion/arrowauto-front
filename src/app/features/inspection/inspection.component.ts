@@ -11,7 +11,7 @@ import { InspectionService } from './services/inspection.service';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../shared/icons';
-import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-inspection',
@@ -26,7 +26,7 @@ export class InspectionComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly inspectionService = inject(InspectionService);
   private readonly vehicleService = inject(VehicleService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly toastService = inject(ToastService);
 
   inspectionPoints = this.inspectionService.inspectionPoints;
   activeInspectionPoints = signal(this.inspectionService.inspectionPoints());
@@ -40,12 +40,14 @@ export class InspectionComponent implements OnInit {
   saveSuccess = signal(false);
 
   vehiclesForInspection = computed(() =>
-    this.vehicleService.vehicles().filter((v) => v.status === 'inspection' || v.status === 'in_progress'),
+    this.vehicleService
+      .vehicles()
+      .filter((v) => v.status === 'inspection' || v.status === 'in_progress'),
   );
   selectedVehicle = computed(() => {
-    const vehicleId = this.selectedVehicleId();
-    if (!vehicleId) return undefined;
-    return this.vehicleService.getVehicleById(vehicleId);
+    const instanceId = this.selectedVehicleInstanceId();
+    if (!instanceId) return undefined;
+    return this.vehicleService.getVehicleById(instanceId);
   });
   inspectedCount = computed(
     () => this.countByStatus('ok') + this.countByStatus('warning') + this.countByStatus('defect'),
@@ -118,24 +120,21 @@ export class InspectionComponent implements OnInit {
     this.router.navigate(['/inspection']);
   }
 
-  private selectInspectionByProductId(productId: string): void {
-    this.vehicleService.getVehicleInstanceById(productId).subscribe((product) => {
-      const vehicleId = product?.vehicleId;
-      if (!vehicleId) {
-        this.saveError.set('No se encontró el vehículo para esta inspección.');
-        this.notificationService.error('No se encontró el vehículo para esta inspección.');
+  private selectInspectionByProductId(vehicleInstanceId: string): void {
+    this.vehicleService.loadOne(vehicleInstanceId).subscribe((instance) => {
+      if (!instance) {
+        this.saveError.set('No se encontró la instancia de inspección.');
+        this.toastService.error('No se encontró la instancia de inspección.');
         return;
       }
-      const inspectionValueIds = Array.isArray((product as any)?.inspectionValueIds)
-        ? (product as any).inspectionValueIds
-            .map((id: any) => this.normalizeId(id))
-            .filter((id: string) => !!id)
-        : [];
+      const vehicleId = instance.vehicleId || '';
+      const inspectionValueIds = (instance.inspectionValueIds || []).filter(Boolean);
+
       this.selectVehicle(
         vehicleId,
-        productId,
+        vehicleInstanceId,
         inspectionValueIds,
-        (product as any)?.inspectionTemplateId,
+        instance.inspectionTemplateId,
       );
     });
   }
@@ -177,9 +176,10 @@ export class InspectionComponent implements OnInit {
     this.inspectionResults.set(new Map());
     this.activeCategory.set('all');
 
-    const vehicle = this.vehicleService.getVehicleById(vehicleId);
-    const productId = explicitProductId || this.vehicleService.getProductIdByVehicleId(vehicleId);
-    const templateId = explicitTemplateId || vehicle?.inspectionTemplateId;
+    const productId =
+      explicitProductId || this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
+    const instance = productId ? this.vehicleService.getVehicleById(productId) : undefined;
+    const templateId = explicitTemplateId || instance?.inspectionTemplateId;
 
     const points$ = templateId
       ? this.inspectionService.getInspectionPointsFromTemplate(templateId)
@@ -208,7 +208,12 @@ export class InspectionComponent implements OnInit {
 
   private loadInspectionValuesForProduct(productId: string, vehicleId: string): void {
     this.inspectionService.getInspectionValuesByProduct(productId).subscribe((values) => {
-      this.applyInspectionValuesToResults(values as any[], vehicleId, [], this.activeInspectionPoints());
+      this.applyInspectionValuesToResults(
+        values as any[],
+        vehicleId,
+        [],
+        this.activeInspectionPoints(),
+      );
     });
   }
 
@@ -315,10 +320,11 @@ export class InspectionComponent implements OnInit {
     if (!vehicleId) return;
 
     const productId =
-      this.selectedVehicleInstanceId() || this.vehicleService.getProductIdByVehicleId(vehicleId);
+      this.selectedVehicleInstanceId() ||
+      this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
     if (!productId) {
       this.saveError.set('No product linked to this vehicle.');
-      this.notificationService.error('No product linked to this vehicle.');
+      this.toastService.error('No product linked to this vehicle.');
       return;
     }
 
@@ -329,12 +335,15 @@ export class InspectionComponent implements OnInit {
 
       const payload = {
         vehicleInstanceId: productId,
-        // Legacy compatibility field
         productId,
         inspectionPointId: pointId,
         type: point.type || 'standard',
-        value: this.mapStatusToValue(result.status),
-        comments: this.buildComments(result.comment, result.partsCost, result.laborCost),
+        value: this.inspectionService.mapStatusToValue(result.status),
+        comments: this.inspectionService.buildComments(
+          result.comment,
+          result.partsCost,
+          result.laborCost,
+        ),
         mediaUrls: result.photos || [],
         innerDepth: result.tyreMeasurements?.inner,
         midDepth: result.tyreMeasurements?.middle,
@@ -356,9 +365,12 @@ export class InspectionComponent implements OnInit {
     forkJoin(requests)
       .pipe(
         switchMap(() => {
-          const currentStatus = this.vehicleService.getVehicleById(vehicleId)?.status;
+          const currentStatus = this.vehicleService.getVehicleById(productId)?.status;
           if (currentStatus === 'inspection') {
-            return this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'awaiting_approval');
+            return this.vehicleService.updateProductStatusByVehicleId(
+              productId,
+              'awaiting_approval',
+            );
           }
           return of(null);
         }),
@@ -367,21 +379,21 @@ export class InspectionComponent implements OnInit {
         next: () => {
           this.isSaving.set(false);
           this.saveSuccess.set(true);
-          this.notificationService.success('Inspection saved successfully.');
+          this.toastService.success('Inspection saved successfully.');
           this.refreshCurrentVehicleResults(vehicleId);
-          this.vehicleService.loadVehicles();
         },
         error: () => {
           this.isSaving.set(false);
           this.saveError.set('Failed to save inspection values.');
-          this.notificationService.error('Failed to save inspection values.');
+          this.toastService.error('Failed to save inspection values.');
         },
       });
   }
 
   private refreshCurrentVehicleResults(vehicleId: string): void {
     const productId =
-      this.selectedVehicleInstanceId() || this.vehicleService.getProductIdByVehicleId(vehicleId);
+      this.selectedVehicleInstanceId() ||
+      this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
     if (!productId) {
       return;
     }
@@ -452,26 +464,15 @@ export class InspectionComponent implements OnInit {
   }
 
   private buildComments(comment?: string, partsCost?: number, laborCost?: number): string[] {
-    const comments: string[] = [];
-    if (comment?.trim()) {
-      comments.push(comment.trim());
-    }
-    comments.push(`__partsCost:${Number(partsCost || 0)}`);
-    comments.push(`__laborCost:${Number(laborCost || 0)}`);
-    return comments;
+    return this.inspectionService.buildComments(comment, partsCost, laborCost);
   }
 
   private readCostsFromComments(comments: string[]): { partsCost: number; laborCost: number } {
-    const partsTag = comments.find((item) => item.startsWith('__partsCost:'));
-    const laborTag = comments.find((item) => item.startsWith('__laborCost:'));
-    return {
-      partsCost: Number(partsTag?.split(':')[1] || 0),
-      laborCost: Number(laborTag?.split(':')[1] || 0),
-    };
+    return this.inspectionService.readCostsFromComments(comments);
   }
 
   private isMongoObjectId(value: string): boolean {
-    return /^[a-f\d]{24}$/i.test(value);
+    return this.inspectionService.normalizeId(value).length === 24;
   }
 
   private applyInspectionValuesToResults(
@@ -493,19 +494,20 @@ export class InspectionComponent implements OnInit {
     }
 
     values.forEach((value) => {
-      const valueId = this.normalizeId(value?._id || value?.id);
-      const pointId = this.normalizeId(
-        value?.inspectionPointId || value?.inspectionPoint?._id || value?.inspectionPoint?.id,
-      ) || (valueId ? fallbackPointByValueId.get(valueId) || '' : '');
+      const valueId = this.inspectionService.normalizeId(value?._id || value?.id);
+      const pointId =
+        this.inspectionService.normalizeId(
+          value?.inspectionPointId || value?.inspectionPoint?._id || value?.inspectionPoint?.id,
+        ) || (valueId ? fallbackPointByValueId.get(valueId) || '' : '');
 
       if (!pointId) return;
 
       const parsedCosts = this.readCostsFromComments(value.comments || []);
       mapped.set(pointId, {
-        id: valueId || value._id || value.id,
+        id: valueId,
         pointId,
         vehicleId,
-        status: this.mapValueToStatus(value.value),
+        status: this.inspectionService.mapValueToStatus(value.value),
         comment: (value.comments || []).find((item: string) => !item.startsWith('__')) || '',
         photos: value.mediaUrls || [],
         partsCost: parsedCosts.partsCost,
@@ -525,18 +527,11 @@ export class InspectionComponent implements OnInit {
     this.inspectionResults.set(mapped);
   }
 
-  private normalizeId(ref?: string | { _id?: any; id?: any; $oid?: string } | null): string {
-    if (!ref) return '';
-    if (typeof ref === 'string') return ref;
-    const nested = (ref as any)._id || (ref as any).id || (ref as any).$oid;
-    if (typeof nested === 'string') return nested;
-    if (nested && typeof nested === 'object') return this.normalizeId(nested as any);
-    return '';
+  private normalizeId(ref?: any): string {
+    return this.inspectionService.normalizeId(ref);
   }
 
   backToInspectionList(): void {
     this.router.navigate(['/inspection']);
   }
 }
-
-

@@ -8,7 +8,7 @@ import { ICONS } from '../../shared/icons';
 import { OperationService } from '../../shared/services/service.service';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { VehicleOperation } from '../../shared/models';
-import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -20,7 +20,7 @@ import { environment } from '../../../environments/environment';
 export class EstimationComponent {
   private operationService = inject(OperationService);
   private vehicleService = inject(VehicleService);
-  private notificationService = inject(NotificationService);
+  private toastService = inject(ToastService);
   private http = inject(HttpClient);
   private communicationsApiUrl = `${environment.apiUrl}/customer-communications`;
   icons = ICONS;
@@ -82,8 +82,8 @@ export class EstimationComponent {
   saveEstimation(op: VehicleOperation) {
     const price = this.getEstimatedCost(op);
     this.operationService.updateVehicleOperation(op.id, { actualPrice: price }).subscribe({
-      next: () => this.notificationService.success('Price updated.'),
-      error: () => this.notificationService.error('Failed to save price.'),
+      next: () => this.toastService.success('Price updated.'),
+      error: () => this.toastService.error('Failed to save price.'),
     });
   }
 
@@ -95,7 +95,7 @@ export class EstimationComponent {
         next: () => {
           count++;
           if (count === operations.length) {
-            this.notificationService.success('All prices saved for this vehicle.');
+            this.toastService.success('All prices saved for this vehicle.');
           }
         },
       });
@@ -125,9 +125,9 @@ export class EstimationComponent {
       ? `${vehicle.vehicle.make} ${vehicle.vehicle.model}`
       : vehicleId;
     const total = this.getTotalForGroup(operations);
-    const productId = this.vehicleService.getProductIdByVehicleId(vehicleId);
+    const productId = this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
     if (!productId) {
-      this.notificationService.error('Cannot find vehicle instance for this vehicle.');
+      this.toastService.error('Cannot find vehicle instance for this vehicle.');
       this.sendingVehicle.set(null);
       return;
     }
@@ -158,17 +158,17 @@ export class EstimationComponent {
           .updateProductStatusByVehicleId(vehicleId, 'awaiting_approval')
           .subscribe({
             next: () => {
-              this.notificationService.success(`Estimation sent to client for ${vehicleName}.`);
+              this.toastService.success(`Estimation sent to client for ${vehicleName}.`);
               this.sendingVehicle.set(null);
             },
             error: () => {
-              this.notificationService.success(`Estimation sent. Status update pending.`);
+              this.toastService.success(`Estimation sent. Status update pending.`);
               this.sendingVehicle.set(null);
             },
           });
       },
       error: () => {
-        this.notificationService.error('Failed to send estimation.');
+        this.toastService.error('Failed to send estimation.');
         this.sendingVehicle.set(null);
       },
     });

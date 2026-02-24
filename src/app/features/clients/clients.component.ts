@@ -5,7 +5,7 @@ import { Client } from '../../core/models';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '../../shared/icons';
-import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-clients',
@@ -16,7 +16,7 @@ import { NotificationService } from '../../core/services/notification.service';
 export class ClientsComponent {
   icons = ICONS;
   private clientService = inject(ClientService);
-  private notificationService = inject(NotificationService);
+  private notificationService = inject(ToastService);
 
   clients = this.clientService.clients;
   filteredClients = signal<Client[]>([]);
@@ -79,26 +79,24 @@ export class ClientsComponent {
 
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (c) => {
-          const name = c.name.toLowerCase();
-          const email = c.email.toLowerCase();
-          const company = c.company?.toLowerCase() || '';
-          const phone = c.phone?.toLowerCase() || '';
+      filtered = filtered.filter((c) => {
+        const name = c.name.toLowerCase();
+        const email = c.email.toLowerCase();
+        const company = c.company?.toLowerCase() || '';
+        const phone = c.phone?.toLowerCase() || '';
 
-          if (this.searchField === 'name') return name.includes(query);
-          if (this.searchField === 'email') return email.includes(query);
-          if (this.searchField === 'company') return company.includes(query);
-          if (this.searchField === 'phone') return phone.includes(query);
+        if (this.searchField === 'name') return name.includes(query);
+        if (this.searchField === 'email') return email.includes(query);
+        if (this.searchField === 'company') return company.includes(query);
+        if (this.searchField === 'phone') return phone.includes(query);
 
-          return (
-            name.includes(query) ||
-            email.includes(query) ||
-            company.includes(query) ||
-            phone.includes(query)
-          );
-        },
-      );
+        return (
+          name.includes(query) ||
+          email.includes(query) ||
+          company.includes(query) ||
+          phone.includes(query)
+        );
+      });
     }
 
     if (this.typeFilter) {
@@ -133,12 +131,12 @@ export class ClientsComponent {
 
     this.clientService
       .addClient({
-      name: this.newClient.name,
-      email: this.newClient.email,
-      phone: this.newClient.phone,
-      company: this.newClient.company || undefined,
-      address: this.newClient.address || undefined,
-      type: this.newClient.type,
+        name: this.newClient.name,
+        email: this.newClient.email,
+        phone: this.newClient.phone,
+        company: this.newClient.company || undefined,
+        address: this.newClient.address || undefined,
+        type: this.newClient.type,
       })
       .subscribe({
         next: () => {

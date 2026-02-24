@@ -42,8 +42,7 @@ export class DashboardComponent {
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    const client = this.clientService.getClientById(clientId);
-    return client?.name ?? 'Unknown';
+    return this.clientService.getClientById(clientId)?.name ?? 'Unknown';
   }
 
   getInitials(name: string): string {
@@ -55,35 +54,10 @@ export class DashboardComponent {
       .slice(0, 2);
   }
 
-  formatStatus(status: string): string {
-    return status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-  }
-
-  getStatusBadgeClass(status: string): string {
-    const classes: Record<string, string> = {
-      pending: 'status-pending',
-      in_progress: 'status-in-progress',
-      inspection: 'status-inspection',
-      awaiting_approval: 'status-awaiting',
-      approved: 'status-completed',
-      completed: 'status-completed',
-      invoiced: 'status-completed',
-    };
-    return classes[status] || 'status-pending';
-  }
-
-  getProgress(status: string): number {
-    const progress: Record<string, number> = {
-      pending: 1,
-      inspection: 2,
-      awaiting_approval: 2,
-      in_progress: 3,
-      approved: 3,
-      completed: 4,
-      invoiced: 4,
-    };
-    return progress[status] || 0;
-  }
+  // Service Helpers
+  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
+  getStatusBadgeClass = (s: string) => this.vehicleService.getStatusBadgeClass(s);
+  getProgress = (s: string) => this.vehicleService.getProgressStep(s);
 
   quickSearch(): void {
     if (!this.searchQuery.trim()) return;
@@ -106,10 +80,10 @@ export class DashboardComponent {
       });
 
       if (found) {
-        this.router.navigate(['/vehicles', found.id]);
+        this.router.navigate(['/vehicles-instances', found._id]);
       } else {
         // Just navigate to the list with query params
-        this.router.navigate(['/vehicles'], { queryParams: { q: lowerQuery } });
+        this.router.navigate(['/vehicles-instances'], { queryParams: { q: lowerQuery } });
       }
     }, 400);
   }

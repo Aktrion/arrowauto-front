@@ -11,7 +11,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideStore } from '@ngxs/store';
 import { withNgxsStoragePlugin } from '@ngxs/storage-plugin';
 import { AuthState } from './auth/store/auth.state';
-import { authInterceptor } from './core/http/auth.interceptor';
+import { authInterceptor } from './auth/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [

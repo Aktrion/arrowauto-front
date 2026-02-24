@@ -3,9 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '../../../../shared/icons';
-import { InspectionTemplate, InspectionTemplatesService } from '../services/inspection-templates.service';
+import {
+  InspectionTemplate,
+  InspectionTemplatesService,
+} from '../services/inspection-templates.service';
 import { InspectionTemplateEditorComponent } from '../components/inspection-template-editor/inspection-template-editor.component';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-inspection-templates-list',
@@ -44,7 +47,9 @@ import { NotificationService } from '../../../../core/services/notification.serv
 
         <div class="space-y-3">
           @if (loading()) {
-            <div class="rounded-xl border border-base-200 bg-base-100 p-6 text-center text-base-content/60">
+            <div
+              class="rounded-xl border border-base-200 bg-base-100 p-6 text-center text-base-content/60"
+            >
               Loading templates...
             </div>
           } @else {
@@ -120,7 +125,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 export class InspectionTemplatesListComponent {
   icons = ICONS;
   private service = inject(InspectionTemplatesService);
-  private notificationService = inject(NotificationService);
+  private notificationService = inject(ToastService);
 
   templates = signal<InspectionTemplate[]>([]);
   loading = signal(false);

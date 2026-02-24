@@ -6,7 +6,7 @@
       <p class="text-base-content/60">{{ 'DASHBOARD.WELCOME' | translate }}</p>
     </div>
     <a
-      routerLink="/vehicles"
+      routerLink="/vehicles-instances/new"
       class="btn-premium inline-flex items-center gap-2 animate-slide-up stagger-1"
     >
       <lucide-icon [name]="icons.Plus" class="h-5 w-5"></lucide-icon>
@@ -199,7 +199,10 @@
                 {{ 'DASHBOARD.RECENT_VEHICLES.SUBTITLE' | translate }}
               </p>
             </div>
-            <a routerLink="/vehicles" class="btn btn-ghost btn-sm text-primary hover:bg-primary/10">
+            <a
+              routerLink="/vehicles-instances"
+              class="btn btn-ghost btn-sm text-primary hover:bg-primary/10"
+            >
               {{ 'DASHBOARD.RECENT_VEHICLES.VIEW_ALL' | translate }}
               <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
             </a>
@@ -271,7 +274,7 @@
                   </td>
                   <td>
                     <a
-                      [routerLink]="['/vehicles', product._id]"
+                      [routerLink]="['/vehicles-instances', product._id]"
                       class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
                     >
                       <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
@@ -293,7 +296,7 @@
           {{ 'DASHBOARD.QUICK_ACTIONS.TITLE' | translate }}
         </h2>
         <div class="grid grid-cols-2 gap-3">
-          <a routerLink="/vehicles/new" class="action-card">
+          <a routerLink="/vehicles-instances/new" class="action-card">
             <div class="action-card-icon">
               <lucide-icon [name]="icons.Plus" class="h-6 w-6"></lucide-icon>
             </div>

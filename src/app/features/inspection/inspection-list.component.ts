@@ -47,7 +47,10 @@ export class InspectionListComponent {
       const job = vehicle.vehicle?.jobNumber?.toLowerCase() || '';
 
       return (
-        plate.includes(query) || make.includes(query) || model.includes(query) || job.includes(query)
+        plate.includes(query) ||
+        make.includes(query) ||
+        model.includes(query) ||
+        job.includes(query)
       );
     });
   });
@@ -57,7 +60,9 @@ export class InspectionListComponent {
     return this.filteredVehicles().slice(start, start + this.pageSize);
   });
 
-  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredVehicles().length / this.pageSize)));
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredVehicles().length / this.pageSize)),
+  );
 
   statusCounts = computed(() => {
     const items = this.vehicles().filter((vehicle) =>
@@ -94,32 +99,12 @@ export class InspectionListComponent {
     this.currentPage.update((p) => p - 1);
   }
 
-  openInspection(vehicleId?: string): void {
-    if (!vehicleId) return;
-    const instanceId = this.getVehicleInstanceId(vehicleId);
+  openInspection(instanceId?: string): void {
     if (!instanceId) return;
     this.router.navigate(['/inspection', instanceId]);
   }
 
-  getVehicleInstanceId(vehicleId?: string): string | undefined {
-    if (!vehicleId) return undefined;
-    return this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
-  }
-
-  formatStatus(status: string): string {
-    return status.replace(/_/g, ' ').replace(/\b\w/g, (value) => value.toUpperCase());
-  }
-
-  getStatusBadgeClass(status: string): string {
-    const classes: Record<string, string> = {
-      pending: 'status-pending',
-      in_progress: 'status-in-progress',
-      inspection: 'status-inspection',
-      awaiting_approval: 'status-awaiting',
-      approved: 'status-completed',
-      completed: 'status-completed',
-      invoiced: 'status-completed',
-    };
-    return classes[status] || 'status-pending';
-  }
+  // Service Helpers
+  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
+  getStatusBadgeClass = (s: string) => this.vehicleService.getStatusBadgeClass(s);
 }

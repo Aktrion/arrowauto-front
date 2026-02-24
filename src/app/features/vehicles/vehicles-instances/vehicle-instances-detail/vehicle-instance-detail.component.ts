@@ -23,7 +23,7 @@ import {
   VehicleInstance,
   VehicleStatus,
 } from '../../models/vehicle.model';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { InspectionTemplatesService } from '../../../settings/inspection-templates/services/inspection-templates.service';
 
 @Component({
@@ -40,7 +40,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
   private clientService = inject(ClientService);
   private operationService = inject(OperationService);
   private operationApiService = inject(OperationApiService);
-  private notificationService = inject(NotificationService);
+  private notificationService = inject(ToastService);
   private inspectionTemplatesService = inject(InspectionTemplatesService);
 
   masterOperations = this.operationApiService.operations;
@@ -98,11 +98,11 @@ export class VehicleInstanceDetailComponent implements OnInit {
         this.isNew.set(false);
         this.initialStatus.set(found.status);
         this.loadActivityTimeline(id);
-        return;
-      }
-
-      if (this.vehicleService.loaded()) {
-        this.router.navigate(['/vehicles']);
+      } else {
+        // If not found locally (e.g. reload), fetch it from API
+        this.vehicleService.loadOne(id).subscribe({
+          error: () => this.router.navigate(['/vehicles']),
+        });
       }
     });
 
@@ -135,7 +135,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
         this.resetProduct();
       } else {
         this.routeId.set(id);
-        this.vehicleService.loadVehicles();
+        // this.vehicleService.loadVehicles();
         this.loadActivityTimeline(id);
       }
     });
@@ -297,29 +297,13 @@ export class VehicleInstanceDetailComponent implements OnInit {
     };
   }
 
+  // Bridge to Service Helpers
+  formatStatus = (s?: string) => this.vehicleService.formatStatus(s);
+  getStatusBadgeClass = (s?: string) => this.vehicleService.getStatusBadgeClass(s);
+
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    const client = this.clientService.getClientById(clientId);
-    return client?.name ?? 'Unknown';
-  }
-
-  formatStatus(status?: string): string {
-    if (!status) return 'Pending';
-    return status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-  }
-
-  getStatusBadgeClass(status?: string): string {
-    if (!status) return 'status-pending';
-    const classes: Record<string, string> = {
-      pending: 'status-pending',
-      in_progress: 'status-in-progress',
-      inspection: 'status-inspection',
-      awaiting_approval: 'status-awaiting',
-      approved: 'status-completed',
-      completed: 'status-completed',
-      invoiced: 'status-completed',
-    };
-    return classes[status] || 'status-pending';
+    return this.clientService.getClientById(clientId)?.name ?? 'Unknown';
   }
 
   getOperationStatusClass(status: string): string {
@@ -400,7 +384,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
   private loadActivityTimeline(vehicleId: string) {
     this.activityLoading.set(true);
     this.vehicleService.getActivityTimelineByVehicleId(vehicleId).subscribe({
-      next: (events) => {
+      next: (events: ProductActivityEvent[]) => {
         this.activityTimeline.set(events);
         this.activityLoading.set(false);
       },
@@ -412,13 +396,8 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }
 
   goToInspection() {
-    const vehicleId = this.product().id || this.routeId();
-    if (!vehicleId) return;
-    const instanceId = this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
-    if (!instanceId) {
-      this.notificationService.warning('Vehicle has no inspection instance. Create one first.');
-      return;
-    }
+    const instanceId = this.product()._id || this.routeId();
+    if (!instanceId) return;
     this.router.navigate(['/inspection', instanceId]);
   }
 }

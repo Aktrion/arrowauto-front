@@ -296,7 +296,7 @@ export class OperationService {
     vehicleId: string,
     operations: VehicleOperation[],
   ): Observable<unknown> {
-    const productId = this.getProductIdByVehicleId(vehicleId);
+    const productId = this.getVehicleInstanceByVehicleId(vehicleId);
     if (!productId) {
       return of(null);
     }
@@ -366,10 +366,10 @@ export class OperationService {
     };
   }
 
-  private getProductIdByVehicleId(vehicleId: string): string | undefined {
+  private getVehicleInstanceByVehicleId(vehicleId: string): string | undefined {
     return (
       this._productIdByVehicleId().get(vehicleId) ||
-      this.vehicleService.getProductIdByVehicleId(vehicleId)
+      this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId)
     );
   }
 }

@@ -201,7 +201,18 @@
       "MILEAGE": "Millaje",
       "CLIENT": "Cliente",
       "VIEW": "Ver",
-      "MANAGE": "Gestionar"
+      "MANAGE": "Gestionar",
+      "OPEN": "Ver detalles"
+    },
+    "DATABASE_TITLE": "Base de Datos de Vehículos",
+    "DATABASE_SUBTITLE": "Registros maestros de todos los vehículos en el sistema",
+    "SEARCH_DATABASE_PLACEHOLDER": "Buscar por VIN, Matrícula, Marca...",
+    "DATABASE": {
+      "MAKE_MODEL": "Marca y Modelo",
+      "LICENSE_PLATE": "Matrícula",
+      "VIN": "VIN",
+      "YEAR": "Año",
+      "COLOR": "Color"
     }
   },
   "VEHICLE": {

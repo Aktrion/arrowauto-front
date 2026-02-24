@@ -9,6 +9,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { LanguageSwitcherComponent } from '../../../shared/components/language-switcher/language-switcher.component';
 import { Store } from '@ngxs/store';
 import { Login } from '../../store/auth.actions';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -28,6 +29,7 @@ export class LoginComponent {
   private store = inject(Store);
   public router = inject(Router);
   private formBuilder = inject(FormBuilder);
+  private toastService = inject(ToastService);
   public form = this.formBuilder.group({
     userName: ['', Validators.required],
     password: ['', Validators.required],
@@ -47,9 +49,11 @@ export class LoginComponent {
       .subscribe({
         next: () => {
           this.isLoading = false;
+          this.toastService.success('Login successful', 1200);
         },
         error: (err) => {
           this.isLoading = false;
+          this.toastService.error(err.error.message, 2200);
           console.error('Login failed', err);
         },
       });

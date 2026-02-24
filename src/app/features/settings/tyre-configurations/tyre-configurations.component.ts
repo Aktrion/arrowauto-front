@@ -8,7 +8,7 @@ import {
   TyreConfiguration,
   TyreConfigurationsService,
 } from '../inspection-templates/services/tyre-configurations.service';
-import { NotificationService } from '../../../core/services/notification.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-tyre-configurations',
@@ -117,7 +117,9 @@ import { NotificationService } from '../../../core/services/notification.service
           </div>
         }
         @if (service.configurations().length === 0) {
-          <div class="rounded-xl border border-dashed border-base-300 p-6 text-center text-base-content/60">
+          <div
+            class="rounded-xl border border-dashed border-base-300 p-6 text-center text-base-content/60"
+          >
             No tyre configurations yet. Create one above.
           </div>
         }
@@ -128,7 +130,7 @@ import { NotificationService } from '../../../core/services/notification.service
 export class TyreConfigurationsComponent {
   icons = ICONS;
   service = inject(TyreConfigurationsService);
-  private notificationService = inject(NotificationService);
+  private notificationService = inject(ToastService);
 
   saving = signal(false);
   editingId = signal<string | null>(null);
@@ -167,7 +169,9 @@ export class TyreConfigurationsComponent {
     request$.subscribe({
       next: () => {
         this.notificationService.success(
-          this.editingId() ? 'Tyre configuration updated successfully.' : 'Tyre configuration created successfully.',
+          this.editingId()
+            ? 'Tyre configuration updated successfully.'
+            : 'Tyre configuration created successfully.',
         );
         this.resetForm();
         this.saving.set(false);

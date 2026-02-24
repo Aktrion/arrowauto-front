@@ -40,15 +40,14 @@ export class PendingOperationsComponent {
     });
   });
 
-  getVehicleName(vehicleId: string): string {
-    const vehicle = this.vehicleService.getVehicleById(vehicleId);
-    if (!vehicle?.vehicle) return vehicleId;
-    return `${vehicle.vehicle.make} ${vehicle.vehicle.model} — ${vehicle.vehicle.licensePlate}`;
+  getVehicleName(instanceId: string): string {
+    const instance = this.vehicleService.getVehicleById(instanceId);
+    if (!instance?.vehicle) return instanceId;
+    return `${instance.vehicle.make} ${instance.vehicle.model} — ${instance.vehicle.licensePlate}`;
   }
 
-  formatStatus(status: string): string {
-    return status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  }
+  // Service Helpers
+  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
 
   getStatusClass(status: string): string {
     const map: Record<string, string> = {
@@ -59,7 +58,7 @@ export class PendingOperationsComponent {
     return map[status] || 'badge-ghost';
   }
 
-  openVehicle(vehicleId: string) {
-    this.router.navigate(['/vehicles', vehicleId]);
+  openVehicle(instanceId: string) {
+    this.router.navigate(['/vehicles-instances', instanceId]);
   }
 }

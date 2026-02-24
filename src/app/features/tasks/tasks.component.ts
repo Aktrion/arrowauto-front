@@ -8,7 +8,7 @@ import { ICONS } from '../../shared/icons';
 import { OperationService } from '../../shared/services/service.service';
 import { VehicleService } from '../vehicles/services/vehicle.service';
 import { VehicleOperation } from '../../shared/models';
-import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-tasks',
@@ -19,7 +19,7 @@ import { NotificationService } from '../../core/services/notification.service';
 export class TasksComponent {
   private operationService = inject(OperationService);
   private vehicleService = inject(VehicleService);
-  private notificationService = inject(NotificationService);
+  private notificationService = inject(ToastService);
   private router = inject(Router);
   icons = ICONS;
 

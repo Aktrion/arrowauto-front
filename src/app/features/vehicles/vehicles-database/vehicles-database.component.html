@@ -1,1 +1,130 @@
-<p>vehicles-database works!</p>
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="animate-slide-up">
+      <h1 class="text-2xl font-bold text-base-content">
+        {{ 'VEHICLES.DATABASE_TITLE' | translate }}
+      </h1>
+      <p class="text-base-content/60">{{ 'VEHICLES.DATABASE_SUBTITLE' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- Search & Stats -->
+  <div class="card-premium rounded-xl p-4 animate-slide-up stagger-1">
+    <div class="flex flex-col lg:flex-row gap-4">
+      <div class="flex-1 relative">
+        <lucide-icon
+          [name]="icons.Search"
+          class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40"
+        ></lucide-icon>
+        <input
+          type="text"
+          [placeholder]="'VEHICLES.SEARCH_DATABASE_PLACEHOLDER' | translate"
+          class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm"
+          (input)="onSearch(searchInput.value)"
+          #searchInput
+        />
+      </div>
+      <div
+        class="flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-xl border border-primary/10"
+      >
+        <lucide-icon [name]="icons.Car" class="h-4 w-4 text-primary"></lucide-icon>
+        <span class="text-sm font-semibold text-primary">{{ totalItems() }} Total Vehicles</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table View -->
+  <div
+    class="card-premium rounded-2xl border border-base-200 overflow-hidden animate-slide-up stagger-2"
+  >
+    <div class="overflow-x-auto">
+      <table class="table table-zebra w-full">
+        <thead>
+          <tr class="bg-base-200/50 text-base-content/70 border-0">
+            <th class="pl-6">{{ 'VEHICLES.DATABASE.MAKE_MODEL' | translate }}</th>
+            <th>{{ 'VEHICLES.DATABASE.LICENSE_PLATE' | translate }}</th>
+            <th>{{ 'VEHICLES.DATABASE.VIN' | translate }}</th>
+            <th>{{ 'VEHICLES.DATABASE.YEAR' | translate }}</th>
+            <th class="pr-6">{{ 'VEHICLES.DATABASE.COLOR' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (vehicle of vehicles(); track vehicle._id) {
+            <tr class="hover:bg-primary/5 transition-colors border-b border-base-200/50 group">
+              <td class="pl-6">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-lg bg-base-200 flex items-center justify-center text-base-content/40 group-hover:bg-primary group-hover:text-white transition-colors"
+                  >
+                    <lucide-icon [name]="icons.Car" class="h-5 w-5"></lucide-icon>
+                  </div>
+                  <div class="font-bold">{{ vehicle.make }} {{ vehicle.model }}</div>
+                </div>
+              </td>
+              <td>
+                <span
+                  class="px-3 py-1 bg-warning text-warning-content font-mono font-bold rounded shadow-sm border border-black/10 text-sm"
+                >
+                  {{ vehicle.licensePlate }}
+                </span>
+              </td>
+              <td>
+                <code class="text-xs text-base-content/40 font-mono">{{
+                  vehicle.vin || 'N/A'
+                }}</code>
+              </td>
+              <td class="text-sm">{{ vehicle.year }}</td>
+              <td class="pr-6">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-3 h-3 rounded-full border border-base-300"
+                    [style.background-color]="vehicle.colour.toLowerCase()"
+                  ></div>
+                  <span class="text-sm">{{ vehicle.colour }}</span>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="py-20 text-center">
+                <div class="flex flex-col items-center gap-2 opacity-40">
+                  <lucide-icon [name]="icons.Database" class="h-10 w-10"></lucide-icon>
+                  <p>No vehicles found in database</p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div
+    class="flex items-center justify-between card-premium rounded-xl p-3 animate-slide-up stagger-3"
+  >
+    <p class="text-sm text-base-content/60">
+      Showing {{ vehicles().length }} of {{ totalItems() }}
+    </p>
+    <div class="join">
+      <button
+        class="join-item btn btn-sm"
+        [disabled]="searchRequest.page <= 1"
+        (click)="prevPage()"
+      >
+        Prev
+      </button>
+      <button class="join-item btn btn-sm btn-ghost cursor-default">
+        Page {{ searchRequest.page }} / {{ totalPages() }}
+      </button>
+      <button
+        class="join-item btn btn-sm"
+        [disabled]="searchRequest.page >= totalPages()"
+        (click)="nextPage()"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>

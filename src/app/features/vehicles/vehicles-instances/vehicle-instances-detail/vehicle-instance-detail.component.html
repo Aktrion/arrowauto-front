@@ -3,7 +3,7 @@
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2">
     <div class="flex items-center gap-3 sm:gap-4">
       <button
-        routerLink="/vehicles"
+        routerLink="/vehicles-instances"
         class="bg-base-200 hover:bg-base-300 p-2 rounded-xl transition-all text-base-content/60 hover:text-primary active:scale-95"
       >
         <lucide-icon [name]="icons.ChevronLeft" class="h-6 w-6"></lucide-icon>
@@ -27,7 +27,7 @@
     </div>
     <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
       <button
-        routerLink="/vehicles"
+        routerLink="/vehicles-instances"
         class="btn btn-ghost border-base-300 px-4 sm:px-6 font-semibold flex-1 sm:flex-none"
       >
         {{ 'VEHICLE.DETAIL.CANCEL' | translate }}
@@ -431,7 +431,7 @@
                 <input
                   type="date"
                   class="input input-bordered input-sm w-full bg-base-200 font-semibold"
-                  [(ngModel)]="product().vehicle!.next_entry"
+                  [(ngModel)]="product().vehicle!.nextEntryDate"
                 />
               </div>
             </div>

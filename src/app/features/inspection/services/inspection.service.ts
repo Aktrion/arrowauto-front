@@ -87,8 +87,12 @@ export class InspectionService {
 
   loadInspectionPoints() {
     return forkJoin({
-      blocks: this.http.get<BackendInspectionBlock[]>(this.blocksApiUrl).pipe(catchError(() => of([]))),
-      points: this.http.get<BackendInspectionPoint[]>(this.pointsApiUrl).pipe(catchError(() => of([]))),
+      blocks: this.http
+        .get<BackendInspectionBlock[]>(this.blocksApiUrl)
+        .pipe(catchError(() => of([]))),
+      points: this.http
+        .get<BackendInspectionPoint[]>(this.pointsApiUrl)
+        .pipe(catchError(() => of([]))),
     }).subscribe(({ blocks, points }) => {
       const blockMap = new Map(blocks.map((block) => [block._id || block.id || '', block.name]));
       this._inspectionPoints.set(
@@ -110,17 +114,17 @@ export class InspectionService {
       .post<{ data?: BackendInspectionValue[] } | BackendInspectionValue[]>(
         `${this.valuesApiUrl}/search`,
         {
-        page: 1,
-        limit: 500,
-        sortBy: 'createdAt',
-        sortOrder: 'asc',
-        filters: {
-          vehicleInstanceId: {
-            value: vehicleInstanceId,
-            operator: 'equals',
+          page: 1,
+          limit: 500,
+          sortBy: 'createdAt',
+          sortOrder: 'asc',
+          filters: {
+            vehicleInstanceId: {
+              value: vehicleInstanceId,
+              operator: 'equals',
+            },
           },
         },
-      },
       )
       .pipe(
         map((res) => (Array.isArray(res) ? res : res.data || [])),
@@ -211,5 +215,44 @@ export class InspectionService {
 
   getInspectionPoints(): InspectionPoint[] {
     return this._inspectionPoints();
+  }
+
+  // --- Utility Helpers ---
+
+  mapValueToStatus(value?: 'red' | 'yellow' | 'ok'): 'ok' | 'warning' | 'defect' | 'not_inspected' {
+    if (value === 'ok') return 'ok';
+    if (value === 'yellow') return 'warning';
+    if (value === 'red') return 'defect';
+    return 'not_inspected';
+  }
+
+  mapStatusToValue(status?: string): 'red' | 'yellow' | 'ok' | undefined {
+    if (status === 'ok') return 'ok';
+    if (status === 'warning') return 'yellow';
+    if (status === 'defect') return 'red';
+    return undefined;
+  }
+
+  buildComments(comment?: string, partsCost?: number, laborCost?: number): string[] {
+    const comments: string[] = [];
+    if (comment?.trim()) comments.push(comment.trim());
+    comments.push(`__partsCost:${Number(partsCost || 0)}`);
+    comments.push(`__laborCost:${Number(laborCost || 0)}`);
+    return comments;
+  }
+
+  readCostsFromComments(comments: string[]): { partsCost: number; laborCost: number } {
+    const partsTag = comments.find((item) => item.startsWith('__partsCost:'));
+    const laborTag = comments.find((item) => item.startsWith('__laborCost:'));
+    return {
+      partsCost: Number(partsTag?.split(':')[1] || 0),
+      laborCost: Number(laborTag?.split(':')[1] || 0),
+    };
+  }
+
+  normalizeId(ref?: any): string {
+    if (!ref) return '';
+    if (typeof ref === 'string') return ref;
+    return ref._id || ref.id || '';
   }
 }

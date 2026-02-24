@@ -99,46 +99,32 @@ export class InspectionHistoryComponent {
         }
 
         const vehicleById = new Map<string, any>();
-        this.vehicleService.vehicles().forEach((vehicle: any) => {
-          const rawVehicle = vehicle?.vehicle || vehicle;
-          const vehicleId = this.normalizeId(vehicle?._id || vehicle?.id);
-          const fallbackId = this.normalizeId(vehicle?.vehicleId);
-          const resolvedId = vehicleId || fallbackId;
-          if (!resolvedId) return;
-          vehicleById.set(resolvedId, rawVehicle);
-        });
-        products.forEach((product: any) => {
-          const productVehicle = product?.vehicle;
-          const productVehicleId = this.normalizeId(product?.vehicleId || productVehicle?._id || productVehicle?.id);
-          if (!productVehicleId || !productVehicle) return;
-          if (vehicleById.has(productVehicleId)) return;
-          vehicleById.set(productVehicleId, productVehicle);
+        this.vehicleService.vehicles().forEach((v) => {
+          if (v.vehicle?._id) vehicleById.set(v.vehicle._id, v.vehicle);
+          if (v.vehicleId && v.vehicle) vehicleById.set(v.vehicleId, v.vehicle);
         });
 
         const inspectionValueById = new Map<string, any>();
         inspectionValues.forEach((value: any) => {
-          const valueId = this.normalizeId(value?._id || value?.id);
-          if (!valueId) return;
-          inspectionValueById.set(valueId, value);
+          const id = value._id || value.id;
+          if (id) inspectionValueById.set(id, value);
         });
 
         const history: InspectionHistoryItem[] = [];
         products.forEach((product: any) => {
-          const vehicleInstanceId = this.normalizeId(product?._id || product?.id);
-          if (!vehicleInstanceId) return;
+          const instanceId = product._id || product.id;
+          if (!instanceId) return;
 
-          const productValueIds = Array.isArray(product?.inspectionValueIds)
-            ? product.inspectionValueIds.map((id: any) => this.normalizeId(id)).filter(Boolean)
-            : [];
+          const productValueIds = (product.inspectionValueIds || []).filter(Boolean);
           if (!productValueIds.length) return;
 
           const values = productValueIds
-            .map((valueId: string) => inspectionValueById.get(valueId))
+            .map((vid: string) => inspectionValueById.get(vid))
             .filter(Boolean);
           if (!values.length) return;
 
-          const productVehicleId = this.normalizeId(product?.vehicleId || product?.vehicle);
-          const vehicle = productVehicleId ? vehicleById.get(productVehicleId) : null;
+          const vehicleId = product.vehicleId;
+          const vehicle = vehicleId ? vehicleById.get(vehicleId) : product.vehicle;
 
           let totalCost = 0;
           let okCount = 0;
@@ -147,25 +133,23 @@ export class InspectionHistoryComponent {
           let latestTimestamp = 0;
 
           values.forEach((value: any) => {
-            const status = this.mapValueToStatus(value.value);
-            if (status === 'ok') okCount += 1;
-            if (status === 'warning') warningCount += 1;
-            if (status === 'defect') defectCount += 1;
+            const status = this.inspectionService.mapValueToStatus(value.value);
+            if (status === 'ok') okCount++;
+            else if (status === 'warning') warningCount++;
+            else if (status === 'defect') defectCount++;
 
-            const parsed = this.readCostsFromComments(value.comments || []);
-            totalCost += parsed.partsCost + parsed.laborCost;
+            const costs = this.inspectionService.readCostsFromComments(value.comments || []);
+            totalCost += costs.partsCost + costs.laborCost;
 
             const stamp = new Date(value.updatedAt || value.createdAt || '').getTime();
-            if (!Number.isNaN(stamp) && stamp > latestTimestamp) {
-              latestTimestamp = stamp;
-            }
+            if (!isNaN(stamp) && stamp > latestTimestamp) latestTimestamp = stamp;
           });
 
           history.push({
-            vehicleId: productVehicleId || '',
-            vehicleInstanceId,
+            vehicleId: vehicleId || '',
+            vehicleInstanceId: instanceId,
             plate: vehicle?.licensePlate || 'N/A',
-            makeModel: `${vehicle?.make || ''} ${vehicle?.model || vehicle?.vehicleModel || ''}`.trim() || 'Unknown',
+            makeModel: `${vehicle?.make || ''} ${vehicle?.model || ''}`.trim() || 'Unknown',
             pointsCount: values.length,
             okCount,
             warningCount,
@@ -197,44 +181,17 @@ export class InspectionHistoryComponent {
     this.historyPage.update((p) => p - 1);
   }
 
-  private mapValueToStatus(value?: 'red' | 'yellow' | 'ok'): 'ok' | 'warning' | 'defect' | 'not_inspected' {
-    if (value === 'ok') return 'ok';
-    if (value === 'yellow') return 'warning';
-    if (value === 'red') return 'defect';
-    return 'not_inspected';
+  private mapValueToStatus(
+    value?: 'red' | 'yellow' | 'ok',
+  ): 'ok' | 'warning' | 'defect' | 'not_inspected' {
+    return this.inspectionService.mapValueToStatus(value);
   }
 
   private readCostsFromComments(comments: string[]): { partsCost: number; laborCost: number } {
-    const partsTag = comments.find((item) => item.startsWith('__partsCost:'));
-    const laborTag = comments.find((item) => item.startsWith('__laborCost:'));
-    return {
-      partsCost: Number(partsTag?.split(':')[1] || 0),
-      laborCost: Number(laborTag?.split(':')[1] || 0),
-    };
+    return this.inspectionService.readCostsFromComments(comments);
   }
 
-  private normalizeId(
-    ref?: string | { _id?: any; id?: any; $oid?: string; toString?: () => string } | null,
-  ): string {
-    if (!ref) return '';
-    if (typeof ref === 'string') {
-      return /^[a-f\d]{24}$/i.test(ref) ? ref : '';
-    }
-    const anyRef: any = ref as any;
-    if (typeof anyRef?.toHexString === 'function') {
-      const hex = anyRef.toHexString();
-      if (typeof hex === 'string' && /^[a-f\d]{24}$/i.test(hex)) return hex;
-    }
-    const nested = ref._id || ref.id || ref.$oid;
-    if (typeof nested === 'string') return /^[a-f\d]{24}$/i.test(nested) ? nested : '';
-    if (nested && typeof nested === 'object') return this.normalizeId(nested as any);
-    if (typeof ref.toString === 'function') {
-      const asString = ref.toString();
-      if (asString && asString !== '[object Object]' && /^[a-f\d]{24}$/i.test(asString)) {
-        return asString;
-      }
-    }
-    return '';
+  private normalizeId(ref?: any): string {
+    return this.inspectionService.normalizeId(ref);
   }
 }
-

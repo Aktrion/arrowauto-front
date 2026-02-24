@@ -11,7 +11,7 @@ import {
   BackendInspectionValue,
   InspectionService,
 } from '../inspection/services/inspection.service';
-import { NotificationService } from '../../core/services/notification.service';
+import { ToastService } from '../../core/services/toast.service';
 import { OperationService } from '../../shared/services/service.service';
 
 interface RepairItem {
@@ -37,7 +37,7 @@ export class CustomerPortalComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly vehicleService = inject(VehicleService);
   private readonly inspectionService = inject(InspectionService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly toastService = inject(ToastService);
   private readonly operationService = inject(OperationService);
 
   vehicleData = {
@@ -78,12 +78,12 @@ export class CustomerPortalComponent implements OnInit {
         return;
       }
 
-      this.vehicleService.loadVehicles().add(() => {
-        const fallbackVehicleId = this.vehicleService.vehicles()?.[0]?.vehicleId;
-        if (fallbackVehicleId) {
-          this.loadPortalData(fallbackVehicleId);
-        }
-      });
+      // this.vehicleService.loadVehicles().add(() => {
+      //   const fallbackVehicleId = this.vehicleService.vehicles()?.[0]?.vehicleId;
+      //   if (fallbackVehicleId) {
+      //     this.loadPortalData(fallbackVehicleId);
+      //   }
+      // });
     });
   }
 
@@ -147,23 +147,26 @@ export class CustomerPortalComponent implements OnInit {
       });
     });
 
+    const productId = this.currentProductId();
+    if (!productId) return;
+
     const updateProcess$ = requests.length
       ? forkJoin(requests).pipe(
           switchMap(() =>
-            this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'in_progress'),
+            this.vehicleService.updateProductStatusByVehicleId(productId, 'in_progress'),
           ),
         )
-      : this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'in_progress');
+      : this.vehicleService.updateProductStatusByVehicleId(productId, 'in_progress');
 
     updateProcess$.subscribe({
       next: () => {
         (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
-        this.notificationService.success('Repairs approved successfully.');
+        this.toastService.success('Repairs approved successfully.');
         this.isSubmittingApproval.set(false);
         this.operationService.refresh();
       },
       error: () => {
-        this.notificationService.error('Failed to submit approval.');
+        this.toastService.error('Failed to submit approval.');
         this.isSubmittingApproval.set(false);
       },
     });
@@ -171,31 +174,32 @@ export class CustomerPortalComponent implements OnInit {
 
   private loadPortalData(vehicleId: string) {
     this.currentVehicleId.set(vehicleId);
-    const vehicle = this.vehicleService.getVehicleById(vehicleId);
-    if (vehicle?.vehicle) {
-      this.vehicleData = {
-        plate: vehicle.vehicle.licensePlate,
-        make: vehicle.vehicle.make,
-        model: vehicle.vehicle.model,
-        year: vehicle.vehicle.year || new Date().getFullYear(),
-      };
+    const productId = this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
+    if (!productId) {
+      return;
     }
 
-    const productId = this.vehicleService.getProductIdByVehicleId(vehicleId);
-    if (!productId) {
-      this.vehicleService.loadVehicles().add(() => {
-        const resolvedProductId = this.vehicleService.getProductIdByVehicleId(vehicleId);
-        this.resolveAndLoadInspectionData(vehicleId, resolvedProductId || undefined);
-      });
-      return;
+    const instance = this.vehicleService.getVehicleById(productId);
+    if (instance?.vehicle) {
+      this.vehicleData = {
+        plate: instance.vehicle.licensePlate,
+        make: instance.vehicle.make,
+        model: instance.vehicle.model,
+        year: instance.vehicle.year || new Date().getFullYear(),
+      };
     }
 
     this.resolveAndLoadInspectionData(vehicleId, productId);
   }
 
   private resolveAndLoadInspectionData(vehicleId: string, preferredProductId?: string) {
-    this.vehicleService
-      .getProductCandidatesByVehicleId(vehicleId)
+    const candidates = this.vehicleService
+      .vehicles()
+      .filter((v) => v.vehicleId === vehicleId)
+      .map((v) => v._id)
+      .filter((id): id is string => !!id);
+
+    of(candidates)
       .pipe(
         switchMap((candidateIds) => {
           const orderedIds = preferredProductId
@@ -250,12 +254,13 @@ export class CustomerPortalComponent implements OnInit {
     this.repairItems = values
       .filter((value) => value.value === 'red' || value.value === 'yellow')
       .map((value) => {
-        const pointId =
-          value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
+        const pointId = this.inspectionService.normalizeId(
+          value.inspectionPointId || value.inspectionPoint,
+        );
         const point = pointMap.get(pointId);
-        const costs = this.readCosts(value.comments || []);
+        const costs = this.inspectionService.readCostsFromComments(value.comments || []);
         return {
-          id: value._id || value.id || crypto.randomUUID(),
+          id: this.inspectionService.normalizeId(value),
           name: point?.name || 'Inspection Item',
           category: point?.category || 'General',
           severity: value.value === 'red' ? 'major' : 'minor',
@@ -269,13 +274,16 @@ export class CustomerPortalComponent implements OnInit {
 
     const grouped = new Map<string, Array<{ name: string; status: 'ok' | 'warning' | 'defect' }>>();
     values.forEach((value) => {
-      const pointId =
-        value.inspectionPointId || value.inspectionPoint?._id || value.inspectionPoint?.id || '';
+      const pointId = this.inspectionService.normalizeId(
+        value.inspectionPointId || value.inspectionPoint,
+      );
       const point = pointMap.get(pointId);
       if (!point) return;
       const category = point.category || 'General';
-      const status: 'ok' | 'warning' | 'defect' =
-        value.value === 'ok' ? 'ok' : value.value === 'yellow' ? 'warning' : 'defect';
+      const status = this.inspectionService.mapValueToStatus(value.value) as
+        | 'ok'
+        | 'warning'
+        | 'defect';
       const list = grouped.get(category) || [];
       list.push({ name: point.name, status });
       grouped.set(category, list);
@@ -295,11 +303,6 @@ export class CustomerPortalComponent implements OnInit {
   }
 
   private readCosts(comments: string[]) {
-    const parts = comments.find((comment) => comment.startsWith('__partsCost:'));
-    const labor = comments.find((comment) => comment.startsWith('__laborCost:'));
-    return {
-      partsCost: Number(parts?.split(':')[1] || 0),
-      laborCost: Number(labor?.split(':')[1] || 0),
-    };
+    return this.inspectionService.readCostsFromComments(comments);
   }
 }

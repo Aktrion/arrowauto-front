@@ -314,7 +314,9 @@ export class InvoicingComponent {
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Walk-in Client';
-    const client = this.clientService.getClientById(clientId);
-    return client?.name ?? 'Walk-in Client';
+    return this.clientService.getClientById(clientId)?.name ?? 'Walk-in Client';
   }
+
+  // Service Helpers
+  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
 }

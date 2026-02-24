@@ -22,7 +22,7 @@ export interface Vehicle {
   mileage?: number;
   registrationDate?: string;
   engine?: string;
-  next_entry?: string;
+  nextEntryDate?: string;
   // clientId?: string;
   // client?: Client;
   jobNumber?: string;
@@ -79,13 +79,7 @@ export interface VehicleInstanceActivityEvent {
 // Legacy alias during migration
 export type ProductActivityEvent = VehicleInstanceActivityEvent;
 
-export interface BackendSearchResponse<T> {
-  data: T[];
-  page: number;
-  limit: number;
-  totalPages: number;
-  total: number;
-}
+// BackendSearchResponse unified into core SearchRequestResponse
 
 export interface BackendStatusStep {
   _id?: string;
