@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../shared/icons';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import { InspectionService } from '../inspection/services/inspection.service';
+import { ICONS } from '@shared/icons';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { InspectionService } from '@features/inspection/services/inspection.service';
 
 interface InspectionHistoryItem {
   vehicleId: string;
@@ -30,7 +30,7 @@ interface InspectionHistoryItem {
 export class InspectionHistoryComponent {
   icons = ICONS;
   private readonly inspectionService = inject(InspectionService);
-  private readonly vehicleService = inject(VehicleService);
+  private readonly instanceApi = inject(VehicleInstancesApiService);
   private readonly router = inject(Router);
 
   inspectionHistory = signal<InspectionHistoryItem[]>([]);
@@ -87,7 +87,7 @@ export class InspectionHistoryComponent {
     this.historyError.set(null);
 
     forkJoin({
-      products: this.vehicleService.getAllVehicleInstances(),
+      products: this.instanceApi.findAll(),
       inspectionValues: this.inspectionService.getAllInspectionValues(),
     }).subscribe({
       next: ({ products, inspectionValues }) => {
@@ -99,7 +99,7 @@ export class InspectionHistoryComponent {
         }
 
         const vehicleById = new Map<string, any>();
-        this.vehicleService.vehicles().forEach((v) => {
+        products.forEach((v: any) => {
           if (v.vehicle?._id) vehicleById.set(v.vehicle._id, v.vehicle);
           if (v.vehicleId && v.vehicle) vehicleById.set(v.vehicleId, v.vehicle);
         });

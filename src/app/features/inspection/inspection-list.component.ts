@@ -1,10 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../shared/icons';
-import { VehicleService } from '../vehicles/services/vehicle.service';
+import { ICONS } from '@shared/icons';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
+import { Product } from '@features/vehicles/models/vehicle.model';
 
 @Component({
   selector: 'app-inspection-list',
@@ -13,12 +15,12 @@ import { VehicleService } from '../vehicles/services/vehicle.service';
   templateUrl: './inspection-list.component.html',
   styleUrl: './inspection-list.component.css',
 })
-export class InspectionListComponent {
+export class InspectionListComponent implements OnInit {
   icons = ICONS;
-  private readonly vehicleService = inject(VehicleService);
+  private readonly instanceApi = inject(VehicleInstancesApiService);
   private readonly router = inject(Router);
 
-  vehicles = this.vehicleService.vehicles;
+  vehicles = signal<Product[]>([]);
   isTableView = signal(true);
   currentPage = signal(1);
   readonly pageSize = 10;
@@ -99,12 +101,18 @@ export class InspectionListComponent {
     this.currentPage.update((p) => p - 1);
   }
 
+  ngOnInit(): void {
+    this.instanceApi
+      .findByPagination({ page: 1, limit: 500, sortBy: 'createdAt', sortOrder: 'desc' })
+      .subscribe((res) => this.vehicles.set(res.data ?? []));
+  }
+
   openInspection(instanceId?: string): void {
     if (!instanceId) return;
     this.router.navigate(['/inspection', instanceId]);
   }
 
   // Service Helpers
-  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
-  getStatusBadgeClass = (s: string) => this.vehicleService.getStatusBadgeClass(s);
+  formatStatus = (s: string) => VehicleStatusUtils.formatStatus(s);
+  getStatusBadgeClass = (s: string) => VehicleStatusUtils.getStatusBadgeClass(s);
 }

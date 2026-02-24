@@ -2,13 +2,13 @@ import { Component, Output, EventEmitter, inject, ViewChild, input } from '@angu
 
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import { LanguageSwitcherComponent } from '../../../shared/components/language-switcher/language-switcher.component';
-import { ICONS } from '../../../shared/icons';
+import { LanguageSwitcherComponent } from '@shared/components/language-switcher/language-switcher.component';
+import { ICONS } from '@shared/icons';
 import { Store } from '@ngxs/store';
-import { AuthState } from '../../../auth/store/auth.state';
-import { Logout } from '../../../auth/store/auth.actions';
-import { UserConfigModalComponent } from '../user-config-modal/user-config-modal.component';
-import { User } from '../../../core/models';
+import { AuthState } from '@auth/store/auth.state';
+import { Logout } from '@auth/store/auth.actions';
+import { UserConfigModalComponent } from '@layout/components/user-config-modal/user-config-modal.component';
+import { User } from '@shared/models/user.model';
 
 import { TranslateModule } from '@ngx-translate/core';
 

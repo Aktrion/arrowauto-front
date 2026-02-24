@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../../shared/icons';
-import { VehicleService } from '../services/vehicle.service';
-import { Vehicle } from '../models/vehicle.model';
-import { SearchRequest } from '../../../shared/utils/search-request.class';
+import { ICONS } from '@shared/icons';
+import { VehiclesApiService } from '@features/vehicles/services/api/vehicles-api.service';
+import { Vehicle } from '@features/vehicles/models/vehicle.model';
+import { SearchRequest } from '@shared/utils/search-request.class';
 
 @Component({
   selector: 'app-vehicles-database',
@@ -17,10 +17,9 @@ import { SearchRequest } from '../../../shared/utils/search-request.class';
 })
 export class VehiclesDatabaseComponent implements OnInit {
   icons = ICONS;
-  private vehicleService = inject(VehicleService);
+  private vehiclesApi = inject(VehiclesApiService);
 
-  // SearchRequest manages state, pagination and fetching
-  searchRequest = new SearchRequest((params) => this.vehicleService.searchDatabase(params));
+  searchRequest = new SearchRequest((params) => this.vehiclesApi.findByPagination(params));
 
   vehicles = signal<Vehicle[]>([]);
   totalItems = signal(0);

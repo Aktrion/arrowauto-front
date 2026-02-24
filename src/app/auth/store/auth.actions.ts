@@ -1,4 +1,4 @@
-import { User } from '../../core/models';
+import { User } from '@shared/models/user.model';
 
 export class Login {
   static readonly type = '[Auth] Login';

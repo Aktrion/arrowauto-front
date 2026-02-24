@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../../shared/icons';
-import { VehicleService } from '../services/vehicle.service';
-import { ClientService } from '../../clients/services/client.service';
-import { VehicleInstance, Product } from '../models/vehicle.model';
-import { SearchRequest, FilterOperatorTypes } from '../../../shared/utils/search-request.class';
+import { ICONS } from '@shared/icons';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
+import { ClientService } from '@features/clients/services/client.service';
+import { Product } from '@features/vehicles/models/vehicle.model';
+import { SearchRequest } from '@shared/utils/search-request.class';
 
 @Component({
   selector: 'app-vehicles-instances',
@@ -18,20 +19,18 @@ import { SearchRequest, FilterOperatorTypes } from '../../../shared/utils/search
 })
 export class VehiclesInstancesComponent implements OnInit {
   icons = ICONS;
-  private vehicleService = inject(VehicleService);
+  private instanceApi = inject(VehicleInstancesApiService);
   private clientService = inject(ClientService);
   private router = inject(Router);
 
   // SearchRequest manages state, pagination and fetching
-  searchRequest = new SearchRequest((params) => this.vehicleService.searchVehicles(params));
+  searchRequest = new SearchRequest((params) => this.instanceApi.findByPagination(params));
 
-  // State from Service
-  vehicles = this.vehicleService.vehicles;
+  vehicles = signal<Product[]>([]);
+  clients = signal<any[]>([]);
   isLoading = this.searchRequest.isLoading$;
   totalItems = signal(0);
   totalPages = signal(1);
-
-  clients = this.clientService.clients;
   isTableView = signal(true);
 
   // Search and Filter state (now mapped to SearchRequest)
@@ -41,10 +40,10 @@ export class VehiclesInstancesComponent implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    this.vehicleService.getStatusSteps().subscribe();
-
+    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
     // SearchRequest handles its own reload/fetch cycle
     this.searchRequest.loadData().subscribe((response) => {
+      this.vehicles.set(response.data ?? []);
       this.totalItems.set(response.total);
       this.totalPages.set(response.totalPages);
     });
@@ -94,14 +93,13 @@ export class VehiclesInstancesComponent implements OnInit {
     this.router.navigate(['/vehicles-instances/new']);
   }
 
-  // Bridge to Service Helpers
-  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
-  getStatusBadgeClass = (s: string) => this.vehicleService.getStatusBadgeClass(s);
-  getProgress = (s: string) => this.vehicleService.getProgressStep(s);
-  getProgressPercent = (s: string) => this.vehicleService.getProgressPercent(s);
+  formatStatus = (s: string) => VehicleStatusUtils.formatStatus(s);
+  getStatusBadgeClass = (s: string) => VehicleStatusUtils.getStatusBadgeClass(s);
+  getProgress = (s: string) => VehicleStatusUtils.getProgressStep(s);
+  getProgressPercent = (s: string) => VehicleStatusUtils.getProgressPercent(s);
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    return this.clientService.getClientById(clientId)?.name ?? 'Unknown';
+    return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Unknown';
   }
 }

@@ -1,13 +1,16 @@
-﻿import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import { OperationService } from '../../shared/services/service.service';
-import { UserService } from '../../core/services/user.service';
-import { ClientService } from '../clients/services/client.service';
-import { VehicleOperation } from '../../core/models';
+import { forkJoin } from 'rxjs';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
+import { OperationService } from '@shared/services/operation.service';
+import { UserService } from '@core/services/user.service';
+import { ClientService } from '@features/clients/services/client.service';
+import { VehicleOperation } from '@shared/models/service.model';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../shared/icons';
+import { ICONS } from '@shared/icons';
+import { Product } from '@features/vehicles/models/vehicle.model';
 
 @Component({
   selector: 'app-invoicing',
@@ -15,12 +18,33 @@ import { ICONS } from '../../shared/icons';
   imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './invoicing.component.html',
 })
-export class InvoicingComponent {
+export class InvoicingComponent implements OnInit {
   icons = ICONS;
-  private vehicleService = inject(VehicleService);
+  private instanceApi = inject(VehicleInstancesApiService);
   private operationService = inject(OperationService);
   private userService = inject(UserService);
   private clientService = inject(ClientService);
+
+  vehicles = signal<Product[]>([]);
+  vehicleOperations = signal<any[]>([]);
+  clients = signal<any[]>([]);
+
+  ngOnInit(): void {
+    forkJoin({
+      vehicles: this.instanceApi.findByPagination({
+        page: 1,
+        limit: 500,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      }),
+      opsData: this.operationService.fetchData(),
+    }).subscribe(({ vehicles, opsData }) => {
+      this.vehicles.set(vehicles.data ?? []);
+      this.vehicleOperations.set(opsData.vehicleOperations);
+    });
+    this.userService.fetchUsers().subscribe((u) => this.users.set(u));
+    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
+  }
 
   searchQuery = '';
   searchField: 'all' | 'job' | 'plate' | 'operation' | 'status' = 'all';
@@ -37,15 +61,16 @@ export class InvoicingComponent {
     notes: '',
   };
 
-  operators = this.userService.operatorsByRole;
+  users = signal<any[]>([]);
+  operators = computed(() => this.userService.getOperators(this.users()));
 
   allOperations = computed(() => {
-    const vehicles = this.vehicleService.vehicles();
-    const vehicleOps = this.operationService.vehicleOperations();
+    const vehicles = this.vehicles();
+    const vehicleOps = this.vehicleOperations();
 
     return vehicleOps.map((op) => ({
       op,
-      product: vehicles.find((v) => v._id === op.vehicleId),
+      product: vehicles.find((v) => v.vehicleId === op.vehicleId),
     }));
   });
 
@@ -247,46 +272,80 @@ export class InvoicingComponent {
     if (!item) return;
 
     this.operationService
-      .updateVehicleOperation(item.op.id, {
-        status: 'completed',
-        actualDuration: this.completeForm.duration,
-        hourlyRate: this.completeForm.hourlyRate,
-        assignedUserId: this.completeForm.operatorId,
-        notes: this.completeForm.notes,
-        completedAt: new Date(),
-      })
-      .subscribe(() => {
-        (document.getElementById('complete_modal') as HTMLDialogElement)?.close();
+      .updateVehicleOperation(
+        item.op.id,
+        {
+          status: 'completed',
+          actualDuration: this.completeForm.duration,
+          hourlyRate: this.completeForm.hourlyRate,
+          assignedUserId: this.completeForm.operatorId,
+          notes: this.completeForm.notes,
+          completedAt: new Date(),
+        },
+        this.vehicleOperations(),
+      )
+      .subscribe({
+        next: () => {
+          (document.getElementById('complete_modal') as HTMLDialogElement)?.close();
+          this.operationService
+            .fetchData()
+            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        },
       });
   }
 
   markAsInvoiced(id: string): void {
     const operation = this.allOperations().find((item) => item.op.id === id);
-    this.operationService.bulkMarkInvoiced([id]).subscribe(() => {
-      if (operation?.op.vehicleId) {
-        this.vehicleService
-          .updateProductStatusByVehicleId(operation.op.vehicleId, 'invoiced')
-          .subscribe();
-      }
+    this.operationService.bulkMarkInvoiced([id], this.vehicleOperations()).subscribe({
+      next: () => {
+        if (operation?.op.vehicleId && operation?.product?._id) {
+          this.instanceApi.update(operation.product._id, { status: 'invoiced' } as any).subscribe();
+        } else if (operation?.op.vehicleId) {
+          this.instanceApi.findInstanceByVehicleId(operation.op.vehicleId).subscribe((inst) => {
+            if (inst?._id) {
+              this.instanceApi.update(inst._id, { status: 'invoiced' } as any).subscribe();
+            }
+          });
+        }
+        this.operationService
+          .fetchData()
+          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+      },
     });
   }
 
   invoiceSelection(): void {
     const ids = Array.from(this.selectedIds());
     if (!ids.length) return;
-    const vehicleIds = Array.from(
+    const itemsToInvoice = this.allOperations().filter((item) => ids.includes(item.op.id));
+    const instanceIds = Array.from(
+      new Set(itemsToInvoice.map((item) => item.product?._id).filter((id): id is string => !!id)),
+    );
+    const vehicleIdsWithoutProduct = Array.from(
       new Set(
-        this.allOperations()
-          .filter((item) => ids.includes(item.op.id))
-          .map((item) => item.op.vehicleId),
+        itemsToInvoice
+          .filter((item) => !item.product?._id && item.op.vehicleId)
+          .map((item) => item.op.vehicleId as string),
       ),
     );
 
-    this.operationService.bulkMarkInvoiced(ids).subscribe(() => {
-      vehicleIds.forEach((vehicleId) =>
-        this.vehicleService.updateProductStatusByVehicleId(vehicleId, 'invoiced').subscribe(),
-      );
-      this.clearSelection();
+    this.operationService.bulkMarkInvoiced(ids, this.vehicleOperations()).subscribe({
+      next: () => {
+        instanceIds.forEach((instanceId) =>
+          this.instanceApi.update(instanceId, { status: 'invoiced' } as any).subscribe(),
+        );
+        vehicleIdsWithoutProduct.forEach((vehicleId) =>
+          this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe((inst) => {
+            if (inst?._id) {
+              this.instanceApi.update(inst._id, { status: 'invoiced' } as any).subscribe();
+            }
+          }),
+        );
+        this.clearSelection();
+        this.operationService
+          .fetchData()
+          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+      },
     });
   }
 
@@ -314,9 +373,9 @@ export class InvoicingComponent {
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Walk-in Client';
-    return this.clientService.getClientById(clientId)?.name ?? 'Walk-in Client';
+    return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Walk-in Client';
   }
 
   // Service Helpers
-  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
+  formatStatus = (s: string) => VehicleStatusUtils.formatStatus(s);
 }

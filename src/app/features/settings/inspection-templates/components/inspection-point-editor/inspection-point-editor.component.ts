@@ -12,13 +12,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import {
-  InspectionPointsService,
   InspectionPoint,
   CreateInspectionPointDto,
   UpdateInspectionPointDto,
-} from '../../services/inspection-points.service';
-import { TyreConfigurationsService } from '../../services/tyre-configurations.service';
-import { ICONS } from '../../../../../shared/icons';
+} from '@features/settings/inspection-templates/models/inspection-point.model';
+import { InspectionPointsService } from '@features/settings/inspection-templates/services/inspection-points.service';
+import { TyreConfigurationsService } from '@features/settings/inspection-templates/services/tyre-configurations.service';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-inspection-point-editor',
@@ -103,7 +103,7 @@ export class InspectionPointEditorComponent {
       payload.tyrePosition = this.tyrePosition;
     }
 
-    if (this.point) {
+    if (this.point?._id) {
       this.pointsService.update(this.point._id, payload).subscribe(() => this.saved.emit());
     } else {
       payload.inspectionBlockId = this.blockId;

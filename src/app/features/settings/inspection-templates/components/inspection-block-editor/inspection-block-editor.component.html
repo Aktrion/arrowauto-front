@@ -38,7 +38,7 @@
           class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52"
         >
           <li>
-            <button class="text-error" (click)="deleteBlock.emit(block._id)">
+            <button class="text-error" (click)="block._id && deleteBlock.emit(block._id)">
               <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
               <!-- Tasks for sorting and workflow -->
               <!-- - [ ] Backend: Sort inspection templates by creation date (newest first) -->
@@ -99,7 +99,7 @@
             >
               <button
                 class="btn btn-ghost btn-xs text-error"
-                (click)="$event.stopPropagation(); deletePoint(point._id)"
+                (click)="$event.stopPropagation(); point._id && deletePoint(point._id)"
               >
                 <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
               </button>
@@ -139,7 +139,7 @@
     <app-inspection-point-editor
       class="w-full max-w-2xl animate-in zoom-in-95 duration-200"
       [point]="selectedPoint"
-      [blockId]="block._id"
+      [blockId]="block._id ?? ''"
       [blockName]="block.name"
       [order]="points().length + 1"
       (cancel)="showPointEditor = false"

@@ -1,4 +1,4 @@
-﻿import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,24 +7,23 @@ import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { of, Subject, switchMap } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
-import { ICONS } from '../../../../shared/icons';
-import { VehicleService } from '../../services/vehicle.service';
-import { ClientService } from '../../../clients/services/client.service';
-import { OperationService } from '../../../../shared/services/service.service';
-import {
-  OperationApiService,
-  OperationMaster,
-} from '../../../../shared/services/operation-api.service';
-import { OperationStatus, VehicleOperation } from '../../../../shared/models';
+import { ICONS } from '@shared/icons';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { VehiclesApiService } from '@features/vehicles/services/api/vehicles-api.service';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
+import { ClientService } from '@features/clients/services/client.service';
+import { OperationService } from '@shared/services/operation.service';
+import { OperationMaster } from '@shared/models/operation.model';
+import { OperationStatus, VehicleOperation } from '@shared/models/service.model';
 import {
   Product,
   ProductActivityEvent,
   Vehicle,
   VehicleInstance,
   VehicleStatus,
-} from '../../models/vehicle.model';
-import { ToastService } from '../../../../core/services/toast.service';
-import { InspectionTemplatesService } from '../../../settings/inspection-templates/services/inspection-templates.service';
+} from '@features/vehicles/models/vehicle.model';
+import { ToastService } from '@core/services/toast.service';
+import { InspectionTemplatesService } from '@features/settings/inspection-templates/services/inspection-templates.service';
 
 @Component({
   selector: 'app-vehicle-instance-detail',
@@ -36,14 +35,15 @@ export class VehicleInstanceDetailComponent implements OnInit {
   icons = ICONS;
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private vehicleService = inject(VehicleService);
+  private instanceApi = inject(VehicleInstancesApiService);
+  private vehiclesApi = inject(VehiclesApiService);
   private clientService = inject(ClientService);
   private operationService = inject(OperationService);
-  private operationApiService = inject(OperationApiService);
   private notificationService = inject(ToastService);
   private inspectionTemplatesService = inject(InspectionTemplatesService);
 
-  masterOperations = this.operationApiService.operations;
+  masterOperations = signal<OperationMaster[]>([]);
+  vehicleOperations = signal<any[]>([]);
   selectedOperationId = signal('');
 
   isNew = signal(false);
@@ -51,7 +51,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
     vehicle: {} as Vehicle,
     status: 'pending',
   });
-  clients = this.clientService.clients;
+  clients = signal<any[]>([]);
   inspectionTemplates = computed(() =>
     this.inspectionTemplatesService
       .templates()
@@ -92,18 +92,15 @@ export class VehicleInstanceDetailComponent implements OnInit {
       const id = this.routeId();
       if (!id || id === 'new') return;
 
-      const found = this.vehicleService.getVehicleById(id);
-      if (found) {
-        this.product.set({ ...found });
-        this.isNew.set(false);
-        this.initialStatus.set(found.status);
-        this.loadActivityTimeline(id);
-      } else {
-        // If not found locally (e.g. reload), fetch it from API
-        this.vehicleService.loadOne(id).subscribe({
-          error: () => this.router.navigate(['/vehicles']),
-        });
-      }
+      this.instanceApi.findOne(id).subscribe({
+        next: (found) => {
+          this.product.set({ ...found });
+          this.isNew.set(false);
+          this.initialStatus.set(found.status);
+          this.loadActivityTimeline(id);
+        },
+        error: () => this.router.navigate(['/vehicles-instances']),
+      });
     });
 
     // Debounced lookup for duplicate detection
@@ -115,7 +112,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
       )
       .subscribe(({ field, value }) => {
         this.lookupLoading.set(true);
-        this.vehicleService.lookupVehicle(field, value).subscribe((vehicle) => {
+        this.vehiclesApi.lookup(field, value).subscribe((vehicle) => {
           this.lookupLoading.set(false);
           if (vehicle) {
             this.foundVehicle.set(vehicle);
@@ -128,6 +125,11 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.operationService
+      .fetchData()
+      .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+    this.operationService.fetchOperationMasters().subscribe((ops) => this.masterOperations.set(ops));
+    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
     this.route.params.subscribe((params) => {
       const id = params['id'];
       if (id === 'new') {
@@ -135,7 +137,6 @@ export class VehicleInstanceDetailComponent implements OnInit {
         this.resetProduct();
       } else {
         this.routeId.set(id);
-        // this.vehicleService.loadVehicles();
         this.loadActivityTimeline(id);
       }
     });
@@ -187,7 +188,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
     const plate = this.product().vehicle?.licensePlate;
     if (!plate) return;
 
-    this.vehicleService.findVehicleByPlate(plate).subscribe((vehicle) => {
+    this.vehiclesApi.lookup('licensePlate', plate).subscribe((vehicle) => {
       if (!vehicle) {
         this.hpiResult.set(false);
         return;
@@ -212,7 +213,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
       const existingId = this.existingVehicleId();
       if (existingId) {
         // Link to existing vehicle instead of creating a new one
-        this.vehicleService.addVehicleInstanceForExistingVehicle(existingId, p as any).subscribe({
+        this.instanceApi.create({ ...p, vehicleId: existingId } as any).subscribe({
           next: () => {
             this.notificationService.success(
               'Vehicle instance created and linked to existing vehicle.',
@@ -222,7 +223,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
           error: () => this.notificationService.error('Failed to create vehicle instance.'),
         });
       } else {
-        this.vehicleService.addVehicleProduct(p as any).subscribe({
+        this.instanceApi.create(p as any).subscribe({
           next: () => {
             this.notificationService.success('Vehicle created successfully.');
             this.router.navigate(['/vehicles']);
@@ -231,14 +232,14 @@ export class VehicleInstanceDetailComponent implements OnInit {
         });
       }
     } else {
-      this.vehicleService
-        .updateVehicleProduct(p._id!, p as any)
+      this.instanceApi
+        .update(p._id!, p as any)
         .pipe(
-          switchMap(() => {
+          switchMap((updated) => {
             if (!p._id || !p.status || p.status === this.initialStatus()) {
-              return of(null);
+              return of(updated);
             }
-            return this.vehicleService.updateProductStatusByVehicleId(p._id, p.status);
+            return this.instanceApi.update(p._id!, { status: p.status } as any);
           }),
         )
         .subscribe({
@@ -255,38 +256,51 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }
 
   getVehicleOperations(vehicleId: string) {
-    return this.operationService.getVehicleOperations(vehicleId);
+    return this.operationService.getVehicleOperationsByVehicleId(
+      this.vehicleOperations(),
+      vehicleId,
+    );
   }
 
   addOperationFromMaster() {
     const id = this.selectedOperationId();
-    const vehicleId = this.product()._id;
+    const vehicleId = this.product().vehicleId;
     if (!id || !vehicleId) return;
 
-    const master = this.operationApiService.getById(id);
+    const master = this.masterOperations().find((o) => o.id === id);
     if (!master) return;
 
-    this.operationService.addVehicleOperationFromMaster(vehicleId, master).subscribe({
+    const currentOps = this.getVehicleOperations(vehicleId);
+    this.operationService.addVehicleOperationFromMaster(vehicleId, master, currentOps).subscribe({
       next: () => {
         this.selectedOperationId.set('');
         this.notificationService.success(`Operation "${master.shortName}" added.`);
+        this.operationService
+          .fetchData()
+          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
       },
       error: () => this.notificationService.error('Failed to add operation.'),
     });
   }
 
   removeOperation(op: VehicleOperation) {
-    const vehicleId = this.product()._id;
+    const vehicleId = this.product().vehicleId;
     if (!vehicleId || !op.id) return;
 
-    this.operationService.removeVehicleOperation(vehicleId, op.id).subscribe({
-      next: () => this.notificationService.success('Operation removed.'),
+    const currentOps = this.getVehicleOperations(vehicleId);
+    this.operationService.removeVehicleOperation(vehicleId, op.id, currentOps).subscribe({
+      next: () => {
+        this.notificationService.success('Operation removed.');
+        this.operationService
+          .fetchData()
+          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+      },
       error: () => this.notificationService.error('Failed to remove operation.'),
     });
   }
 
   getOperationsStats(vehicleId: string) {
-    const operations = this.getVehicleOperations(vehicleId);
+    const operations = this.getVehicleOperations(vehicleId || this.product().vehicleId || '');
     const completed = operations.filter(
       (operation) => operation.status === 'completed' || operation.status === 'invoiced',
     ).length;
@@ -298,12 +312,12 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }
 
   // Bridge to Service Helpers
-  formatStatus = (s?: string) => this.vehicleService.formatStatus(s);
-  getStatusBadgeClass = (s?: string) => this.vehicleService.getStatusBadgeClass(s);
+  formatStatus = (s?: string) => VehicleStatusUtils.formatStatus(s);
+  getStatusBadgeClass = (s?: string) => VehicleStatusUtils.getStatusBadgeClass(s);
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    return this.clientService.getClientById(clientId)?.name ?? 'Unknown';
+    return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Unknown';
   }
 
   getOperationStatusClass(status: string): string {
@@ -348,16 +362,21 @@ export class VehicleInstanceDetailComponent implements OnInit {
     }
 
     this.operationSaving.update((state) => ({ ...state, [operation.id]: true }));
-    this.operationService.updateVehicleOperation(operation.id, { status }).subscribe({
-      next: () => {
-        this.operationSaving.update((state) => ({ ...state, [operation.id]: false }));
-        this.notificationService.success('Operation updated successfully.');
-      },
-      error: () => {
-        this.operationSaving.update((state) => ({ ...state, [operation.id]: false }));
-        this.notificationService.error('Failed to update operation.');
-      },
-    });
+    this.operationService
+      .updateVehicleOperation(operation.id, { status }, this.vehicleOperations())
+      .subscribe({
+        next: () => {
+          this.operationSaving.update((state) => ({ ...state, [operation.id]: false }));
+          this.notificationService.success('Operation updated successfully.');
+          this.operationService
+            .fetchData()
+            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        },
+        error: () => {
+          this.operationSaving.update((state) => ({ ...state, [operation.id]: false }));
+          this.notificationService.error('Failed to update operation.');
+        },
+      });
   }
 
   updateOperationField(operation: VehicleOperation, field: 'duration' | 'rate', event: Event) {
@@ -375,15 +394,22 @@ export class VehicleInstanceDetailComponent implements OnInit {
     if (field === 'duration') updates.actualDuration = value;
     if (field === 'rate') updates.hourlyRate = value;
 
-    this.operationService.updateVehicleOperation(operation.id, updates).subscribe({
-      next: () => this.notificationService.success('Operation details updated.'),
-      error: () => this.notificationService.error('Failed to update operation details.'),
-    });
+    this.operationService
+      .updateVehicleOperation(operation.id, updates, this.vehicleOperations())
+      .subscribe({
+        next: () => {
+          this.notificationService.success('Operation details updated.');
+          this.operationService
+            .fetchData()
+            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        },
+        error: () => this.notificationService.error('Failed to update operation details.'),
+      });
   }
 
-  private loadActivityTimeline(vehicleId: string) {
+  private loadActivityTimeline(instanceId: string) {
     this.activityLoading.set(true);
-    this.vehicleService.getActivityTimelineByVehicleId(vehicleId).subscribe({
+    this.instanceApi.getActivityTimeline(instanceId).subscribe({
       next: (events: ProductActivityEvent[]) => {
         this.activityTimeline.set(events);
         this.activityLoading.set(false);

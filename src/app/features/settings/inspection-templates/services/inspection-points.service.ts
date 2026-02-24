@@ -1,81 +1,36 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
-
-export interface InspectionPoint {
-  _id: string;
-  name: string;
-  inspectionBlockId: string;
-  order: number;
-  type: 'standard' | 'tyre';
-  tyreConfigurationId?: string;
-  tyrePosition?: string;
-  scriptedComments?: string[];
-  mandatory: boolean;
-  mandatoryMedia: 'required' | 'requiredIfNok' | 'optional';
-  mandatoryComment: 'required' | 'requiredIfNok' | 'optional';
-  active: boolean;
-}
-
-export interface CreateInspectionPointDto {
-  name: string;
-  inspectionBlockId: string;
-  order: number;
-  type: 'standard' | 'tyre';
-  tyreConfigurationId?: string;
-  tyrePosition?: string;
-  scriptedComments?: string[];
-  mandatory?: boolean;
-  mandatoryMedia?: 'required' | 'requiredIfNok' | 'optional';
-  mandatoryComment?: 'required' | 'requiredIfNok' | 'optional';
-  active?: boolean;
-}
-
-export interface UpdateInspectionPointDto {
-  name?: string;
-  order?: number;
-  // ... other fields as optional
-  type?: 'standard' | 'tyre';
-  tyreConfigurationId?: string;
-  tyrePosition?: string;
-  scriptedComments?: string[];
-  mandatory?: boolean;
-  mandatoryMedia?: 'required' | 'requiredIfNok' | 'optional';
-  mandatoryComment?: 'required' | 'requiredIfNok' | 'optional';
-  active?: boolean;
-}
+import { Injectable } from '@angular/core';
+import { BaseCrudService } from '@core/services/base-crud.service';
+import {
+  InspectionPoint,
+  CreateInspectionPointDto,
+  UpdateInspectionPointDto,
+} from '@features/settings/inspection-templates/models/inspection-point.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class InspectionPointsService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/inspection-points`;
-
-  create(dto: CreateInspectionPointDto) {
-    return this.http.post<InspectionPoint>(this.apiUrl, dto);
-  }
-
-  update(id: string, dto: UpdateInspectionPointDto) {
-    return this.http.patch<InspectionPoint>(`${this.apiUrl}/${id}`, dto);
-  }
-
-  delete(id: string) {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+export class InspectionPointsService extends BaseCrudService<
+  InspectionPoint,
+  CreateInspectionPointDto,
+  UpdateInspectionPointDto
+> {
+  constructor() {
+    super('/inspection-points');
   }
 
   getPointsByBlockId(blockId: string) {
-    return this.http.post<{ data: InspectionPoint[] }>(`${this.apiUrl}/search`, {
+    return this.findByPagination({
       page: 1,
       limit: 100,
       sortBy: 'order',
       sortOrder: 'asc',
       filters: {
-        inspectionBlockId: {
-          value: blockId,
-          operator: 'equals',
-        },
+        inspectionBlockId: { value: blockId, operator: 'equals' as const },
       },
     });
+  }
+
+  deleteById(id: string) {
+    return this.deleteOne(id);
   }
 }

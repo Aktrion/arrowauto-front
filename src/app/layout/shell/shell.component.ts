@@ -1,8 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { SidebarComponent } from '../../layout/components/sidebar/sidebar.component';
-import { HeaderComponent } from '../../layout/components/header/header.component';
-import { ICONS } from '../../shared/icons';
+import { SidebarComponent } from '@layout/components/sidebar/sidebar.component';
+import { HeaderComponent } from '@layout/components/header/header.component';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-shell',

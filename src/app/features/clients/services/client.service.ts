@@ -1,63 +1,33 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { catchError, map, of, tap } from 'rxjs';
-import { Client } from '../models/client.model';
-import { environment } from '../../../../environments/environment';
-
-interface BackendCustomer {
-  _id?: string;
-  id?: string;
-  title?: string;
-  firstName: string;
-  lastName: string;
-  mobilePhoneNumber?: string;
-  emails?: string[];
-}
-
-interface CreateCustomerDto {
-  title?: string;
-  firstName: string;
-  lastName: string;
-  mobilePhoneNumber?: string;
-  emails?: string[];
-}
-
-type UpdateCustomerDto = Partial<CreateCustomerDto>;
+import { Injectable, inject } from '@angular/core';
+import { map, Observable } from 'rxjs';
+import {
+  Client,
+  BackendCustomer,
+  CreateCustomerDto,
+  UpdateCustomerDto,
+} from '@features/clients/models/client.model';
+import { CustomersApiService } from '@features/clients/services/api/customers-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ClientService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/customers`;
+  private readonly customersApi = inject(CustomersApiService);
 
-  private _clients = signal<Client[]>([]);
-  readonly loaded = signal(false);
-  readonly clients = this._clients.asReadonly();
-
-  constructor() {
-    this.loadClients();
+  fetchClients(): Observable<Client[]> {
+    return this.customersApi.fetchClients();
   }
 
-  loadClients() {
-    return this.http
-      .get<BackendCustomer[]>(this.apiUrl)
-      .pipe(catchError(() => of([])))
-      .subscribe((customers) => {
-        this._clients.set(customers.map((customer) => this.mapClient(customer)));
-        this.loaded.set(true);
-      });
+  getClientById(clients: Client[], id: string): Client | undefined {
+    return clients.find((c) => c.id === id);
   }
 
-  getClientById(id: string): Client | undefined {
-    return this._clients().find((c) => c.id === id);
-  }
-
-  searchClients(query: string): Client[] {
+  searchClients(clients: Client[], query: string): Client[] {
     const lowerQuery = query.toLowerCase();
-    return this._clients().filter(
+    return clients.filter(
       (c) =>
-        c.name.toLowerCase().includes(lowerQuery) || c.company?.toLowerCase().includes(lowerQuery)
+        c.name.toLowerCase().includes(lowerQuery) ||
+        c.company?.toLowerCase().includes(lowerQuery),
     );
   }
 
@@ -71,9 +41,8 @@ export class ClientService {
       title: client.company || undefined,
     };
 
-    return this.http.post<BackendCustomer>(this.apiUrl, dto).pipe(
-      map((created) => this.mapClient(created)),
-      tap((created) => this._clients.update((clients) => [created, ...clients])),
+    return this.customersApi.create(dto).pipe(
+      map((created) => this.mapClient(created as unknown as BackendCustomer)),
     );
   }
 
@@ -97,13 +66,8 @@ export class ClientService {
       dto.title = client.company || undefined;
     }
 
-    return this.http.patch<BackendCustomer>(`${this.apiUrl}/${id}`, dto).pipe(
-      map((updated) => this.mapClient(updated)),
-      tap((updated) =>
-        this._clients.update((clients) =>
-          clients.map((item) => (item.id === id ? updated : item)),
-        ),
-      ),
+    return this.customersApi.update(id, dto).pipe(
+      map((updated) => this.mapClient(updated as unknown as BackendCustomer)),
     );
   }
 

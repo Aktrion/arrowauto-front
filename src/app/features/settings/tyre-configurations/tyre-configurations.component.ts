@@ -2,13 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../../shared/icons';
+import { ICONS } from '@shared/icons';
 import {
   CreateTyreConfigurationDto,
   TyreConfiguration,
-  TyreConfigurationsService,
-} from '../inspection-templates/services/tyre-configurations.service';
-import { ToastService } from '../../../core/services/toast.service';
+} from '@features/settings/inspection-templates/models/tyre-configuration.model';
+import { TyreConfigurationsService } from '@features/settings/inspection-templates/services/tyre-configurations.service';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-tyre-configurations',
@@ -108,7 +108,7 @@ import { ToastService } from '../../../core/services/toast.service';
                   <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
                   Edit
                 </button>
-                <button class="btn btn-ghost btn-xs text-error" (click)="remove(config._id)">
+                <button class="btn btn-ghost btn-xs text-error" (click)="config._id && remove(config._id)">
                   <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
                   Delete
                 </button>
@@ -185,7 +185,7 @@ export class TyreConfigurationsComponent {
   }
 
   edit(config: TyreConfiguration) {
-    this.editingId.set(config._id);
+    this.editingId.set(config._id ?? null);
     this.error.set(null);
     this.form = {
       code: config.code || '',
@@ -203,7 +203,7 @@ export class TyreConfigurationsComponent {
 
   remove(id: string) {
     if (!confirm('Delete this tyre configuration?')) return;
-    this.service.delete(id).subscribe({
+    this.service.deleteById(id).subscribe({
       next: () => this.notificationService.success('Tyre configuration deleted successfully.'),
       error: () => this.notificationService.error('Failed to delete tyre configuration.'),
     });

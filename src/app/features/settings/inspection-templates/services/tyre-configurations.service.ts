@@ -1,67 +1,42 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
+import { BaseCrudService } from '@core/services/base-crud.service';
 import { tap } from 'rxjs';
-
-export interface TyreConfiguration {
-  _id: string;
-  code: string;
-  amberUpLimit: number;
-  redUpLimit: number;
-  chooseType?: string;
-  winterAmberUpLimit?: number;
-  winterRedUpLimit?: number;
-}
-
-export interface CreateTyreConfigurationDto {
-  code: string;
-  amberUpLimit: number;
-  redUpLimit: number;
-  chooseType?: string;
-  winterAmberUpLimit?: number;
-  winterRedUpLimit?: number;
-}
-
-export interface UpdateTyreConfigurationDto {
-  code?: string;
-  amberUpLimit?: number;
-  redUpLimit?: number;
-  chooseType?: string;
-  winterAmberUpLimit?: number;
-  winterRedUpLimit?: number;
-}
+import {
+  TyreConfiguration,
+  CreateTyreConfigurationDto,
+  UpdateTyreConfigurationDto,
+} from '@features/settings/inspection-templates/models/tyre-configuration.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class TyreConfigurationsService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/tyre-configurations`;
-
+export class TyreConfigurationsService extends BaseCrudService<
+  TyreConfiguration,
+  CreateTyreConfigurationDto,
+  UpdateTyreConfigurationDto
+> {
   configurations = signal<TyreConfiguration[]>([]);
 
   constructor() {
+    super('/tyre-configurations');
     this.getAll();
   }
 
   getAll() {
-    return this.http
-      .get<TyreConfiguration[]>(this.apiUrl)
+    return this.findAll()
       .pipe(tap((configs) => this.configurations.set(configs)))
       .subscribe();
   }
 
-  create(dto: CreateTyreConfigurationDto) {
-    return this.http.post<TyreConfiguration>(this.apiUrl, dto).pipe(tap(() => this.getAll()));
+  override create(dto: CreateTyreConfigurationDto) {
+    return super.create(dto).pipe(tap(() => this.getAll()));
   }
 
-  update(id: string, dto: UpdateTyreConfigurationDto) {
-    return this.http
-      .patch<TyreConfiguration>(`${this.apiUrl}/${id}`, dto)
-      .pipe(tap(() => this.getAll()));
+  override update(id: string, dto: UpdateTyreConfigurationDto) {
+    return super.update(id, dto).pipe(tap(() => this.getAll()));
   }
 
-  delete(id: string) {
-    return this.http.delete(`${this.apiUrl}/${id}`).pipe(tap(() => this.getAll()));
+  deleteById(id: string) {
+    return this.deleteOne(id).pipe(tap(() => this.getAll()));
   }
 }

@@ -1,11 +1,13 @@
-﻿import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '../../core/services/user.service';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import { OperationService } from '../../shared/services/service.service';
+import { forkJoin } from 'rxjs';
+import { UserService } from '@core/services/user.service';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { OperationService } from '@shared/services/operation.service';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../shared/icons';
+import { ICONS } from '@shared/icons';
+import { Product } from '@features/vehicles/models/vehicle.model';
 
 interface DaySlot {
   date: Date;
@@ -27,13 +29,32 @@ interface TimeSlot {
   imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './scheduling.component.html',
 })
-export class SchedulingComponent {
+export class SchedulingComponent implements OnInit {
   icons = ICONS;
   private userService = inject(UserService);
-  private vehicleService = inject(VehicleService);
+  private instanceApi = inject(VehicleInstancesApiService);
   private operationService = inject(OperationService);
 
-  operators = this.userService.operatorsByRole;
+  vehicles = signal<Product[]>([]);
+  vehicleOperations = signal<any[]>([]);
+  users = signal<any[]>([]);
+  operators = computed(() => this.userService.getOperators(this.users()));
+
+  ngOnInit(): void {
+    forkJoin({
+      vehicles: this.instanceApi.findByPagination({
+        page: 1,
+        limit: 500,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      }),
+      opsData: this.operationService.fetchData(),
+    }).subscribe(({ vehicles, opsData }) => {
+      this.vehicles.set(vehicles.data ?? []);
+      this.vehicleOperations.set(opsData.vehicleOperations);
+    });
+    this.userService.fetchUsers().subscribe((u) => this.users.set(u));
+  }
   currentWeekStart = signal(this.getWeekStart(new Date()));
   selectedDay = signal(new Date());
   selectedOperatorId = signal<string | null>(null);
@@ -77,22 +98,21 @@ export class SchedulingComponent {
   });
 
   pendingOperations = computed(() => {
-    const vehicles = this.vehicleService.vehicles();
-    const vehicleOps = this.operationService.vehicleOperations();
+    const vehicles = this.vehicles();
+    const vehicleOps = this.vehicleOperations();
 
     return vehicleOps
       .filter((vo) => vo.status === 'pending')
       .map((vo) => ({
         ...vo,
         vehiclePlate:
-          vehicles.find((v) => v._id === vo.vehicleId)?.vehicle?.licensePlate || 'Unknown',
+          vehicles.find((v) => v.vehicleId === vo.vehicleId)?.vehicle?.licensePlate || 'Unknown',
       }));
   });
 
   scheduledOperations = computed(() => {
     const selectedDay = this.selectedDay().toDateString();
-    return this.operationService
-      .vehicleOperations()
+    return this.vehicleOperations()
       .filter((op) => op.status !== 'pending' && !!op.assignedUserId && !!op.scheduledTime)
       .filter((op) =>
         op.scheduledDate ? new Date(op.scheduledDate).toDateString() === selectedDay : true,
@@ -208,9 +228,14 @@ export class SchedulingComponent {
         scheduledDate: this.selectedDay(),
         scheduledTime: slotTime,
       })
-      .subscribe(() => {
-        this.selectedPendingOperationId.set('');
-        (document.getElementById('assign_modal') as HTMLDialogElement)?.close();
+      .subscribe({
+        next: () => {
+          this.selectedPendingOperationId.set('');
+          (document.getElementById('assign_modal') as HTMLDialogElement)?.close();
+          this.operationService
+            .fetchData()
+            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        },
       });
   }
 }

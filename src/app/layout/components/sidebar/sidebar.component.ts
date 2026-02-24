@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../../shared/icons';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-sidebar',

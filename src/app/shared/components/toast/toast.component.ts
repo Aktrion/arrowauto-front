@@ -1,8 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NotificationType, Toast, ToastService } from '../../../core/services/toast.service';
+import { NotificationType, Toast } from '@core/models/toast.model';
+import { ToastService } from '@core/services/toast.service';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../icons';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-toast',

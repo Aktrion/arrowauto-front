@@ -1,5 +1,5 @@
-import { PermissionsEnum } from '../enums/permission.enum';
-import { RoleEnum } from '../enums/role.enum';
+import { PermissionsEnum } from '@shared/enums/permission.enum';
+import { RoleEnum } from '@shared/enums/role.enum';
 
 export interface Role {
   name: string;

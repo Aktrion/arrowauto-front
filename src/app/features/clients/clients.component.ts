@@ -1,11 +1,11 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ClientService } from './services/client.service';
-import { Client } from '../../core/models';
+import { ClientService } from '@features/clients/services/client.service';
+import { Client } from '@features/clients/models/client.model';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../shared/icons';
-import { ToastService } from '../../core/services/toast.service';
+import { ICONS } from '@shared/icons';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-clients',
@@ -13,12 +13,12 @@ import { ToastService } from '../../core/services/toast.service';
   imports: [FormsModule, LucideAngularModule, TranslateModule],
   templateUrl: './clients.component.html',
 })
-export class ClientsComponent {
+export class ClientsComponent implements OnInit {
   icons = ICONS;
   private clientService = inject(ClientService);
   private notificationService = inject(ToastService);
 
-  clients = this.clientService.clients;
+  clients = signal<Client[]>([]);
   filteredClients = signal<Client[]>([]);
   isTableView = signal(true);
   currentPage = signal(1);
@@ -63,6 +63,10 @@ export class ClientsComponent {
         this.filterClients();
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
   }
 
   setTypeFilter(type: string): void {
@@ -140,7 +144,7 @@ export class ClientsComponent {
       })
       .subscribe({
         next: () => {
-          this.filterClients();
+          this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
           (document.getElementById('new_client_modal') as HTMLDialogElement)?.close();
           this.notificationService.success('Client created successfully.');
         },
@@ -176,7 +180,7 @@ export class ClientsComponent {
       })
       .subscribe({
         next: () => {
-          this.filterClients();
+          this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
           (document.getElementById('edit_client_modal') as HTMLDialogElement)?.close();
           this.notificationService.success('Client updated successfully.');
         },

@@ -20,12 +20,12 @@ import {
 } from '@angular/cdk/drag-drop';
 import {
   InspectionTemplateStructure,
-  InspectionTemplatesService,
   UpsertInspectionTemplateStructureDto,
-} from '../../services/inspection-templates.service';
-import { TyreConfigurationsService } from '../../services/tyre-configurations.service';
-import { ICONS } from '../../../../../shared/icons';
-import { ToastService } from '../../../../../core/services/toast.service';
+} from '@features/settings/inspection-templates/models/inspection-template.model';
+import { InspectionTemplatesService } from '@features/settings/inspection-templates/services/inspection-templates.service';
+import { TyreConfigurationsService } from '@features/settings/inspection-templates/services/tyre-configurations.service';
+import { ICONS } from '@shared/icons';
+import { ToastService } from '@core/services/toast.service';
 
 type RequirementMode = 'required' | 'requiredIfNok' | 'optional';
 type PointType = 'standard' | 'tyre';

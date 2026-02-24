@@ -1,15 +1,16 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../shared/icons';
-import { OperationService } from '../../shared/services/service.service';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import { VehicleOperation } from '../../shared/models';
-import { ToastService } from '../../core/services/toast.service';
-import { environment } from '../../../environments/environment';
+import { ICONS } from '@shared/icons';
+import { OperationService } from '@shared/services/operation.service';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { CustomerCommunicationsApiService } from '@features/estimation/services/api/customer-communications-api.service';
+import { VehicleOperation } from '@shared/models/service.model';
+import { ToastService } from '@core/services/toast.service';
+import { Product } from '@features/vehicles/models/vehicle.model';
 
 @Component({
   selector: 'app-estimation',
@@ -17,21 +18,37 @@ import { environment } from '../../../environments/environment';
   imports: [CommonModule, FormsModule, LucideAngularModule, TranslateModule],
   templateUrl: './estimation.component.html',
 })
-export class EstimationComponent {
+export class EstimationComponent implements OnInit {
   private operationService = inject(OperationService);
-  private vehicleService = inject(VehicleService);
+  private instanceApi = inject(VehicleInstancesApiService);
   private toastService = inject(ToastService);
-  private http = inject(HttpClient);
-  private communicationsApiUrl = `${environment.apiUrl}/customer-communications`;
+  private communicationsApi = inject(CustomerCommunicationsApiService);
   icons = ICONS;
 
+  vehicles = signal<Product[]>([]);
+  vehicleOperations = signal<any[]>([]);
   sendingVehicle = signal<string | null>(null);
 
-  // Group completed operations by vehicle for estimation
+  ngOnInit(): void {
+    forkJoin({
+      vehicles: this.instanceApi.findByPagination({
+        page: 1,
+        limit: 500,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      }),
+      opsData: this.operationService.fetchData(),
+    }).subscribe(({ vehicles, opsData }) => {
+      this.vehicles.set(vehicles.data ?? []);
+      this.vehicleOperations.set(opsData.vehicleOperations);
+    });
+  }
+
   vehicleGroups = computed(() => {
-    const ops = this.operationService
-      .vehicleOperations()
-      .filter((o) => o.status === 'completed' || o.status === 'in_progress');
+    const ops = this.vehicleOperations().filter(
+      (o) => o.status === 'completed' || o.status === 'in_progress',
+    );
+    const vehicles = this.vehicles();
 
     const grouped = new Map<
       string,
@@ -39,12 +56,12 @@ export class EstimationComponent {
     >();
     ops.forEach((op) => {
       if (!grouped.has(op.vehicleId)) {
-        const vehicle = this.vehicleService.getVehicleById(op.vehicleId);
+        const product = vehicles.find((v) => v.vehicleId === op.vehicleId);
         grouped.set(op.vehicleId, {
-          vehicleName: vehicle?.vehicle
-            ? `${vehicle.vehicle.make} ${vehicle.vehicle.model}`
+          vehicleName: product?.vehicle
+            ? `${product.vehicle.make} ${product.vehicle.model}`
             : op.vehicleId,
-          licensePlate: vehicle?.vehicle?.licensePlate || '',
+          licensePlate: product?.vehicle?.licensePlate || '',
           operations: [],
         });
       }
@@ -81,24 +98,35 @@ export class EstimationComponent {
 
   saveEstimation(op: VehicleOperation) {
     const price = this.getEstimatedCost(op);
-    this.operationService.updateVehicleOperation(op.id, { actualPrice: price }).subscribe({
-      next: () => this.toastService.success('Price updated.'),
-      error: () => this.toastService.error('Failed to save price.'),
-    });
+    this.operationService
+      .updateVehicleOperation(op.id, { actualPrice: price }, this.vehicleOperations())
+      .subscribe({
+        next: () => {
+          this.toastService.success('Price updated.');
+          this.operationService
+            .fetchData()
+            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        },
+        error: () => this.toastService.error('Failed to save price.'),
+      });
   }
 
   saveAllForVehicle(vehicleId: string, operations: VehicleOperation[]) {
     let count = 0;
+    const refresh = () => {
+      count++;
+      if (count === operations.length) {
+        this.toastService.success('All prices saved for this vehicle.');
+        this.operationService
+          .fetchData()
+          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+      }
+    };
     operations.forEach((op) => {
       const price = this.getEstimatedCost(op);
-      this.operationService.updateVehicleOperation(op.id, { actualPrice: price }).subscribe({
-        next: () => {
-          count++;
-          if (count === operations.length) {
-            this.toastService.success('All prices saved for this vehicle.');
-          }
-        },
-      });
+      this.operationService
+        .updateVehicleOperation(op.id, { actualPrice: price }, this.vehicleOperations())
+        .subscribe({ next: refresh });
     });
   }
 
@@ -120,18 +148,37 @@ export class EstimationComponent {
 
   sendToClient(vehicleId: string, operations: VehicleOperation[]) {
     this.sendingVehicle.set(vehicleId);
-    const vehicle = this.vehicleService.getVehicleById(vehicleId);
-    const vehicleName = vehicle?.vehicle
-      ? `${vehicle.vehicle.make} ${vehicle.vehicle.model}`
+    const product = this.vehicles().find((v) => v.vehicleId === vehicleId);
+    const vehicleName = product?.vehicle
+      ? `${product.vehicle.make} ${product.vehicle.model}`
       : vehicleId;
     const total = this.getTotalForGroup(operations);
-    const productId = this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
-    if (!productId) {
-      this.toastService.error('Cannot find vehicle instance for this vehicle.');
-      this.sendingVehicle.set(null);
-      return;
-    }
+    this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe({
+      next: (instance) => {
+        const productId = instance?._id;
+        if (!productId) {
+          this.toastService.error('Cannot find vehicle instance for this vehicle.');
+          this.sendingVehicle.set(null);
+          return;
+        }
+        const licensePlate =
+          product?.vehicle?.licensePlate || instance?.vehicle?.licensePlate || '';
+        this.doSendToClient(productId, vehicleName, licensePlate, operations, total);
+      },
+      error: () => {
+        this.toastService.error('Cannot find vehicle instance for this vehicle.');
+        this.sendingVehicle.set(null);
+      },
+    });
+  }
 
+  private doSendToClient(
+    productId: string,
+    vehicleName: string,
+    licensePlate: string,
+    operations: VehicleOperation[],
+    total: number,
+  ) {
     const lineItems = operations.map((op) => ({
       operation: op.operation?.name || 'Unknown',
       price: this.getEstimatedCost(op),
@@ -142,7 +189,7 @@ export class EstimationComponent {
       type: 'estimation',
       content: JSON.stringify({
         vehicleName,
-        licensePlate: vehicle?.vehicle?.licensePlate || '',
+        licensePlate,
         lineItems,
         total,
       }),
@@ -151,21 +198,18 @@ export class EstimationComponent {
       status: 'sent',
     };
 
-    this.http.post(this.communicationsApiUrl, payload).subscribe({
+    this.communicationsApi.create(payload as Record<string, unknown>).subscribe({
       next: () => {
-        // Update vehicle instance status to awaiting_approval
-        this.vehicleService
-          .updateProductStatusByVehicleId(vehicleId, 'awaiting_approval')
-          .subscribe({
-            next: () => {
-              this.toastService.success(`Estimation sent to client for ${vehicleName}.`);
-              this.sendingVehicle.set(null);
-            },
-            error: () => {
-              this.toastService.success(`Estimation sent. Status update pending.`);
-              this.sendingVehicle.set(null);
-            },
-          });
+        this.instanceApi.update(productId, { status: 'awaiting_approval' } as any).subscribe({
+          next: () => {
+            this.toastService.success(`Estimation sent to client for ${vehicleName}.`);
+            this.sendingVehicle.set(null);
+          },
+          error: () => {
+            this.toastService.success(`Estimation sent. Status update pending.`);
+            this.sendingVehicle.set(null);
+          },
+        });
       },
       error: () => {
         this.toastService.error('Failed to send estimation.');

@@ -1,8 +1,8 @@
 import { Observable } from 'rxjs';
-import { BaseApiService } from './base-api.service';
+import { BaseApiService } from '@core/services/base-api.service';
 import { HttpParams } from '@angular/common/http';
-import { SearchRequest } from '../../shared/utils/search-request.class';
-import { SearchRequestResponse } from '../models/request.model';
+import { SearchRequest } from '@shared/utils/search-request.class';
+import { SearchRequestResponse } from '@core/models/request.model';
 import { map } from 'rxjs/operators';
 
 export class BaseCrudService<T, CreateDTO, UpdateDTO> extends BaseApiService {

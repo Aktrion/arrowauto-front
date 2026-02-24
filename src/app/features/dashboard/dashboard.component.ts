@@ -1,14 +1,15 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import { UserService } from '../../core/services/user.service';
-import { ClientService } from '../clients/services/client.service';
-import { DashboardService } from './services/dashboard.service';
-import { ICONS } from '../../shared/icons';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
+import { UserService } from '@core/services/user.service';
+import { Client } from '@features/clients/models/client.model';
+import { ClientService } from '@features/clients/services/client.service';
+import { DashboardService } from '@features/dashboard/services/dashboard.service';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,25 +25,46 @@ import { ICONS } from '../../shared/icons';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   icons = ICONS;
-  private vehicleService = inject(VehicleService);
   private userService = inject(UserService);
   private clientService = inject(ClientService);
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
 
+  private vehiclesSignal = signal<any[]>([]);
+  private statsSignal = signal<any>({
+    activeVehicles: 0,
+    pendingInspections: 0,
+    awaitingApproval: 0,
+    completedToday: 0,
+    totalRevenue: 0,
+    operatorsAvailable: 0,
+  });
+
+  ngOnInit(): void {
+    this.dashboardService.fetchDashboard().subscribe((data) => {
+      this.vehiclesSignal.set(data.vehicles);
+      this.statsSignal.set(data.stats);
+    });
+    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
+    this.userService.fetchUsers().subscribe((u) => this.users.set(u));
+  }
+
   searchQuery = '';
   searchField = 'plate';
   isSearching = false;
 
-  vehicles = this.vehicleService.vehicles;
-  operators = this.userService.operatorsByRole;
-  stats = this.dashboardService.dashboardStats;
+  readonly vehicles = this.vehiclesSignal.asReadonly();
+  users = signal<any[]>([]);
+  operators = computed(() => this.userService.getOperators(this.users()));
+  readonly stats = this.statsSignal.asReadonly();
+
+  private clients = signal<Client[]>([]);
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';
-    return this.clientService.getClientById(clientId)?.name ?? 'Unknown';
+    return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Unknown';
   }
 
   getInitials(name: string): string {
@@ -54,10 +76,9 @@ export class DashboardComponent {
       .slice(0, 2);
   }
 
-  // Service Helpers
-  formatStatus = (s: string) => this.vehicleService.formatStatus(s);
-  getStatusBadgeClass = (s: string) => this.vehicleService.getStatusBadgeClass(s);
-  getProgress = (s: string) => this.vehicleService.getProgressStep(s);
+  formatStatus = (s: string) => VehicleStatusUtils.formatStatus(s);
+  getStatusBadgeClass = (s: string) => VehicleStatusUtils.getStatusBadgeClass(s);
+  getProgress = (s: string) => VehicleStatusUtils.getProgressStep(s);
 
   quickSearch(): void {
     if (!this.searchQuery.trim()) return;

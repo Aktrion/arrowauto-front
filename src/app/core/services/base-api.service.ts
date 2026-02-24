@@ -1,11 +1,11 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { ToastService } from './toast.service';
-import { RequestOptions } from '../models/request.model';
+import { ToastService } from '@core/services/toast.service';
+import { RequestOptions } from '@core/models/request.model';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, take } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import { HTTP_METHOD } from '../models/request.model';
+import { environment } from '@env/environment';
+import { HTTP_METHOD } from '@core/models/request.model';
 
 export class BaseApiService {
   protected http = inject(HttpClient);

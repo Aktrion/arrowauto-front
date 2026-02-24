@@ -1,18 +1,17 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { InspectionPoint } from '@features/inspection/models/inspection.model';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { of, switchMap, forkJoin } from 'rxjs';
-import { ICONS } from '../../shared/icons';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import {
-  BackendInspectionValue,
-  InspectionService,
-} from '../inspection/services/inspection.service';
-import { ToastService } from '../../core/services/toast.service';
-import { OperationService } from '../../shared/services/service.service';
+import { ICONS } from '@shared/icons';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { BackendInspectionValue } from '@features/inspection/models/inspection.model';
+import { InspectionService } from '@features/inspection/services/inspection.service';
+import { ToastService } from '@core/services/toast.service';
+import { OperationService } from '@shared/services/operation.service';
 
 interface RepairItem {
   id: string;
@@ -35,7 +34,7 @@ interface RepairItem {
 export class CustomerPortalComponent implements OnInit {
   icons = ICONS;
   private readonly route = inject(ActivatedRoute);
-  private readonly vehicleService = inject(VehicleService);
+  private readonly instanceApi = inject(VehicleInstancesApiService);
   private readonly inspectionService = inject(InspectionService);
   private readonly toastService = inject(ToastService);
   private readonly operationService = inject(OperationService);
@@ -60,11 +59,16 @@ export class CustomerPortalComponent implements OnInit {
   }> = [];
 
   cartIds = signal<Set<string>>(new Set());
+  inspectionPoints = signal<InspectionPoint[]>([]);
+  vehicleOperations = signal<any[]>([]);
   isSubmittingApproval = signal(false);
   private currentVehicleId = signal<string | null>(null);
   private currentProductId = signal<string | null>(null);
 
   ngOnInit(): void {
+    this.inspectionService
+      .fetchInspectionPoints()
+      .subscribe((points) => this.inspectionPoints.set(points));
     this.route.queryParamMap.subscribe((params) => {
       const explicitVehicleId = params.get('vehicleId');
       if (explicitVehicleId) {
@@ -72,18 +76,14 @@ export class CustomerPortalComponent implements OnInit {
         return;
       }
 
-      const firstVehicleId = this.vehicleService.vehicles()?.[0]?.vehicleId;
-      if (firstVehicleId) {
-        this.loadPortalData(firstVehicleId);
-        return;
-      }
-
-      // this.vehicleService.loadVehicles().add(() => {
-      //   const fallbackVehicleId = this.vehicleService.vehicles()?.[0]?.vehicleId;
-      //   if (fallbackVehicleId) {
-      //     this.loadPortalData(fallbackVehicleId);
-      //   }
-      // });
+      this.instanceApi
+        .findByPagination({ page: 1, limit: 1, sortBy: 'createdAt', sortOrder: 'desc' })
+        .subscribe((res) => {
+          const first = res.data?.[0];
+          if (first?.vehicleId) {
+            this.loadPortalData(first.vehicleId);
+          }
+        });
     });
   }
 
@@ -137,14 +137,19 @@ export class CustomerPortalComponent implements OnInit {
 
     this.isSubmittingApproval.set(true);
 
-    const allOps = this.operationService.getVehicleOperations(vehicleId);
+    const allOps = this.operationService.getVehicleOperationsByVehicleId(
+      this.vehicleOperations(),
+      vehicleId,
+    );
     const opsToUpdate = allOps.filter((o) => (o as any).inspectionValueId);
 
     const requests = opsToUpdate.map((op) => {
       const isApproved = this.cartIds().has((op as any).inspectionValueId);
-      return this.operationService.updateVehicleOperation(op.id, {
-        status: isApproved ? 'pending' : 'cancelled',
-      });
+      return this.operationService.updateVehicleOperation(
+        op.id,
+        { status: isApproved ? 'pending' : 'cancelled' },
+        this.vehicleOperations(),
+      );
     });
 
     const productId = this.currentProductId();
@@ -152,18 +157,18 @@ export class CustomerPortalComponent implements OnInit {
 
     const updateProcess$ = requests.length
       ? forkJoin(requests).pipe(
-          switchMap(() =>
-            this.vehicleService.updateProductStatusByVehicleId(productId, 'in_progress'),
-          ),
+          switchMap(() => this.instanceApi.update(productId, { status: 'in_progress' } as any)),
         )
-      : this.vehicleService.updateProductStatusByVehicleId(productId, 'in_progress');
+      : this.instanceApi.update(productId, { status: 'in_progress' } as any);
 
     updateProcess$.subscribe({
       next: () => {
         (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
         this.toastService.success('Repairs approved successfully.');
         this.isSubmittingApproval.set(false);
-        this.operationService.refresh();
+        this.operationService
+          .fetchData()
+          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
       },
       error: () => {
         this.toastService.error('Failed to submit approval.');
@@ -174,49 +179,46 @@ export class CustomerPortalComponent implements OnInit {
 
   private loadPortalData(vehicleId: string) {
     this.currentVehicleId.set(vehicleId);
-    const productId = this.vehicleService.getVehicleInstanceIdByVehicleId(vehicleId);
-    if (!productId) {
-      return;
-    }
-
-    const instance = this.vehicleService.getVehicleById(productId);
-    if (instance?.vehicle) {
-      this.vehicleData = {
-        plate: instance.vehicle.licensePlate,
-        make: instance.vehicle.make,
-        model: instance.vehicle.model,
-        year: instance.vehicle.year || new Date().getFullYear(),
-      };
-    }
-
-    this.resolveAndLoadInspectionData(vehicleId, productId);
+    this.operationService
+      .fetchData()
+      .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+    this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe({
+      next: (instance) => {
+        if (!instance?._id) return;
+        if (instance?.vehicle) {
+          this.vehicleData = {
+            plate: instance.vehicle.licensePlate ?? '-',
+            make: instance.vehicle.make ?? '-',
+            model: instance.vehicle.model ?? '-',
+            year: instance.vehicle.year ?? new Date().getFullYear(),
+          };
+        }
+        this.resolveAndLoadInspectionData(vehicleId, instance._id);
+      },
+    });
   }
 
   private resolveAndLoadInspectionData(vehicleId: string, preferredProductId?: string) {
-    const candidates = this.vehicleService
-      .vehicles()
-      .filter((v) => v.vehicleId === vehicleId)
-      .map((v) => v._id)
-      .filter((id): id is string => !!id);
+    this.instanceApi
+      .findByPagination({
+        page: 1,
+        limit: 50,
+        filters: { vehicleId: { value: vehicleId, operator: 'equals' as const } },
+      })
+      .subscribe((res) => {
+        const candidates = (res.data ?? []).map((v) => v._id).filter((id): id is string => !!id);
+        const orderedIds = preferredProductId
+          ? [preferredProductId, ...candidates.filter((id) => id !== preferredProductId)]
+          : candidates;
 
-    of(candidates)
-      .pipe(
-        switchMap((candidateIds) => {
-          const orderedIds = preferredProductId
-            ? [preferredProductId, ...candidateIds.filter((id) => id !== preferredProductId)]
-            : candidateIds;
-
-          if (!orderedIds.length) {
-            this.currentProductId.set(null);
-            this.repairItems = [];
-            this.inspectionCategories = [];
-            return of([]);
-          }
-
-          return this.tryLoadFirstInspectionData(orderedIds);
-        }),
-      )
-      .subscribe();
+        if (!orderedIds.length) {
+          this.currentProductId.set(null);
+          this.repairItems = [];
+          this.inspectionCategories = [];
+          return;
+        }
+        this.tryLoadFirstInspectionData(orderedIds).subscribe();
+      });
   }
 
   private tryLoadFirstInspectionData(productIds: string[]): Observable<BackendInspectionValue[]> {
@@ -248,7 +250,7 @@ export class CustomerPortalComponent implements OnInit {
   }
 
   private applyInspectionData(values: BackendInspectionValue[]) {
-    const points = this.inspectionService.inspectionPoints();
+    const points = this.inspectionPoints();
     const pointMap = new Map(points.map((point) => [point.id, point]));
 
     this.repairItems = values

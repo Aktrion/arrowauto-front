@@ -9,12 +9,12 @@ import {
 } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../../shared/icons';
+import { ICONS } from '@shared/icons';
 import { Store } from '@ngxs/store';
-import { AuthState } from '../../../auth/store/auth.state';
-import { UpdateUser } from '../../../auth/store/auth.actions';
-import { CountryEnum, countryNamesMap } from '../../../shared/enums/country.enum';
-import { User } from '../../../shared/models/user.model';
+import { AuthState } from '@auth/store/auth.state';
+import { UpdateUser } from '@auth/store/auth.actions';
+import { CountryEnum, countryNamesMap } from '@shared/enums/country.enum';
+import { User } from '@shared/models/user.model';
 
 @Component({
   selector: 'app-user-config-modal',

@@ -1,24 +1,8 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, of } from 'rxjs';
-import { User } from '../../shared/models/user.model';
-import { environment } from '../../../environments/environment';
-
-interface BackendUser {
-  _id?: string;
-  id?: string;
-  name: string;
-  userName?: string;
-  language?: string;
-  country?: string;
-  imageUrl?: string;
-  avatar?: string;
-  isActive?: boolean;
-  enabled?: boolean;
-  emails?: string[];
-  role?: { _id?: string; id?: string; name: string };
-  roleId?: string;
-}
+import { catchError, map, Observable, of } from 'rxjs';
+import { User, BackendUser } from '@shared/models/user.model';
+import { environment } from '@env/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -27,42 +11,25 @@ export class UserService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
-  private _users = signal<User[]>([]);
-  readonly loaded = signal(false);
-  readonly users = this._users.asReadonly();
+  fetchUsers(): Observable<User[]> {
+    return this.http.get<BackendUser[]>(this.apiUrl).pipe(
+      catchError(() => of([])),
+      map((users) => users.map((user) => this.mapUser(user))),
+    );
+  }
 
-  readonly operatorsByRole = computed(() =>
-    this._users().filter((u) => {
+  getOperators(users: User[]): User[] {
+    return users.filter((u) => {
       const roleName = u.role?.name?.toLowerCase();
       if (roleName) {
         return ['operator', 'technician', 'advisor'].includes(roleName);
       }
       return u.enabled !== false;
-    }),
-  );
-
-  constructor() {
-    this.loadUsers();
+    });
   }
 
-  loadUsers() {
-    return this.http
-      .get<BackendUser[]>(this.apiUrl)
-      .pipe(
-        catchError(() => of([])),
-      )
-      .subscribe((users) => {
-        this._users.set(users.map((user) => this.mapUser(user)));
-        this.loaded.set(true);
-      });
-  }
-
-  getOperators(): User[] {
-    return this.operatorsByRole();
-  }
-
-  getUserById(id: string): User | undefined {
-    return this._users().find((u) => u.id === id);
+  getUserById(users: User[], id: string): User | undefined {
+    return users.find((u) => u.id === id);
   }
 
   private mapUser(user: BackendUser): User {

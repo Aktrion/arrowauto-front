@@ -2,13 +2,11 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../../../shared/icons';
-import {
-  InspectionTemplate,
-  InspectionTemplatesService,
-} from '../services/inspection-templates.service';
-import { InspectionTemplateEditorComponent } from '../components/inspection-template-editor/inspection-template-editor.component';
-import { ToastService } from '../../../../core/services/toast.service';
+import { ICONS } from '@shared/icons';
+import { InspectionTemplate } from '@features/settings/inspection-templates/models/inspection-template.model';
+import { InspectionTemplatesService } from '@features/settings/inspection-templates/services/inspection-templates.service';
+import { InspectionTemplateEditorComponent } from '@features/settings/inspection-templates/components/inspection-template-editor/inspection-template-editor.component';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-inspection-templates-list',
@@ -74,13 +72,13 @@ import { ToastService } from '../../../../core/services/toast.service';
                 <div class="flex items-center gap-2">
                   <button
                     class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
-                    (click)="editTemplate(template._id)"
+                    (click)="template._id && editTemplate(template._id)"
                   >
                     <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
                   </button>
                   <button
                     class="btn btn-ghost btn-sm btn-square hover:bg-error/10 hover:text-error"
-                    (click)="deleteTemplate(template._id)"
+                    (click)="template._id && deleteTemplate(template._id)"
                   >
                     <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
                   </button>
@@ -203,7 +201,7 @@ export class InspectionTemplatesListComponent {
 
   deleteTemplate(id: string) {
     if (confirm('Are you sure you want to delete this template?')) {
-      this.service.delete(id).subscribe({
+      this.service.deleteById(id).subscribe({
         next: () => {
           if (this.templates().length === 1 && this.page() > 1) {
             this.page.update((p) => p - 1);

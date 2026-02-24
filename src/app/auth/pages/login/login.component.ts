@@ -2,14 +2,14 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../../shared/icons';
+import { ICONS } from '@shared/icons';
 // import { AuthService } from '../../service/auth.service'; // Removed unused
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { LanguageSwitcherComponent } from '../../../shared/components/language-switcher/language-switcher.component';
+import { LanguageSwitcherComponent } from '@shared/components/language-switcher/language-switcher.component';
 import { Store } from '@ngxs/store';
-import { Login } from '../../store/auth.actions';
-import { ToastService } from '../../../core/services/toast.service';
+import { Login } from '@auth/store/auth.actions';
+import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-login',

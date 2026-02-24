@@ -1,14 +1,16 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../shared/icons';
-import { OperationService } from '../../shared/services/service.service';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import { VehicleOperation } from '../../shared/models';
-import { ToastService } from '../../core/services/toast.service';
+import { forkJoin } from 'rxjs';
+import { ICONS } from '@shared/icons';
+import { OperationService } from '@shared/services/operation.service';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { VehicleOperation } from '@shared/models/service.model';
+import { ToastService } from '@core/services/toast.service';
+import { Product } from '@features/vehicles/models/vehicle.model';
 
 @Component({
   selector: 'app-tasks',
@@ -16,17 +18,34 @@ import { ToastService } from '../../core/services/toast.service';
   imports: [CommonModule, FormsModule, LucideAngularModule, TranslateModule],
   templateUrl: './tasks.component.html',
 })
-export class TasksComponent {
+export class TasksComponent implements OnInit {
   private operationService = inject(OperationService);
-  private vehicleService = inject(VehicleService);
+  private instanceApi = inject(VehicleInstancesApiService);
   private notificationService = inject(ToastService);
   private router = inject(Router);
   icons = ICONS;
 
+  vehicles = signal<Product[]>([]);
+  vehicleOperations = signal<any[]>([]);
   filterStatus = signal<string>('all');
   searchQuery = signal<string>('');
 
-  allOperations = computed(() => this.operationService.vehicleOperations());
+  allOperations = computed(() => this.vehicleOperations());
+
+  ngOnInit(): void {
+    forkJoin({
+      vehicles: this.instanceApi.findByPagination({
+        page: 1,
+        limit: 500,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      }),
+      opsData: this.operationService.fetchData(),
+    }).subscribe(({ vehicles, opsData }) => {
+      this.vehicles.set(vehicles.data ?? []);
+      this.vehicleOperations.set(opsData.vehicleOperations);
+    });
+  }
 
   filteredOperations = computed(() => {
     let ops = this.allOperations();
@@ -61,9 +80,9 @@ export class TasksComponent {
   });
 
   getVehicleName(vehicleId: string): string {
-    const vehicle = this.vehicleService.getVehicleById(vehicleId);
-    if (!vehicle?.vehicle) return vehicleId;
-    return `${vehicle.vehicle.make} ${vehicle.vehicle.model} — ${vehicle.vehicle.licensePlate}`;
+    const product = this.vehicles().find((v) => v.vehicleId === vehicleId);
+    if (!product?.vehicle) return vehicleId;
+    return `${product.vehicle.make} ${product.vehicle.model} — ${product.vehicle.licensePlate}`;
   }
 
   formatStatus(status: string): string {
@@ -83,20 +102,33 @@ export class TasksComponent {
   }
 
   startOperation(op: VehicleOperation) {
-    this.operationService.updateVehicleOperation(op.id, { status: 'in_progress' }).subscribe({
-      next: () => this.notificationService.success(`Started: ${op.operation?.name}`),
-      error: () => this.notificationService.error('Failed to start operation.'),
-    });
+    this.operationService
+      .updateVehicleOperation(op.id, { status: 'in_progress' }, this.vehicleOperations())
+      .subscribe({
+        next: () => {
+          this.notificationService.success(`Started: ${op.operation?.name}`);
+          this.operationService
+            .fetchData()
+            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        },
+        error: () => this.notificationService.error('Failed to start operation.'),
+      });
   }
 
   completeOperation(op: VehicleOperation) {
     this.operationService
-      .updateVehicleOperation(op.id, {
-        status: 'completed',
-        completedAt: new Date(),
-      })
+      .updateVehicleOperation(
+        op.id,
+        { status: 'completed', completedAt: new Date() },
+        this.vehicleOperations(),
+      )
       .subscribe({
-        next: () => this.notificationService.success(`Completed: ${op.operation?.name}`),
+        next: () => {
+          this.notificationService.success(`Completed: ${op.operation?.name}`);
+          this.operationService
+            .fetchData()
+            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        },
         error: () => this.notificationService.error('Failed to complete operation.'),
       });
   }

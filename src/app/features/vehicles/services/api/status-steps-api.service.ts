@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BaseCrudService } from '../../../../core/services/base-crud.service';
-import { BackendStatusStep } from '../../models/vehicle.model';
+import { BaseCrudService } from '@core/services/base-crud.service';
+import { BackendStatusStep } from '@shared/models/operation.model';
 
 @Injectable({
   providedIn: 'root',

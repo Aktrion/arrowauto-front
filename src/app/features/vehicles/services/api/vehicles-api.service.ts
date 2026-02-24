@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BaseCrudService } from '../../../../core/services/base-crud.service';
-import { Vehicle } from '../../models/vehicle.model';
+import { BaseCrudService } from '@core/services/base-crud.service';
+import { Vehicle } from '@features/vehicles/models/vehicle.model';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 

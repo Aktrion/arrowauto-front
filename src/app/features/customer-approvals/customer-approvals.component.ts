@@ -1,11 +1,12 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '../../shared/icons';
-import { VehicleService } from '../vehicles/services/vehicle.service';
-import { ToastService } from '../../core/services/toast.service';
+import { ICONS } from '@shared/icons';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { ToastService } from '@core/services/toast.service';
+import { Product } from '@features/vehicles/models/vehicle.model';
 
 @Component({
   selector: 'app-customer-approvals',
@@ -78,18 +79,29 @@ import { ToastService } from '../../core/services/toast.service';
     </div>
   `,
 })
-export class CustomerApprovalsComponent {
-  private vehicleService = inject(VehicleService);
+export class CustomerApprovalsComponent implements OnInit {
+  private instanceApi = inject(VehicleInstancesApiService);
   private router = inject(Router);
   icons = ICONS;
 
-  pendingVehicles = computed(() => {
-    return this.vehicleService
-      .vehicles()
-      .filter(
-        (v) => (v.status as string) === 'pending_approval' || v.status === 'awaiting_approval',
-      );
-  });
+  vehicles = signal<Product[]>([]);
+
+  pendingVehicles = computed(() =>
+    this.vehicles().filter(
+      (v) => (v.status as string) === 'pending_approval' || v.status === 'awaiting_approval',
+    ),
+  );
+
+  ngOnInit(): void {
+    this.instanceApi
+      .findByPagination({
+        page: 1,
+        limit: 500,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      })
+      .subscribe((res) => this.vehicles.set(res.data ?? []));
+  }
 
   openPortal(vehicleId: string) {
     // Navigate to the public customer portal link with the vehicle ID parameter

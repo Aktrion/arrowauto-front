@@ -1,4 +1,4 @@
-import { User } from './user.model';
+import { User } from '@shared/models/user.model';
 
 export type OperationCategory = 'inspection' | 'cleaning' | 'repair' | 'maintenance' | 'other';
 

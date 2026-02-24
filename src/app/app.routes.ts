@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './auth/guards/auth.guard';
+import { authGuard } from '@auth/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -70,13 +70,6 @@ export const routes: Routes = [
         path: 'tasks',
         loadComponent: () =>
           import('./features/tasks/tasks.component').then((m) => m.TasksComponent),
-      },
-      {
-        path: 'pending-operations',
-        loadComponent: () =>
-          import('./features/pending-operations/pending-operations.component').then(
-            (m) => m.PendingOperationsComponent,
-          ),
       },
       {
         path: 'invoicing',

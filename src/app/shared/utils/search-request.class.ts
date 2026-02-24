@@ -1,4 +1,4 @@
-import { SearchRequestResponse } from '../../core/models/request.model';
+import { SearchRequestResponse } from '@core/models/request.model';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { finalize, switchMap, take } from 'rxjs/operators';
 

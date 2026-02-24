@@ -2,10 +2,12 @@ import { Component, Input, Output, EventEmitter, inject, signal, effect } from '
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { InspectionPointEditorComponent } from '../inspection-point-editor/inspection-point-editor.component';
-import { InspectionBlock, InspectionBlocksService } from '../../services/inspection-blocks.service';
-import { InspectionPointsService, InspectionPoint } from '../../services/inspection-points.service';
-import { ICONS } from '../../../../../shared/icons';
+import { InspectionPointEditorComponent } from '@features/settings/inspection-templates/components/inspection-point-editor/inspection-point-editor.component';
+import { InspectionBlock } from '@features/settings/inspection-templates/models/inspection-block.model';
+import { InspectionBlocksService } from '@features/settings/inspection-templates/services/inspection-blocks.service';
+import { InspectionPoint } from '@features/settings/inspection-templates/models/inspection-point.model';
+import { InspectionPointsService } from '@features/settings/inspection-templates/services/inspection-points.service';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-inspection-block-editor',
@@ -35,14 +37,18 @@ export class InspectionBlockEditorComponent {
   }
 
   loadPoints() {
-    this.pointsService.getPointsByBlockId(this.block._id).subscribe((res) => {
+    const blockId = this.block._id;
+    if (!blockId) return;
+    this.pointsService.getPointsByBlockId(blockId).subscribe((res) => {
       this.points.set(res.data);
     });
   }
 
   updateBlock() {
+    const blockId = this.block._id;
+    if (!blockId) return;
     this.blocksService
-      .update(this.block._id, {
+      .update(blockId, {
         name: this.block.name,
         active: this.block.active,
       })
@@ -63,7 +69,7 @@ export class InspectionBlockEditorComponent {
 
   deletePoint(id: string) {
     if (!confirm('Delete point?')) return;
-    this.pointsService.delete(id).subscribe(() => this.loadPoints());
+    this.pointsService.deleteById(id).subscribe(() => this.loadPoints());
   }
 
   onPointSaved() {

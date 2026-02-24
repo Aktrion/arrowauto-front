@@ -1,5 +1,6 @@
-import { Client } from '../../clients/models/client.model';
-import { BackendInspectionValue } from '../../inspection/services/inspection.service';
+import { Client } from '@features/clients/models/client.model';
+import { BackendInspectionValue } from '@features/inspection/models/inspection.model';
+import { MongoEntity } from '@shared/models/mongo-entity.model';
 
 export type VehicleStatus =
   | 'pending'
@@ -10,8 +11,7 @@ export type VehicleStatus =
   | 'completed'
   | 'invoiced';
 
-export interface Vehicle {
-  _id?: string;
+export interface Vehicle extends MongoEntity {
   licensePlate: string;
   make: string;
   model: string;
@@ -26,12 +26,9 @@ export interface Vehicle {
   // clientId?: string;
   // client?: Client;
   jobNumber?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
-export interface VehicleInstance {
-  _id?: string;
+export interface VehicleInstance extends MongoEntity {
   code?: string; // autogen, unique
   vehicleId?: string;
   vehicle?: Vehicle;
@@ -45,8 +42,6 @@ export interface VehicleInstance {
   labourEstimatedDate?: Date;
   taskAuthDate?: Date;
   checkOutDate?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
   inspectionValues?: BackendInspectionValue[];
   inspectionValueIds?: string[];
   // repairs: Repair[];
@@ -56,6 +51,8 @@ export interface VehicleInstance {
 
   odometer?: number;
   distanceUnit: 'miles' | 'km';
+  services?: string[];
+  operations?: string[];
 }
 
 // Legacy alias during migration
@@ -80,13 +77,7 @@ export interface VehicleInstanceActivityEvent {
 export type ProductActivityEvent = VehicleInstanceActivityEvent;
 
 // BackendSearchResponse unified into core SearchRequestResponse
-
-export interface BackendStatusStep {
-  _id?: string;
-  id?: string;
-  name?: string;
-  order?: number;
-}
+// BackendStatusStep moved to shared/models/operation.model.ts
 
 export interface BackendProductActivityEvent {
   type?: string;

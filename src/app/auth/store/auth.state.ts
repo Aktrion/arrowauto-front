@@ -1,12 +1,12 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { Injectable, inject } from '@angular/core';
-import { Login, Logout, UpdateUser } from './auth.actions';
-import { AuthService } from '../service/auth.service';
+import { Login, Logout, UpdateUser } from '@auth/store/auth.actions';
+import { AuthService } from '@auth/service/auth.service';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
-import { User } from '../../core/models';
+import { User } from '@shared/models/user.model';
 
 export interface AuthStateModel {
   token: string | null;

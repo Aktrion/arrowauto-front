@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '../../icons';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-language-switcher',

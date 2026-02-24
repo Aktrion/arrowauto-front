@@ -1,12 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-
-interface LoginResponse {
-  message: string;
-  user: { id: string; userName: string; name: string };
-  token: string;
-}
+import { environment } from '@env/environment';
+import { LoginResponse } from '@auth/models/auth.model';
 
 @Injectable({
   providedIn: 'root',
