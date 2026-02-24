@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { of, switchMap, forkJoin } from 'rxjs';
 import { ICONS } from '@shared/icons';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
-import { BackendInspectionValue } from '@features/inspection/models/inspection.model';
+import { InspectionValue } from '@features/inspection/models/inspection.model';
 import { InspectionService } from '@features/inspection/services/inspection.service';
 import { ToastService } from '@core/services/toast.service';
 import { OperationService } from '@shared/services/operation.service';
@@ -221,13 +221,13 @@ export class CustomerPortalComponent implements OnInit {
       });
   }
 
-  private tryLoadFirstInspectionData(productIds: string[]): Observable<BackendInspectionValue[]> {
+  private tryLoadFirstInspectionData(productIds: string[]): Observable<InspectionValue[]> {
     const [currentId, ...rest] = productIds;
     if (!currentId) {
       this.currentProductId.set(null);
       this.repairItems = [];
       this.inspectionCategories = [];
-      return of([] as BackendInspectionValue[]);
+      return of([] as InspectionValue[]);
     }
 
     return this.inspectionService.getInspectionValuesByProduct(currentId).pipe(
@@ -235,7 +235,7 @@ export class CustomerPortalComponent implements OnInit {
         if (values.length > 0 || rest.length === 0) {
           this.currentProductId.set(currentId);
           this.applyInspectionData(values);
-          return of(values as BackendInspectionValue[]);
+          return of(values as InspectionValue[]);
         }
         return this.tryLoadFirstInspectionData(rest);
       }),
@@ -249,7 +249,7 @@ export class CustomerPortalComponent implements OnInit {
     });
   }
 
-  private applyInspectionData(values: BackendInspectionValue[]) {
+  private applyInspectionData(values: InspectionValue[]) {
     const points = this.inspectionPoints();
     const pointMap = new Map(points.map((point) => [point.id, point]));
 

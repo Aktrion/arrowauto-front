@@ -1,7 +1,7 @@
 import { MongoEntity } from '@shared/models/mongo-entity.model';
 
-/** Catálogo maestro de operaciones (tipos de trabajo) - API /operations */
-export interface OperationMaster {
+/** Catalogo maestro de operaciones (tipos de trabajo) - API /operations */
+export interface OperationMaster extends MongoEntity {
   id: string;
   shortName: string;
   description?: string;
@@ -9,15 +9,7 @@ export interface OperationMaster {
   defaultRatePerHour: number;
 }
 
-export interface BackendOperation extends MongoEntity {
-  id?: string;
-  shortName: string;
-  description?: string;
-  defaultDuration: number;
-  defaultRatePerHour: number;
-}
-
-export interface BackendStatusStep {
+export interface StatusStep {
   _id?: string;
   id?: string;
   name: string;
@@ -25,7 +17,7 @@ export interface BackendStatusStep {
   order?: number;
 }
 
-export interface BackendProduct {
+export interface ProductReference {
   _id?: string;
   id?: string;
   vehicleId?: string;

@@ -3,7 +3,7 @@ import { catchError, map, Observable, of } from 'rxjs';
 import { BaseCrudService } from '@core/services/base-crud.service';
 import {
   VehicleInstance,
-  BackendProductActivityResponse,
+  VehicleInstanceActivityResponse,
   ProductActivityEvent,
   VehicleInstanceActivityEventType,
 } from '@features/vehicles/models/vehicle.model';
@@ -20,8 +20,8 @@ export class VehicleInstancesApiService extends BaseCrudService<
     super('/vehicle-instances');
   }
 
-  getActivity(id: string): Observable<BackendProductActivityResponse> {
-    return this.get<BackendProductActivityResponse>(`/${id}/activity`);
+  getActivity(id: string): Observable<VehicleInstanceActivityResponse> {
+    return this.get<VehicleInstanceActivityResponse>(`/${id}/activity`);
   }
 
   findInstanceByVehicleId(vehicleId: string): Observable<VehicleInstance | null> {

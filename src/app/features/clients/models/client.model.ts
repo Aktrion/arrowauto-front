@@ -10,7 +10,7 @@ export interface Client {
   type: 'individual' | 'company';
 }
 
-export interface BackendCustomer extends MongoEntity {
+export interface Customer extends MongoEntity {
   id?: string;
   title?: string;
   firstName: string;

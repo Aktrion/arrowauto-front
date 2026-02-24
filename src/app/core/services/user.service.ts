@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
-import { User, BackendUser } from '@shared/models/user.model';
+import { User } from '@shared/models/user.model';
 import { environment } from '@env/environment';
 
 @Injectable({
@@ -12,7 +12,7 @@ export class UserService {
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
   fetchUsers(): Observable<User[]> {
-    return this.http.get<BackendUser[]>(this.apiUrl).pipe(
+    return this.http.get<User[]>(this.apiUrl).pipe(
       catchError(() => of([])),
       map((users) => users.map((user) => this.mapUser(user))),
     );
@@ -32,7 +32,10 @@ export class UserService {
     return users.find((u) => u.id === id);
   }
 
-  private mapUser(user: BackendUser): User {
+  private mapUser(user: User): User {
+    const role = user.role as User['role'] | undefined;
+    const roleId = user.roleId || (role as any)?._id || (role as any)?.id;
+    const roleName = (role as any)?.name;
     return {
       id: user._id || user.id,
       name: user.name,
@@ -42,10 +45,10 @@ export class UserService {
       imageUrl: user.imageUrl || user.avatar,
       emails: user.emails,
       enabled: user.enabled ?? user.isActive ?? true,
-      roleId: user.roleId || user.role?._id || user.role?.id,
-      role: user.role
+      roleId,
+      role: roleName
         ? {
-            name: user.role.name,
+            name: roleName,
             permissions: [],
           }
         : undefined,

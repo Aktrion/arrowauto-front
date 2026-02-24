@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import {
   Client,
-  BackendCustomer,
+  Customer,
   CreateCustomerDto,
   UpdateCustomerDto,
 } from '@features/clients/models/client.model';
@@ -42,7 +42,7 @@ export class ClientService {
     };
 
     return this.customersApi.create(dto).pipe(
-      map((created) => this.mapClient(created as unknown as BackendCustomer)),
+      map((created) => this.mapClient(created as unknown as Customer)),
     );
   }
 
@@ -67,11 +67,11 @@ export class ClientService {
     }
 
     return this.customersApi.update(id, dto).pipe(
-      map((updated) => this.mapClient(updated as unknown as BackendCustomer)),
+      map((updated) => this.mapClient(updated as unknown as Customer)),
     );
   }
 
-  private mapClient(customer: BackendCustomer): Client {
+  private mapClient(customer: Customer): Client {
     const name = `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim();
     return {
       id: customer._id || customer.id || '',

@@ -2,7 +2,7 @@ import { User } from '@shared/models/user.model';
 import { Vehicle } from '@features/vehicles/models/vehicle.model';
 import { MongoEntity } from '@shared/models/mongo-entity.model';
 
-export interface BackendInspectionPoint {
+export interface InspectionPointEntity {
   _id?: string;
   id?: string;
   name: string;
@@ -12,14 +12,14 @@ export interface BackendInspectionPoint {
   type?: 'standard' | 'tyre';
 }
 
-export interface BackendInspectionBlock {
+export interface InspectionBlockEntity {
   _id?: string;
   id?: string;
   name: string;
   order?: number;
 }
 
-export interface BackendInspectionValue extends MongoEntity {
+export interface InspectionValue extends MongoEntity {
   id?: string;
   vehicleInstanceId?: string;
   productId?: string;
@@ -34,7 +34,7 @@ export interface BackendInspectionValue extends MongoEntity {
   outerDepth?: number;
 }
 
-export interface BackendTemplatePoint {
+export interface InspectionTemplatePoint {
   _id?: string;
   id?: string;
   name: string;
@@ -43,19 +43,19 @@ export interface BackendTemplatePoint {
   tyrePosition?: string;
 }
 
-export interface BackendTemplateBlock {
+export interface InspectionTemplateBlock {
   _id?: string;
   id?: string;
   name: string;
   order?: number;
-  points?: BackendTemplatePoint[];
+  points?: InspectionTemplatePoint[];
 }
 
-export interface BackendInspectionTemplateStructure {
+export interface InspectionTemplateStructure {
   _id?: string;
   id?: string;
   name: string;
-  blocks: BackendTemplateBlock[];
+  blocks: InspectionTemplateBlock[];
 }
 
 export interface InspectionPoint {

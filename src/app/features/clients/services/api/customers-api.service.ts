@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseCrudService } from '@core/services/base-crud.service';
 import {
   Client,
-  BackendCustomer,
+  Customer,
   CreateCustomerDto,
   UpdateCustomerDto,
 } from '@features/clients/models/client.model';
@@ -24,12 +24,12 @@ export class CustomersApiService extends BaseCrudService<
     return this.findAll().pipe(
       catchError(() => of([])),
       map((customers) =>
-        (customers as BackendCustomer[]).map((c) => this.mapClient(c)),
+        (customers as Customer[]).map((c) => this.mapClient(c)),
       ),
     );
   }
 
-  private mapClient(customer: BackendCustomer): Client {
+  private mapClient(customer: Customer): Client {
     const name = `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim();
     return {
       id: customer._id || customer.id || '',

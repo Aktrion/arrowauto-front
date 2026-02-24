@@ -1,5 +1,5 @@
 import { Client } from '@features/clients/models/client.model';
-import { BackendInspectionValue } from '@features/inspection/models/inspection.model';
+import { InspectionValue } from '@features/inspection/models/inspection.model';
 import { MongoEntity } from '@shared/models/mongo-entity.model';
 
 export type VehicleStatus =
@@ -42,7 +42,7 @@ export interface VehicleInstance extends MongoEntity {
   labourEstimatedDate?: Date;
   taskAuthDate?: Date;
   checkOutDate?: Date;
-  inspectionValues?: BackendInspectionValue[];
+  inspectionValues?: InspectionValue[];
   inspectionValueIds?: string[];
   // repairs: Repair[];
   // operations: Operation[];
@@ -76,10 +76,10 @@ export interface VehicleInstanceActivityEvent {
 // Legacy alias during migration
 export type ProductActivityEvent = VehicleInstanceActivityEvent;
 
-// BackendSearchResponse unified into core SearchRequestResponse
-// BackendStatusStep moved to shared/models/operation.model.ts
+// SearchRequestResponse unified into core type
+// StatusStep moved to shared/models/operation.model.ts
 
-export interface BackendProductActivityEvent {
+export interface VehicleInstanceActivityEventPayload {
   type?: string;
   occurredAt?: string;
   actorName?: string;
@@ -87,10 +87,10 @@ export interface BackendProductActivityEvent {
   metadata?: Record<string, unknown>;
 }
 
-export interface BackendProductActivityResponse {
+export interface VehicleInstanceActivityResponse {
   vehicleInstanceId?: string;
   // Legacy compatibility field
   productId?: string;
   total?: number;
-  data?: BackendProductActivityEvent[];
+  data?: VehicleInstanceActivityEventPayload[];
 }

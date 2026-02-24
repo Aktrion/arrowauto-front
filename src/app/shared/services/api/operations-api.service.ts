@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BaseCrudService } from '@core/services/base-crud.service';
-import {
-  OperationMaster,
-  BackendOperation,
-} from '@shared/models/operation.model';
+import { OperationMaster } from '@shared/models/operation.model';
 import { map, catchError, of } from 'rxjs';
 
 @Injectable({
@@ -25,7 +22,7 @@ export class OperationsApiService extends BaseCrudService<
     );
   }
 
-  private mapOperationMaster(op: BackendOperation | any): OperationMaster {
+  private mapOperationMaster(op: OperationMaster | any): OperationMaster {
     return {
       id: op._id || op.id || '',
       shortName: op.shortName,

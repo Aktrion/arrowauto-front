@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseCrudService } from '@core/services/base-crud.service';
 import {
-  BackendInspectionTemplateStructure,
+  InspectionTemplateStructure,
   InspectionPoint,
 } from '@features/inspection/models/inspection.model';
 import { map, catchError, of } from 'rxjs';
@@ -10,7 +10,7 @@ import { map, catchError, of } from 'rxjs';
   providedIn: 'root',
 })
 export class InspectionTemplatesApiService extends BaseCrudService<
-  BackendInspectionTemplateStructure,
+  InspectionTemplateStructure,
   Record<string, unknown>,
   Record<string, unknown>
 > {
@@ -19,7 +19,7 @@ export class InspectionTemplatesApiService extends BaseCrudService<
   }
 
   getStructure(templateId: string) {
-    return this.get<BackendInspectionTemplateStructure>(`/${templateId}/structure`).pipe(
+    return this.get<InspectionTemplateStructure>(`/${templateId}/structure`).pipe(
       map((structure) => {
         const blocks = structure?.blocks || (structure as any)?.data?.blocks || [];
         const sortedBlocks = [...blocks].sort(

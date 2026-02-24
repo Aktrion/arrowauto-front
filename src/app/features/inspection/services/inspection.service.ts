@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   InspectionPoint,
-  BackendInspectionValue,
+  InspectionValue,
 } from '@features/inspection/models/inspection.model';
 import { InspectionPointsApiService } from '@features/inspection/services/api/inspection-points-api.service';
 import { InspectionValuesApiService } from '@features/inspection/services/api/inspection-values-api.service';
@@ -20,15 +20,15 @@ export class InspectionService {
     return this.pointsApi.getWithBlocks();
   }
 
-  getInspectionValuesByProduct(vehicleInstanceId: string): Observable<BackendInspectionValue[]> {
+  getInspectionValuesByProduct(vehicleInstanceId: string): Observable<InspectionValue[]> {
     return this.valuesApi.searchByVehicleInstance(vehicleInstanceId);
   }
 
-  getAllInspectionValues(): Observable<BackendInspectionValue[]> {
+  getAllInspectionValues(): Observable<InspectionValue[]> {
     return this.valuesApi.searchAll();
   }
 
-  getInspectionValuesByIds(ids: string[]): Observable<BackendInspectionValue[]> {
+  getInspectionValuesByIds(ids: string[]): Observable<InspectionValue[]> {
     return this.valuesApi.searchByIds(ids);
   }
 
