@@ -1,224 +1,374 @@
-<div class="space-y-4">
-  <div class="card bg-base-100 shadow-sm border border-base-200 rounded-xl p-4">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-      <div class="min-w-0">
-        <h2 class="text-xl font-bold truncate">{{ config.title | translate }}</h2>
+<div class="flex flex-col">
+  <!-- Toolbar: Title left, Search + Filters + New right -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+    <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+      <div class="flex items-center gap-3">
+        <lucide-icon
+          *ngIf="config.titleIcon"
+          [name]="$any(getTitleIcon())"
+          class="h-6 w-6 text-base-content/70"
+        ></lucide-icon>
+        <h2
+          [attr.title]="config.title | translate"
+          class="text-xl font-semibold text-base-content text-ellipsis overflow-hidden whitespace-nowrap max-w-[90vw] md:max-w-[calc(80vw-500px)]"
+        >
+          {{ config.title | translate }}
+        </h2>
       </div>
+    </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <ng-container *ngFor="let button of config.customHeaderButtons || []">
-          <button
-            class="btn btn-sm {{ button.class || 'btn-outline' }}"
-            [disabled]="button.loading || button.disabled"
-            (click)="onCustomHeaderButtonClick(button)"
-          >
-            <span *ngIf="button.loading" class="loading loading-spinner loading-xs"></span>
-            {{ button.label | translate }}
-          </button>
-        </ng-container>
-
-        <div class="relative">
+    <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+      <!-- Custom Header Buttons -->
+      <ng-container *ngFor="let button of config.customHeaderButtons || []">
+        <button
+          class="btn {{ button.class || 'btn-primary' }} btn-sm sm:btn-md"
+          [disabled]="button.loading || button.disabled"
+          (click)="onCustomHeaderButtonClick(button)"
+        >
+          <span *ngIf="button.loading" class="loading loading-spinner loading-sm mr-2"></span>
           <lucide-icon
-            [name]="icons.Search"
-            class="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40"
+            *ngIf="!button.loading && getHeaderButtonIcon(button)"
+            [name]="$any(getHeaderButtonIcon(button))"
+            class="h-5 w-5"
           ></lucide-icon>
+          {{ button.label | translate }}
+        </button>
+      </ng-container>
+
+      <!-- Search (input-group style) -->
+      <div class="form-control flex-1 sm:flex-none">
+        <div class="join w-full sm:w-auto">
           <input
             type="text"
-            class="input input-sm input-bordered pl-9 w-64"
+            class="input input-bordered input-sm sm:input-md join-item md:w-60 flex-1"
             [ngModel]="quickFilter"
             (ngModelChange)="onQuickFilterInput($event)"
             [placeholder]="'COMMON.SEARCH' | translate"
           />
+          <button
+            *ngIf="quickFilter"
+            type="button"
+            class="btn btn-outline btn-square btn-error btn-sm sm:btn-md join-item"
+            (click)="clearQuickFilter()"
+          >
+            <lucide-icon [name]="icons.X" class="h-4 w-4"></lucide-icon>
+          </button>
+          <button class="btn btn-square btn-sm sm:btn-md join-item bg-gray-100 border-gray-200">
+            <lucide-icon [name]="icons.Search" class="h-5 w-5 text-base-content/70"></lucide-icon>
+          </button>
         </div>
+      </div>
 
-        <button class="btn btn-sm btn-outline" (click)="toggleFilterSidebar()">
-          Filters
-          <span *ngIf="activeFilterCount > 0" class="badge badge-primary badge-sm">{{
-            activeFilterCount
-          }}</span>
-        </button>
+      <!-- Filters Button -->
+      <button
+        class="btn btn-outline btn-sm sm:btn-md relative border-gray-300 bg-white hover:bg-gray-50"
+        (click)="toggleFilterSidebar()"
+      >
+        <lucide-icon [name]="icons.Filter" class="h-5 w-5"></lucide-icon>
+        {{ 'COMMON.FILTERS' | translate }}
+        <span
+          *ngIf="activeFilterCount > 0"
+          class="badge badge-primary badge-sm absolute -top-2 -right-2"
+        >
+          {{ activeFilterCount }}
+        </span>
+      </button>
 
-        <button *ngIf="config.showNewButton" class="btn btn-sm btn-primary" (click)="onCreate()">
-          <lucide-icon [name]="icons.Plus" class="h-4 w-4"></lucide-icon>
-          <span>{{ 'COMMON.NEW' | translate }}</span>
-        </button>
+      <!-- New Button -->
+      <button
+        *ngIf="config.showNewButton"
+        class="btn btn-primary btn-sm sm:btn-md"
+        (click)="onCreate()"
+      >
+        <lucide-icon [name]="icons.Plus" class="h-5 w-5"></lucide-icon>
+        {{ 'COMMON.NEW' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="bg-white rounded-t-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div>
+      <div class="overflow-auto w-full rounded-t-lg max-h-[calc(100vh-320px)]">
+        <table class="table w-full">
+          <thead class="sticky top-0 z-10">
+            <tr>
+              <th
+                *ngIf="config.selectable !== false"
+                class="w-12 sticky left-0 z-10 border-b border-gray-200"
+              >
+                <input
+                  type="checkbox"
+                  class="checkbox checkbox-sm"
+                  [checked]="allSelected"
+                  (change)="toggleSelectAll()"
+                  [disabled]="config.loading"
+                />
+              </th>
+              <th
+                *ngFor="let col of config.columnDefs"
+                [class.cursor-pointer]="col.sortable && !config.loading"
+                (click)="!config.loading && col.sortable && onSort(col.field)"
+                class="whitespace-nowrap border-b border-gray-200 text-base-content font-semibold"
+              >
+                <div *ngIf="!col.hide" class="flex items-center gap-2">
+                  <ng-container *ngIf="config.loading">
+                    <div class="skeleton h-4 w-20"></div>
+                  </ng-container>
+                  <ng-container *ngIf="!config.loading">
+                    {{ col.dontTranslate ? col.headerName : (col.headerName | translate) }}
+                    <span *ngIf="col.sortable" class="inline-flex">
+                      <lucide-icon
+                        *ngIf="sortField === col.field"
+                        [name]="
+                          sortDirection === 'asc'
+                            ? icons.ChevronUp
+                            : sortDirection === 'desc'
+                              ? icons.ChevronDown
+                              : icons.ChevronsUpDown
+                        "
+                        class="h-4 w-4 text-primary"
+                      ></lucide-icon>
+                      <lucide-icon
+                        *ngIf="sortField !== col.field"
+                        [name]="icons.ChevronsUpDown"
+                        class="h-4 w-4 text-gray-400"
+                      ></lucide-icon>
+                    </span>
+                  </ng-container>
+                </div>
+              </th>
+              <th
+                class="w-24 sticky text-base-content right-0 text-center p-2 border-b border-l bg-base-100 border-gray-200"
+              >
+                <div *ngIf="config.loading" class="skeleton h-4 w-12 mx-auto"></div>
+                <span *ngIf="!config.loading">{{ 'COMMON.ACTIONS' | translate }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Skeleton Rows -->
+            <ng-container *ngIf="config.loading">
+              <tr *ngFor="let _ of skeletonRows" class="hover:bg-inherit">
+                <td *ngIf="config.selectable !== false" class="sticky left-0 z-10 bg-white">
+                  <div class="skeleton w-4 h-4 rounded"></div>
+                </td>
+                <td *ngFor="let col of config.columnDefs">
+                  <ng-container *ngIf="!col.hide">
+                    <div class="skeleton h-4 w-24"></div>
+                  </ng-container>
+                </td>
+                <td class="sticky right-0 bg-white border-l border-gray-200">
+                  <div class="flex justify-center gap-1">
+                    <div class="skeleton w-6 h-6 rounded"></div>
+                    <div class="skeleton w-6 h-6 rounded"></div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+
+            <!-- Data Rows -->
+            <ng-container *ngIf="!config.loading">
+              <tr *ngFor="let row of displayedRows" class="hover:bg-gray-50">
+                <td *ngIf="config.selectable !== false" class="sticky left-0 z-10 bg-inherit">
+                  <input
+                    type="checkbox"
+                    class="checkbox checkbox-sm"
+                    [checked]="isSelected(row)"
+                    (change)="toggleSelect(row)"
+                  />
+                </td>
+                <td *ngFor="let col of config.columnDefs" class="whitespace-nowrap">
+                  <ng-container *ngIf="!col.hide">
+                    <ng-container *ngIf="col.cellRenderer; else plainCell">
+                      <div
+                        [innerHTML]="
+                          col.cellRenderer({ value: getNestedValue(row, col.field), data: row })
+                        "
+                      ></div>
+                    </ng-container>
+                    <ng-template #plainCell>{{ formatValue(row, col) }}</ng-template>
+                  </ng-container>
+                </td>
+                <td class="sticky right-0 bg-inherit border-l !bg-base-100 border-gray-200">
+                  <div class="flex justify-center items-center gap-0.5 px-1">
+                    <button
+                      *ngIf="config.showEditButton"
+                      class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
+                      [attr.title]="'COMMON.EDIT' | translate"
+                      (click)="onEdit(row)"
+                    >
+                      <lucide-icon
+                        [name]="icons.Pencil"
+                        class="h-5 w-5 text-green-600"
+                      ></lucide-icon>
+                    </button>
+                    <button
+                      *ngFor="let action of config.customActions || []"
+                      class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
+                      [attr.title]="action.tooltip || action.iconLabel || ''"
+                      [hidden]="action.visible && !action.visible(row)"
+                      (click)="onCustomAction(action, row)"
+                    >
+                      <lucide-icon
+                        *ngIf="getActionIcon(action)"
+                        [name]="$any(getActionIcon(action))"
+                        class="h-4 w-4"
+                        [ngClass]="action.iconClass"
+                      ></lucide-icon>
+                      <span *ngIf="!getActionIcon(action)">{{ action.iconLabel || 'Action' }}</span>
+                    </button>
+                    <button
+                      *ngIf="config.showDeleteButton"
+                      class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
+                      [attr.title]="'COMMON.DELETE' | translate"
+                      (click)="onDelete(row)"
+                    >
+                      <lucide-icon [name]="icons.Trash2" class="h-5 w-5 text-error"></lucide-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr *ngIf="displayedRows.length === 0">
+                <td
+                  [attr.colspan]="config.columnDefs.length + (config.selectable === false ? 1 : 2)"
+                  class="py-10 text-center text-base-content/60"
+                >
+                  {{ 'COMMON.NO_RECORDS' | translate }}
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <div class="card bg-base-100 shadow-sm rounded-2xl border border-base-200 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="table table-zebra w-full">
-        <thead>
-          <tr class="bg-base-200/50 text-base-content/70">
-            <th class="w-12" *ngIf="config.selectable !== false">
-              <input
-                type="checkbox"
-                class="checkbox checkbox-sm"
-                [checked]="allSelected"
-                (change)="toggleSelectAll()"
-              />
-            </th>
-            <th
-              *ngFor="let col of config.columnDefs"
-              [class.cursor-pointer]="col.sortable"
-              (click)="col.sortable && onSort(col.field)"
-            >
-              <span *ngIf="!col.hide">
-                {{ col.dontTranslate ? col.headerName : (col.headerName | translate) }}
-                <span *ngIf="col.sortable">
-                  <span *ngIf="sortField !== col.field">↕</span>
-                  <span *ngIf="sortField === col.field && sortDirection === 'asc'">↑</span>
-                  <span *ngIf="sortField === col.field && sortDirection === 'desc'">↓</span>
-                </span>
-              </span>
-            </th>
-            <th class="w-24 text-right"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="config.loading">
-            <td [attr.colspan]="config.columnDefs.length + (config.selectable === false ? 1 : 2)">
-              <div class="py-8 text-center text-base-content/60">Loading...</div>
-            </td>
-          </tr>
-
-          <ng-container *ngIf="!config.loading">
-            <tr *ngFor="let row of displayedRows">
-              <td *ngIf="config.selectable !== false">
-                <input
-                  type="checkbox"
-                  class="checkbox checkbox-sm"
-                  [checked]="isSelected(row)"
-                  (change)="toggleSelect(row)"
-                />
-              </td>
-              <td *ngFor="let col of config.columnDefs">
-                <ng-container *ngIf="!col.hide">
-                  <ng-container *ngIf="col.cellRenderer; else plainCell">
-                    <div
-                      [innerHTML]="
-                        col.cellRenderer({ value: getNestedValue(row, col.field), data: row })
-                      "
-                    ></div>
-                  </ng-container>
-                  <ng-template #plainCell>{{ formatValue(row, col) }}</ng-template>
-                </ng-container>
-              </td>
-              <td class="text-right">
-                <div class="inline-flex items-center gap-1">
-                  <button
-                    *ngIf="config.showEditButton"
-                    class="btn btn-xs btn-ghost btn-square"
-                    [attr.title]="'COMMON.EDIT' | translate"
-                    (click)="onEdit(row)"
-                  >
-                    <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
-                  </button>
-                  <button
-                    *ngFor="let action of config.customActions || []"
-                    class="btn btn-xs btn-ghost btn-square"
-                    [attr.title]="action.tooltip || action.iconLabel || ''"
-                    [hidden]="action.visible && !action.visible(row)"
-                    (click)="onCustomAction(action, row)"
-                  >
-                    <lucide-icon
-                      *ngIf="getActionIcon(action)"
-                      [name]="$any(getActionIcon(action))"
-                      class="h-4 w-4"
-                    ></lucide-icon>
-                    <span *ngIf="!getActionIcon(action)">{{
-                      action.iconLabel || 'Action'
-                    }}</span>
-                  </button>
-                  <button
-                    *ngIf="config.showDeleteButton"
-                    class="btn btn-xs btn-ghost btn-square text-error hover:bg-error/10"
-                    [attr.title]="'COMMON.DELETE' | translate"
-                    (click)="onDelete(row)"
-                  >
-                    <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
-                  </button>
-                </div>
-              </td>
-            </tr>
-
-            <tr *ngIf="displayedRows.length === 0">
-              <td [attr.colspan]="config.columnDefs.length + (config.selectable === false ? 1 : 2)">
-                <div class="py-10 text-center text-base-content/60">No records found</div>
-              </td>
-            </tr>
-          </ng-container>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
+  <!-- Pagination Footer -->
   <div
-    class="card bg-base-100 shadow-sm border border-base-200 rounded-xl p-3 flex items-center justify-between"
+    class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white px-4 py-2 shadow-sm rounded-b-lg border border-t-0 border-gray-200"
   >
-    <p class="text-sm text-base-content/60">
-      Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ totalItems }}
-    </p>
-
-    <div class="flex items-center gap-2">
-      <app-select
-        class="w-32"
-        [options]="pageSizeOptions"
-        [selectedValue]="pageSize"
-        [clearable]="false"
-        placeholder="Page size"
-        (selectionChange)="onPageSizeSelection($event)"
-      ></app-select>
-
+    <div class="text-sm text-gray-500 order-2 sm:order-1">
+      {{
+        'COMMON.SHOWING_ENTRIES'
+          | translate: { start: startIndex + 1, end: endIndex, total: totalItems }
+      }}
+    </div>
+    <div class="flex flex-wrap items-center gap-4 order-1 sm:order-2">
       <div class="join">
         <button
-          class="join-item btn btn-sm"
+          class="join-item btn btn-ghost btn-sm px-1"
           [disabled]="currentPage <= 0"
           (click)="onPageChange(currentPage - 1)"
         >
           <lucide-icon [name]="icons.ChevronLeft" class="h-4 w-4"></lucide-icon>
         </button>
-        <button class="join-item btn btn-sm btn-ghost cursor-default">
-          Page {{ currentPage + 1 }} / {{ totalPages || 1 }}
+        <button
+          *ngIf="currentPage > 2"
+          class="join-item btn btn-ghost btn-sm"
+          (click)="onPageChange(0)"
+        >
+          1
+        </button>
+        <button *ngIf="currentPage > 3" class="join-item btn btn-ghost btn-sm btn-disabled">
+          ...
         </button>
         <button
-          class="join-item btn btn-sm"
+          *ngIf="currentPage > 0"
+          class="join-item btn btn-ghost btn-sm"
+          (click)="onPageChange(currentPage - 1)"
+        >
+          {{ currentPage }}
+        </button>
+        <button class="join-item btn btn-ghost btn-sm bg-gray-200 font-medium">
+          {{ currentPage + 1 }}
+        </button>
+        <button
+          *ngIf="currentPage < totalPages - 1"
+          class="join-item btn btn-ghost btn-sm"
+          (click)="onPageChange(currentPage + 1)"
+        >
+          {{ currentPage + 2 }}
+        </button>
+        <button
+          *ngIf="currentPage < totalPages - 4"
+          class="join-item btn btn-ghost btn-sm btn-disabled"
+        >
+          ...
+        </button>
+        <button
+          *ngIf="currentPage < totalPages - 3"
+          class="join-item btn btn-ghost btn-sm"
+          (click)="onPageChange(totalPages - 1)"
+        >
+          {{ totalPages }}
+        </button>
+        <button
+          class="join-item btn btn-ghost btn-sm px-1"
           [disabled]="currentPage >= totalPages - 1"
           (click)="onPageChange(currentPage + 1)"
         >
           <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
         </button>
       </div>
+      <div class="form-control">
+        <select
+          class="select select-bordered select-sm max-w-32"
+          [ngModel]="pageSize"
+          (ngModelChange)="onPageSizeSelection($any($event))"
+        >
+          <option [ngValue]="15">{{ 'COMMON.PER_PAGE' | translate: { count: 15 } }}</option>
+          <option [ngValue]="30">{{ 'COMMON.PER_PAGE' | translate: { count: 30 } }}</option>
+          <option [ngValue]="50">{{ 'COMMON.PER_PAGE' | translate: { count: 50 } }}</option>
+          <option [ngValue]="100">{{ 'COMMON.PER_PAGE' | translate: { count: 100 } }}</option>
+        </select>
+      </div>
     </div>
   </div>
 
+  <!-- Filter Sidebar -->
   <div
-    class="fixed top-0 right-0 h-full w-full sm:w-80 bg-base-100 border-l border-base-200 shadow-xl transition-transform duration-300 z-50"
+    class="fixed top-0 right-0 h-full w-full sm:w-80 bg-white border-l border-gray-200 shadow-xl transition-transform duration-300 z-50"
     [class.translate-x-0]="showFilterSidebar"
     [class.translate-x-full]="!showFilterSidebar"
   >
-    <div class="p-4 space-y-4">
+    <div class="p-4 space-y-4 overflow-y-auto h-full">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">Filters</h3>
-        <button class="btn btn-sm btn-ghost" (click)="toggleFilterSidebar()">x</button>
+        <h3 class="text-lg font-semibold">{{ 'COMMON.FILTERS' | translate }}</h3>
+        <button class="btn btn-ghost btn-sm" (click)="toggleFilterSidebar()">
+          <lucide-icon [name]="icons.X" class="h-5 w-5"></lucide-icon>
+        </button>
       </div>
 
-      <button class="btn btn-sm btn-outline w-full" (click)="clearFilters()">Clear filters</button>
+      <button class="btn btn-outline btn-sm w-full" (click)="clearFilters()">
+        <lucide-icon [name]="icons.FilterX" class="h-5 w-5"></lucide-icon>
+        {{ 'COMMON.CLEAR_FILTERS' | translate }}
+      </button>
 
       <div *ngFor="let col of config.columnDefs">
         <ng-container *ngIf="col.filterable && filters[col.field]">
-          <label class="label py-1">
-            <span class="label-text">{{
+          <label class="form-control w-full">
+            <span class="label-text font-medium">{{
               col.dontTranslate ? col.headerName : (col.headerName | translate)
             }}</span>
+            <input
+              type="text"
+              class="input input-bordered input-sm w-full mt-1"
+              [(ngModel)]="filters[col.field].value"
+              (ngModelChange)="onFilterChange()"
+              [placeholder]="
+                'COMMON.FILTER_BY'
+                  | translate
+                    : {
+                        field: (col.dontTranslate
+                          ? col.headerName
+                          : (col.headerName | translate)
+                        ).toLowerCase(),
+                      }
+              "
+            />
           </label>
-          <input
-            type="text"
-            class="input input-sm input-bordered w-full"
-            [(ngModel)]="filters[col.field].value"
-            (ngModelChange)="onFilterChange()"
-          />
         </ng-container>
       </div>
     </div>

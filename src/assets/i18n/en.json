@@ -31,13 +31,24 @@
     "PREVIEW": "Preview",
     "GENERATE_INVOICE": "Generate Invoice",
     "EDIT": "Edit",
-    "DELETE": "Delete"
+    "DELETE": "Delete",
+    "ACTIONS": "Actions",
+    "FILTERS": "Filters",
+    "SHOWING_ENTRIES": "Showing {{start}} to {{end}} of {{total}}",
+    "PER_PAGE": "{{count}} per page",
+    "CLEAR_FILTERS": "Clear All Filters",
+    "FILTER_BY": "Filter by {{field}}",
+    "NO_RECORDS": "No records found"
   },
   "SHELL": {
     "LOGO": {
       "SUBTITLE": "Vehicle Management"
     },
     "SIDEBAR": {
+      "GROUP_MAIN": "Main",
+      "GROUP_OPERATIONS": "Operations",
+      "GROUP_CUSTOMER": "Customer",
+      "GROUP_SETTINGS": "Settings",
       "MAIN": "Main",
       "DASHBOARD": "Dashboard",
       "VEHICLES_INSTANCES": "Vehicles Instances",
@@ -267,8 +278,18 @@
       "MAKE_MODEL": "Make & Model",
       "LICENSE_PLATE": "License Plate",
       "VIN": "VIN",
-      "YEAR": "Year",
-      "COLOR": "Color"
+      "COLOR": "Color",
+      "ENGINE": "Engine",
+      "MILEAGE": "Mileage"
+    },
+    "MODAL": {
+      "EDIT_TITLE": "Edit Vehicle"
+    },
+    "TOAST": {
+      "UPDATED": "Vehicle updated successfully.",
+      "UPDATE_FAILED": "Failed to update vehicle.",
+      "DELETED": "Vehicle deleted.",
+      "DELETE_FAILED": "Failed to delete vehicle."
     }
   },
   "VEHICLE": {

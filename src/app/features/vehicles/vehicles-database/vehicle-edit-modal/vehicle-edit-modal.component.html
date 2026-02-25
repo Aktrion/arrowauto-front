@@ -1,0 +1,122 @@
+<dialog #modal class="modal" (close)="onDialogClosed()">
+  <div class="modal-box max-w-lg bg-base-100 border border-base-300">
+    <form method="dialog">
+      <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4" (click)="close()">
+        ×
+      </button>
+    </form>
+
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+        <lucide-icon [name]="icons.Pencil" class="h-6 w-6 text-primary-content"></lucide-icon>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-base-content">
+          {{ 'VEHICLES.MODAL.EDIT_TITLE' | translate }}
+        </h3>
+        <p class="text-sm text-base-content/60">
+          {{ editForm.make }} {{ editForm.model }} – {{ editForm.licensePlate }}
+        </p>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'VEHICLE.DETAIL.IDENTIFICATION.MAKE' | translate
+          }}</label>
+          <input
+            type="text"
+            [(ngModel)]="editForm.make"
+            placeholder="e.g. BMW"
+            class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'VEHICLE.DETAIL.IDENTIFICATION.MODEL' | translate
+          }}</label>
+          <input
+            type="text"
+            [(ngModel)]="editForm.model"
+            placeholder="e.g. 320d"
+            class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
+          />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-base-content mb-1">{{
+          'VEHICLE.DETAIL.IDENTIFICATION.PLATE' | translate
+        }}</label>
+        <input
+          type="text"
+          [(ngModel)]="editForm.licensePlate"
+          placeholder="e.g. AB12 CDE"
+          class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 font-mono uppercase"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-base-content mb-1">{{
+          'VEHICLE.DETAIL.SPECS.VIN' | translate
+        }}</label>
+        <input
+          type="text"
+          [(ngModel)]="editForm.vin"
+          placeholder="Vehicle Identification Number"
+          class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 font-mono"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-base-content mb-1">{{
+          'VEHICLE.DETAIL.SPECS.COLOUR' | translate
+        }}</label>
+        <input
+          type="text"
+          [(ngModel)]="editForm.colour"
+          placeholder="e.g. Black"
+          class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
+        />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'VEHICLES.DATABASE.ENGINE' | translate
+          }}</label>
+          <input
+            type="text"
+            [(ngModel)]="editForm.engine"
+            placeholder="e.g. 2.0 TDI"
+            class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'VEHICLES.DATABASE.MILEAGE' | translate
+          }}</label>
+          <input
+            type="number"
+            [(ngModel)]="editForm.mileage"
+            placeholder="e.g. 45000"
+            class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-base-200">
+      <form method="dialog">
+        <button type="button" class="btn btn-ghost" (click)="close()">
+          {{ 'COMMON.CANCEL' | translate }}
+        </button>
+      </form>
+      <button type="button" class="btn btn-primary" (click)="save()">
+        <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-2"></lucide-icon>
+        {{ 'VEHICLE.DETAIL.SAVE_CHANGES' | translate }}
+      </button>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop bg-base-content/30 backdrop-blur-sm">
+    <button type="button" (click)="close()">{{ 'COMMON.CLOSE' | translate }}</button>
+  </form>
+</dialog>

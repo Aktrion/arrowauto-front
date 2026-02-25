@@ -130,6 +130,7 @@ export class InvoicingComponent extends BaseListDirective<
 
     this.gridConfig = {
       ...this.gridConfig,
+      titleIcon: 'FileText',
       showNewButton: false,
       showEditButton: false,
       showDeleteButton: false,

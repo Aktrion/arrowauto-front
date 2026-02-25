@@ -43,6 +43,7 @@ export class InspectionHistoryComponent implements OnInit, OnDestroy {
 
   gridConfig: DataGridConfig<InspectionHistoryItem> = {
     title: 'INSPECTION_HISTORY.TITLE',
+    titleIcon: 'Clock',
     columnDefs: this.getColumnDefinitions(),
     rowData: [],
     pageSize: 15,

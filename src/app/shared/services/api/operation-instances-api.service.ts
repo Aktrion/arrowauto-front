@@ -47,4 +47,8 @@ export class OperationInstancesApiService extends BaseCrudService<
   searchEstimation(params: any): Observable<SearchRequestResponse<any>> {
     return this.post<SearchRequestResponse<any>>('/estimation/search', params);
   }
+
+  searchTasks(params: any): Observable<SearchRequestResponse<any>> {
+    return this.post<SearchRequestResponse<any>>('/tasks/search', params);
+  }
 }

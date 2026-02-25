@@ -47,6 +47,7 @@ export class ClientsComponent extends BaseListDirective<Client, CreateCustomerDt
     super(customersApi);
     this.gridConfig = {
       ...this.gridConfig,
+      titleIcon: 'Users',
       showNewButton: true,
       showEditButton: true,
       showDeleteButton: true,

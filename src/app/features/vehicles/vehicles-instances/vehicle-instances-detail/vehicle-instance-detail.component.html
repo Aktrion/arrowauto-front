@@ -197,8 +197,8 @@
             </h3>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="flex gap-2 items-end lg:col-span-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <div class="flex gap-2 items-end lg:col-span-1">
               @if (product().vehicle) {
                 <div class="flex-1">
                   <label
@@ -208,7 +208,7 @@
                   <input
                     type="text"
                     placeholder="e.g. AB12 CDE"
-                    class="input input-bordered input-sm w-full bg-base-200 uppercase font-mono font-semibold text-base text-primary"
+                    class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
                     [(ngModel)]="product().vehicle!.licensePlate"
                     (input)="onFieldLookup('licensePlate', $any($event.target).value)"
                   />
@@ -216,7 +216,7 @@
               }
               <button
                 (click)="performHPICheck()"
-                class="btn btn-secondary btn-sm h-9 px-4 rounded-lg flex items-center gap-2"
+                class="btn btn-secondary btn-sm h-11 px-4 rounded-lg flex items-center gap-2"
               >
                 <lucide-icon [name]="icons.Search" class="h-5 w-5"></lucide-icon>
                 <span class="hidden sm:inline">{{
@@ -320,7 +320,7 @@
                 <input
                   type="text"
                   placeholder="e.g. BMW"
-                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
                   [(ngModel)]="product().vehicle!.make"
                 />
               </div>
@@ -333,7 +333,7 @@
                 <input
                   type="text"
                   placeholder="e.g. 320d M Sport"
-                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
                   [(ngModel)]="product().vehicle!.model"
                 />
               </div>
@@ -363,7 +363,7 @@
                 >
                 <input
                   type="number"
-                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
                   [(ngModel)]="product().vehicle!.year"
                 />
               </div>
@@ -375,7 +375,7 @@
                 <input
                   type="text"
                   placeholder="e.g. Black"
-                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
                   [(ngModel)]="product().vehicle!.colour"
                 />
               </div>
@@ -387,7 +387,7 @@
                 <div class="relative">
                   <input
                     type="number"
-                    class="input input-bordered input-sm w-full pr-11 bg-base-200 font-semibold"
+                    class="input input-bordered w-full h-11 pr-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
                     [(ngModel)]="product().vehicle!.mileage"
                   />
                   <span
@@ -404,7 +404,7 @@
                 <input
                   type="text"
                   placeholder="e.g. 2.0L"
-                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
                   [(ngModel)]="product().vehicle!.engine"
                 />
               </div>
@@ -416,7 +416,7 @@
                 <input
                   type="text"
                   placeholder="Vehicle Identification Number"
-                  class="input input-bordered input-sm w-full bg-base-200 font-mono font-medium"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 font-mono"
                   [(ngModel)]="product().vehicle!.vin"
                   (input)="onFieldLookup('vin', $any($event.target).value)"
                 />
@@ -428,7 +428,7 @@
                 >
                 <input
                   type="date"
-                  class="input input-bordered input-sm w-full bg-base-200 font-semibold"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
                   [(ngModel)]="product().vehicle!.nextEntryDate"
                 />
               </div>

@@ -57,6 +57,7 @@ export class EstimationComponent extends BaseListDirective<
 
     this.gridConfig = {
       ...this.gridConfig,
+      titleIcon: 'DollarSign',
       showNewButton: false,
       showEditButton: false,
       showDeleteButton: false,

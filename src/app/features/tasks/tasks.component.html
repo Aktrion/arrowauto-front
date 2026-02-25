@@ -10,7 +10,7 @@
     >
       {{ 'TASKS.ALL' | translate }}
       <span class="badge badge-sm" [class.badge-primary-content]="filterStatus() === 'all'">
-        {{ statusCounts().all }}
+        {{ taskCounts().all }}
       </span>
     </button>
     <button
@@ -20,7 +20,7 @@
       (click)="setStatusFilter('pending')"
     >
       {{ 'TASKS.PENDING' | translate }}
-      <span class="badge badge-sm">{{ statusCounts().pending }}</span>
+        <span class="badge badge-sm">{{ taskCounts().pending }}</span>
     </button>
     <button
       class="btn btn-sm gap-2 font-bold transition-all"
@@ -29,7 +29,7 @@
       (click)="setStatusFilter('scheduled')"
     >
       {{ 'TASKS.SCHEDULED' | translate }}
-      <span class="badge badge-sm">{{ statusCounts().scheduled }}</span>
+        <span class="badge badge-sm">{{ taskCounts().scheduled }}</span>
     </button>
     <button
       class="btn btn-sm gap-2 font-bold transition-all"
@@ -38,7 +38,7 @@
       (click)="setStatusFilter('in_progress')"
     >
       {{ 'TASKS.IN_PROGRESS' | translate }}
-      <span class="badge badge-sm">{{ statusCounts().in_progress }}</span>
+        <span class="badge badge-sm">{{ taskCounts().in_progress }}</span>
     </button>
     <button
       class="btn btn-sm gap-2 font-bold transition-all"
@@ -47,7 +47,7 @@
       (click)="setStatusFilter('completed')"
     >
       {{ 'TASKS.COMPLETED' | translate }}
-      <span class="badge badge-sm">{{ statusCounts().completed }}</span>
+        <span class="badge badge-sm">{{ taskCounts().completed }}</span>
     </button>
   </div>
 

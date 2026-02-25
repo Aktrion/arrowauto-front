@@ -128,9 +128,11 @@
           <button
             type="button"
             (click)="login()"
+            [disabled]="isLoading"
             class="btn btn-primary btn-lg w-full mt-2 rounded-xl"
           >
-            {{ 'LOGIN.FORM.SIGN_IN' | translate }}
+            <span *ngIf="isLoading" class="loading loading-spinner loading-sm"></span>
+            <span *ngIf="!isLoading">{{ 'LOGIN.FORM.SIGN_IN' | translate }}</span>
           </button>
         </form>
       </div>

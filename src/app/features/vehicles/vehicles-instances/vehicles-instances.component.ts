@@ -36,6 +36,7 @@ export class VehiclesInstancesComponent
     super(inject(VehicleInstancesApiService));
     this.gridConfig = {
       ...this.gridConfig,
+      titleIcon: 'Car',
       showNewButton: true,
       showEditButton: true,
       showDeleteButton: false,

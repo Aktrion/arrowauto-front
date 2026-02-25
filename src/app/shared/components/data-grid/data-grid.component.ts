@@ -13,7 +13,6 @@ import {
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 import { ICONS } from '@shared/icons';
 import { GridStateStorageService } from '@shared/services/grid-state-storage.service';
 import { FilterOperatorTypes } from '@shared/utils/search-request.class';
@@ -30,7 +29,7 @@ import { Subject, debounceTime, distinctUntilChanged, map, merge, takeUntil } fr
 @Component({
   selector: 'app-data-grid',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, SelectComponent, TranslateModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, TranslateModule],
   templateUrl: './data-grid.component.html',
 })
 export class DataGridComponent implements OnInit, OnChanges, OnDestroy {
@@ -42,11 +41,6 @@ export class DataGridComponent implements OnInit, OnChanges, OnDestroy {
   @Output() delete = new EventEmitter<any>();
 
   icons = ICONS;
-  pageSizeOptions: SelectOption[] = [
-    { label: '15 / page', value: 15 },
-    { label: '30 / page', value: 30 },
-    { label: '50 / page', value: 50 },
-  ];
   selectedItems: any[] = [];
   allSelected = false;
   showFilterSidebar = false;
@@ -93,6 +87,10 @@ export class DataGridComponent implements OnInit, OnChanges, OnDestroy {
 
   get displayedRows(): any[] {
     return this.config?.rowData ?? [];
+  }
+
+  get skeletonRows(): number[] {
+    return Array.from({ length: 12 }, (_, i) => i);
   }
 
   get startIndex(): number {
@@ -214,6 +212,16 @@ export class DataGridComponent implements OnInit, OnChanges, OnDestroy {
     if (!action.icon) return null;
     const icon = (this.icons as Record<string, unknown>)[action.icon];
     return icon ?? null;
+  }
+
+  getTitleIcon(): unknown {
+    if (!this.config?.titleIcon) return null;
+    return (this.icons as Record<string, unknown>)[this.config.titleIcon] ?? null;
+  }
+
+  getHeaderButtonIcon(button: CustomHeaderButton): unknown {
+    if (!button.icon) return null;
+    return (this.icons as Record<string, unknown>)[button.icon] ?? null;
   }
 
   onCustomHeaderButtonClick(button: CustomHeaderButton): void {

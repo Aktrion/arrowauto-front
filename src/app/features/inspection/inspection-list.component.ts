@@ -31,6 +31,7 @@ export class InspectionListComponent extends BaseListDirective<
     super(inject(VehicleInstancesApiService));
     this.gridConfig = {
       ...this.gridConfig,
+      titleIcon: 'ClipboardCheck',
       showNewButton: false,
       showEditButton: true,
       showDeleteButton: false,

@@ -31,13 +31,24 @@
     "PREVIEW": "Vista previa",
     "GENERATE_INVOICE": "Generar Factura",
     "EDIT": "Editar",
-    "DELETE": "Eliminar"
+    "DELETE": "Eliminar",
+    "ACTIONS": "Acciones",
+    "FILTERS": "Filtros",
+    "SHOWING_ENTRIES": "Mostrando {{start}} a {{end}} de {{total}}",
+    "PER_PAGE": "{{count}} por página",
+    "CLEAR_FILTERS": "Limpiar filtros",
+    "FILTER_BY": "Filtrar por {{field}}",
+    "NO_RECORDS": "No se encontraron registros"
   },
   "SHELL": {
     "LOGO": {
       "SUBTITLE": "Gestión de Vehículos"
     },
     "SIDEBAR": {
+      "GROUP_MAIN": "Principal",
+      "GROUP_OPERATIONS": "Operaciones",
+      "GROUP_CUSTOMER": "Cliente",
+      "GROUP_SETTINGS": "Configuración",
       "MAIN": "Principal",
       "DASHBOARD": "Panel de Control",
       "VEHICLES_INSTANCES": "Instancias de Vehículos",
@@ -267,8 +278,18 @@
       "MAKE_MODEL": "Marca y Modelo",
       "LICENSE_PLATE": "Matrícula",
       "VIN": "VIN",
-      "YEAR": "Año",
-      "COLOR": "Color"
+      "COLOR": "Color",
+      "ENGINE": "Motor",
+      "MILEAGE": "Kilometraje"
+    },
+    "MODAL": {
+      "EDIT_TITLE": "Editar Vehículo"
+    },
+    "TOAST": {
+      "UPDATED": "Vehículo actualizado correctamente.",
+      "UPDATE_FAILED": "Error al actualizar el vehículo.",
+      "DELETED": "Vehículo eliminado.",
+      "DELETE_FAILED": "Error al eliminar el vehículo."
     }
   },
   "VEHICLE": {

@@ -1,31 +1,27 @@
-<div class="space-y-8">
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card bg-base-100 shadow-xl border border-base-200">
-      <div class="card-body p-5">
+<div class="space-y-6">
+<div class="card bg-base-100 shadow-xl border border-base-200 overflow-hidden">
+  <div class="card-body p-6 gap-0">
+    <!-- Summary stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-base-200/30 rounded-xl p-4 border border-base-200">
         <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
           {{ 'INVOICING.PENDING' | translate }}
         </div>
         <div class="text-3xl font-black text-warning">{{ pendingCount() }}</div>
       </div>
-    </div>
-    <div class="card bg-base-100 shadow-xl border border-base-200">
-      <div class="card-body p-5">
+      <div class="bg-base-200/30 rounded-xl p-4 border border-base-200">
         <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
           {{ 'INVOICING.READY' | translate }}
         </div>
         <div class="text-3xl font-black text-info">{{ readyToInvoiceCount() }}</div>
       </div>
-    </div>
-    <div class="card bg-base-100 shadow-xl border border-base-200">
-      <div class="card-body p-5">
+      <div class="bg-base-200/30 rounded-xl p-4 border border-base-200">
         <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
           {{ 'INVOICING.INVOICED' | translate }}
         </div>
         <div class="text-3xl font-black text-success">{{ invoicedTodayCount() }}</div>
       </div>
-    </div>
-    <div class="card bg-base-100 shadow-xl border border-base-200">
-      <div class="card-body p-5">
+      <div class="bg-base-200/30 rounded-xl p-4 border border-base-200">
         <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
           {{ 'INVOICING.REVENUE_TODAY' | translate }}
         </div>
@@ -34,39 +30,43 @@
         </div>
       </div>
     </div>
+
+    <!-- Tabs + Grid section -->
+    <div class="border-t border-base-200 pt-6 -mx-2">
+      <div class="tabs tabs-boxed bg-base-200/50 p-1 rounded-xl w-fit mb-4">
+        <button
+          class="tab rounded-lg px-4"
+          [class.tab-active]="activeTab() === 'pending'"
+          (click)="setTab('pending')"
+        >
+          {{ 'INVOICING.PENDING' | translate }}
+        </button>
+        <button
+          class="tab rounded-lg px-4"
+          [class.tab-active]="activeTab() === 'completed'"
+          (click)="setTab('completed')"
+        >
+          {{ 'INVOICING.COMPLETED' | translate }}
+        </button>
+        <button
+          class="tab rounded-lg px-4"
+          [class.tab-active]="activeTab() === 'invoiced'"
+          (click)="setTab('invoiced')"
+        >
+          {{ 'INVOICING.INVOICED' | translate }}
+        </button>
+      </div>
+
+      <app-data-grid
+        [config]="gridConfig"
+        (stateChange)="handleGridStateChange($event)"
+        (selectionChange)="handleSelectionChanged($event)"
+      />
+    </div>
   </div>
+</div>
 
-  <div class="tabs tabs-boxed bg-base-200/50 p-1 rounded-xl w-fit">
-    <button
-      class="tab rounded-lg px-4"
-      [class.tab-active]="activeTab() === 'pending'"
-      (click)="setTab('pending')"
-    >
-      {{ 'INVOICING.PENDING' | translate }}
-    </button>
-    <button
-      class="tab rounded-lg px-4"
-      [class.tab-active]="activeTab() === 'completed'"
-      (click)="setTab('completed')"
-    >
-      {{ 'INVOICING.COMPLETED' | translate }}
-    </button>
-    <button
-      class="tab rounded-lg px-4"
-      [class.tab-active]="activeTab() === 'invoiced'"
-      (click)="setTab('invoiced')"
-    >
-      {{ 'INVOICING.INVOICED' | translate }}
-    </button>
-  </div>
-
-  <app-data-grid
-    [config]="gridConfig"
-    (stateChange)="handleGridStateChange($event)"
-    (selectionChange)="handleSelectionChanged($event)"
-  />
-
-  @if (selectedRows().length > 0) {
+@if (selectedRows().length > 0) {
     <div class="sticky bottom-4 z-20">
       <div
         class="flex items-center justify-between p-4 bg-base-100 rounded-xl shadow-lg border border-primary/20 ring-1 ring-primary/5"
@@ -89,9 +89,9 @@
         </div>
       </div>
     </div>
-  }
+}
 
-  <dialog id="invoice_preview_modal" class="modal modal-bottom sm:modal-middle">
+<dialog id="invoice_preview_modal" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box w-11/12 max-w-3xl bg-base-100 p-0 overflow-hidden shadow-2xl rounded-2xl">
       @if (invoicePreviewData(); as preview) {
         <div class="p-8 sm:p-12 bg-white text-black min-h-[600px] relative">

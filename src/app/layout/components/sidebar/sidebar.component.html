@@ -1,388 +1,359 @@
-<aside
-  class="h-full bg-base-100 shadow-[4px_0_6px_-1px_rgba(0,0,0,0.08)] border-r border-base-300 flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
-  [class.w-72]="!collapsed"
-  [class.w-20]="collapsed"
+<div
+  class="h-full flex flex-col bg-white shadow-md"
+  [class.overflow-hidden]="!collapsed"
+  [class.overflow-visible]="collapsed"
 >
-  <!-- Logo Section -->
-  <div
-    class="px-6 flex items-center transition-all duration-300 ease-in-out relative"
-    [class.py-6]="!collapsed"
-    [class.py-8]="collapsed"
-    [class.justify-center]="collapsed"
-  >
-    <!-- Collapsed: short logo (icon) -->
-    <div
-      class="rounded-xl bg-base-100 flex items-center justify-center transition-opacity duration-200 ease-in-out absolute"
-      [class.opacity-100]="collapsed"
-      [class.opacity-0]="!collapsed"
-      [class.pointer-events-none]="!collapsed"
-    >
-      <img src="assets/img/logo/arrow-short-transparent.png" alt="" />
-    </div>
-
-    <!-- Expanded: full logo with subtle fade-in animation -->
-    <div
-      class="transition-all duration-200 ease-in-out"
-      [class.opacity-100]="!collapsed"
-      [class.translate-y-0]="!collapsed"
-      [class.opacity-0]="collapsed"
-      [class.translate-y-1]="collapsed"
-      [class.pointer-events-none]="collapsed"
-    >
-      <img class="h-11 w-50" src="assets/img/logo/arrow-black-logo.png" alt="" />
-    </div>
-  </div>
-
-  <!-- Navigation Menu -->
-  <nav
-    class="flex-1 px-4 pb-4 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300 shadow-sm"
-    [class.space-y-6]="!collapsed"
-    [class.space-y-1]="collapsed"
-  >
-    <!-- Main Section -->
-    <div class="flex flex-col" [class.space-y-1]="collapsed">
-      <div
-        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
-        [class.opacity-0]="collapsed"
-        [class.h-0]="collapsed"
-        [class.mb-0]="collapsed"
-      >
-        <span
-          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+  <!-- Navigation -->
+  <nav class="flex-1 py-2 mt-2 overflow-y-auto overflow-x-visible min-w-0">
+    <div class="flex flex-col" [class.space-y-6]="!collapsed" [class.space-y-1]="collapsed">
+      <!-- PRINCIPAL -->
+      <div class="flex flex-col" [class.space-y-1]="collapsed">
+        <div
+          class="px-4 mb-2 transition-all duration-300 overflow-hidden"
+          [class.opacity-0]="collapsed"
+          [class.h-0]="collapsed"
+          [class.mb-0]="collapsed"
         >
-          {{ 'SHELL.SIDEBAR.MAIN' | translate }}
-        </span>
-      </div>
-      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
-        <li>
+          <span
+            class="text-[12px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+          >
+            {{ 'SHELL.SIDEBAR.GROUP_MAIN' | translate }}
+          </span>
+        </div>
+        <div class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
           <a
             routerLink="/dashboard"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
+            [routerLinkActive]="'!bg-secondary/30'"
             [routerLinkActiveOptions]="{ exact: true }"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.DASHBOARD' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.LayoutDashboard"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.DASHBOARD' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.LayoutDashboard"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/dashboard')"
+                [class.text-gray-500]="!isRouteActive('/dashboard')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.DASHBOARD' | translate }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/vehicles-instances"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.VEHICLES_INSTANCES' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.Car"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.VEHICLES_INSTANCES' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.Car"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/vehicles-instances')"
+                [class.text-gray-500]="!isRouteActive('/vehicles-instances')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{
+                'SHELL.SIDEBAR.VEHICLES_INSTANCES' | translate
+              }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/vehicles-database"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.VEHICLES_DATABASE' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.Database"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.VEHICLES_DATABASE' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.Database"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/vehicles-database')"
+                [class.text-gray-500]="!isRouteActive('/vehicles-database')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.VEHICLES_DATABASE' | translate }}</span>
+            }
           </a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Operations Section -->
-    <div class="flex flex-col" [class.space-y-1]="collapsed">
-      <div
-        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
-        [class.opacity-0]="collapsed"
-        [class.h-0]="collapsed"
-        [class.mb-0]="collapsed"
-      >
-        <span
-          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
-        >
-          {{ 'SHELL.SIDEBAR.OPERATIONS' | translate }}
-        </span>
+        </div>
       </div>
-      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
-        <li>
+
+      <!-- OPERACIONES -->
+      <div class="flex flex-col" [class.space-y-1]="collapsed">
+        <div
+          class="px-4 mb-2 transition-all duration-300 overflow-hidden"
+          [class.opacity-0]="collapsed"
+          [class.h-0]="collapsed"
+          [class.mb-0]="collapsed"
+        >
+          <span
+            class="text-[12px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+          >
+            {{ 'SHELL.SIDEBAR.GROUP_OPERATIONS' | translate }}
+          </span>
+        </div>
+        <div class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
           <a
             routerLink="/inspection"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.INSPECTION' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <div class="relative">
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
               <lucide-icon
                 [name]="icons.ClipboardCheck"
-                class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/inspection')"
+                [class.text-gray-500]="!isRouteActive('/inspection')"
               ></lucide-icon>
-              <span
-                *ngIf="collapsed"
-                class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-warning text-[8px] flex items-center justify-center rounded-full text-white font-bold ring-2 ring-white"
-                >3</span
-              >
-            </div>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap overflow-hidden"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.INSPECTION' | translate }}
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.INSPECTION' | translate }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/inspection-history"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.INSPECTION_HISTORY' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.Clock"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap overflow-hidden"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.INSPECTION_HISTORY' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.Clock"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/inspection-history')"
+                [class.text-gray-500]="!isRouteActive('/inspection-history')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{
+                'SHELL.SIDEBAR.INSPECTION_HISTORY' | translate
+              }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/scheduling"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.SCHEDULING' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.Calendar"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.SCHEDULING' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.Calendar"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/scheduling')"
+                [class.text-gray-500]="!isRouteActive('/scheduling')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.SCHEDULING' | translate }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/tasks"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.TASKS' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.Wrench"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.TASKS' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.Wrench"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/tasks')"
+                [class.text-gray-500]="!isRouteActive('/tasks')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.TASKS' | translate }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/invoicing"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.INVOICING' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.FileText"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.INVOICING' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.FileText"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/invoicing')"
+                [class.text-gray-500]="!isRouteActive('/invoicing')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.INVOICING' | translate }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/estimation"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.ESTIMATION' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.DollarSign"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.ESTIMATION' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.DollarSign"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/estimation')"
+                [class.text-gray-500]="!isRouteActive('/estimation')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.ESTIMATION' | translate }}</span>
+            }
           </a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Customer Section -->
-    <div class="flex flex-col" [class.space-y-1]="collapsed">
-      <div
-        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
-        [class.opacity-0]="collapsed"
-        [class.h-0]="collapsed"
-        [class.mb-0]="collapsed"
-      >
-        <span
-          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
-        >
-          {{ 'SHELL.SIDEBAR.CUSTOMER' | translate }}
-        </span>
+        </div>
       </div>
-      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
-        <li>
+
+      <!-- CLIENTE -->
+      <div class="flex flex-col" [class.space-y-1]="collapsed">
+        <div
+          class="px-4 mb-2 transition-all duration-300 overflow-hidden"
+          [class.opacity-0]="collapsed"
+          [class.h-0]="collapsed"
+          [class.mb-0]="collapsed"
+        >
+          <span
+            class="text-[12px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+          >
+            {{ 'SHELL.SIDEBAR.GROUP_CUSTOMER' | translate }}
+          </span>
+        </div>
+        <div class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
           <a
             routerLink="/customer-approvals"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.APPROVALS' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <div class="relative">
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
               <lucide-icon
                 [name]="icons.User"
-                class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/customer-approvals')"
+                [class.text-gray-500]="!isRouteActive('/customer-approvals')"
               ></lucide-icon>
-            </div>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap overflow-hidden"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.APPROVALS' | translate }}
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.APPROVALS' | translate }}</span>
+            }
           </a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Settings Section -->
-    <div class="flex flex-col" [class.space-y-1]="collapsed">
-      <div
-        class="px-2 mb-3 transition-all duration-300 overflow-hidden"
-        [class.opacity-0]="collapsed"
-        [class.h-0]="collapsed"
-        [class.mb-0]="collapsed"
-      >
-        <span
-          class="text-[10px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
-        >
-          {{ 'SHELL.SIDEBAR.SETTINGS_HEADER' | translate }}
-        </span>
+        </div>
       </div>
-      <ul class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
-        <li>
+
+      <!-- CONFIGURACIÓN -->
+      <div class="flex flex-col" [class.space-y-1]="collapsed">
+        <div
+          class="px-4 mb-2 transition-all duration-300 overflow-hidden"
+          [class.opacity-0]="collapsed"
+          [class.h-0]="collapsed"
+          [class.mb-0]="collapsed"
+        >
+          <span
+            class="text-[12px] font-bold text-base-content/40 uppercase tracking-[0.2em] whitespace-nowrap"
+          >
+            {{ 'SHELL.SIDEBAR.GROUP_SETTINGS' | translate }}
+          </span>
+        </div>
+        <div class="flex flex-col" [class.space-y-1.5]="!collapsed" [class.space-y-1]="collapsed">
           <a
             routerLink="/clients"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.CLIENTS' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.Users"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.CLIENTS' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.Users"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/clients')"
+                [class.text-gray-500]="!isRouteActive('/clients')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.CLIENTS' | translate }}</span>
+            }
           </a>
-        </li>
-        <li>
+
           <a
             routerLink="/settings"
-            routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
-            class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
             [class.justify-center]="collapsed"
             [title]="collapsed ? ('SHELL.SIDEBAR.SETTINGS_LINK' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
           >
-            <lucide-icon
-              [name]="icons.Settings"
-              class="h-5 w-5 shrink-0 transition-transform group-hover:scale-110"
-            ></lucide-icon>
-            <span
-              class="ml-3 font-medium transition-all duration-300 origin-left whitespace-nowrap"
-              [class.opacity-0]="collapsed"
-              [class.w-0]="collapsed"
-              [class.hidden]="collapsed"
-            >
-              {{ 'SHELL.SIDEBAR.SETTINGS_LINK' | translate }}
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.Settings"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/settings')"
+                [class.text-gray-500]="!isRouteActive('/settings')"
+              ></lucide-icon>
             </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.SETTINGS_LINK' | translate }}</span>
+            }
           </a>
-        </li>
-      </ul>
+        </div>
+      </div>
     </div>
   </nav>
-</aside>
+</div>

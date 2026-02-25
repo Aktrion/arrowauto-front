@@ -1,106 +1,104 @@
-<header
-  class="navbar bg-base-100/90 backdrop-blur-md shadow-sm px-4 lg:px-6 sticky top-0 z-30 border-b border-base-300"
->
-  <div class="flex-none">
-    <!-- Mobile Toggle (Drawer) -->
-    <label for="main-drawer" class="btn btn-square btn-ghost btn-sm lg:hidden group">
-      <lucide-icon
-        [name]="icons.Menu"
-        class="w-6 h-6 transition-transform group-hover:scale-110"
-      ></lucide-icon>
-    </label>
-
-    <!-- Desktop Toggle (Collapse) -->
-    <button
-      class="btn btn-square btn-ghost btn-sm hidden lg:inline-flex group"
-      (click)="toggleSidebar.emit()"
-      title="Toggle Sidebar"
-    >
-      <lucide-icon
-        [name]="collapsed() ? icons.ChevronRight : icons.ChevronLeft"
-        class="w-6 h-6 transition-transform group-hover:scale-110"
-      ></lucide-icon>
-    </button>
-  </div>
-
-  <!-- Mobile Branding -->
-  <div class="flex-1 flex items-center gap-2 lg:hidden ml-2 transition-all duration-300">
-    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-      <lucide-icon [name]="icons.Car" class="h-5 w-5 text-white"></lucide-icon>
+<header class="navbar bg-white border-b border-gray-200 sticky top-0 z-20">
+  <div class="flex-1">
+    <div class="flex items-center gap-2">
+      <!-- Mobile Toggle -->
+      <button
+        type="button"
+        class="btn btn-ghost btn-square btn-sm lg:hidden"
+        (click)="toggleSidebar.emit()"
+        aria-label="Toggle menu"
+      >
+        <lucide-icon [name]="icons.Menu" class="w-5 h-5 stroke-current"></lucide-icon>
+      </button>
+      <!-- Desktop Toggle -->
+      <button
+        type="button"
+        class="btn btn-ghost btn-circle btn-sm hidden lg:inline-flex"
+        (click)="toggleSidebar.emit()"
+        [attr.aria-label]="'Toggle sidebar'"
+      >
+        <lucide-icon
+          [name]="collapsed() ? icons.ChevronRight : icons.ChevronLeft"
+          class="w-5 h-5 stroke-current"
+        ></lucide-icon>
+      </button>
+      <!-- Logo / Branding -->
+      <img
+        src="assets/img/logo/arrow-black-logo.png"
+        alt="ARROW QUALITY SYSTEM"
+        class="h-8"
+      />
     </div>
-    <span
-      class="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
-      >ArrowAuto</span
-    >
   </div>
 
-  <div class="flex-1 hidden lg:flex">
-    <!-- Breadcrumbs or Page Title could go here in future -->
-  </div>
-
-  <div class="flex-none flex items-center gap-6">
+  <div class="flex-none flex items-center gap-4">
     <div class="z-50 relative">
       <app-language-switcher></app-language-switcher>
     </div>
 
     <!-- User Dropdown -->
-    <div class="dropdown dropdown-end" *ngIf="user() as currentUser">
-      <div
-        tabindex="0"
-        role="button"
-        class="btn btn-ghost btn-circle avatar online placeholder ring-2 ring-transparent hover:ring-primary/20 transition-all duration-300"
-      >
+    @if (user(); as currentUser) {
+      <div class="dropdown dropdown-end">
         <div
-          class="w-10 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2"
+          tabindex="0"
+          role="button"
+          class="flex items-center focus:outline-none px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer min-w-0"
         >
-          @if (currentUser.imageUrl) {
-            <img [src]="currentUser.imageUrl" [alt]="currentUser.userName" />
-          } @else {
-            <img src="assets/img/icons/user.png" alt="" />
-          }
-        </div>
-      </div>
-      <ul
-        tabindex="0"
-        class="mt-3 z-[1] p-2 shadow-xl border border-base-300 menu menu-sm dropdown-content bg-base-100 rounded-2xl w-64 gap-1 transform origin-top-right transition-all duration-200"
-      >
-        <li class="menu-title px-4 py-3 border-b border-base-200/50 mb-2">
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[10px] font-bold uppercase tracking-wider opacity-50"
-              >{{ 'HEADER.SIGNED_IN_AS' | translate }}</span
-            >
-            <span class="font-bold text-base-content text-sm truncate">{{ currentUser.name }}</span>
+          <div class="relative flex-shrink-0">
+            @if (currentUser.imageUrl) {
+              <img
+                [src]="currentUser.imageUrl"
+                [alt]="currentUser.userName"
+                class="w-10 h-10 rounded-full object-cover"
+              />
+            } @else {
+              <div
+                class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center"
+              >
+                <lucide-icon [name]="icons.User" class="h-6 w-6 text-gray-600"></lucide-icon>
+              </div>
+            }
           </div>
-        </li>
-        <li>
-          <button
-            type="button"
-            (click)="editProfile()"
-            class="group flex items-center gap-3 px-4 py-3 hover:bg-primary/5 hover:text-primary transition-colors text-base-content/80 font-medium"
-          >
-            <lucide-icon
-              [name]="icons.Settings"
-              class="w-4 h-4 transition-transform group-hover:rotate-45"
-            ></lucide-icon>
-            {{ 'SHELL.SIDEBAR.SETTINGS_LINK' | translate }}
-          </button>
-        </li>
-        <li class="mt-1 border-t border-base-200/50"></li>
-        <li>
-          <button
-            type="button"
-            (click)="logout()"
-            class="group flex items-center gap-3 px-4 py-3 hover:bg-error/5 hover:text-error transition-colors text-error font-medium"
-          >
-            <lucide-icon
-              [name]="icons.LogOut"
-              class="w-4 h-4 transition-transform group-hover:-translate-x-1"
-            ></lucide-icon>
-            {{ 'LOGIN.FORM.SIGN_OUT' | translate }}
-          </button>
-        </li>
-      </ul>
-    </div>
+          <div class="flex-1 text-left overflow-hidden ml-3 max-w-[25vw] hidden sm:block">
+            <p class="font-semibold !mb-0 truncate">{{ currentUser.name }}</p>
+            <p class="text-xs !mb-0 truncate text-gray-500">OWNER</p>
+          </div>
+        </div>
+        <ul
+          tabindex="0"
+          class="dropdown-content menu shadow bg-white rounded-box w-52 mt-2 border border-gray-200 z-50"
+        >
+          <li class="menu-title px-4 py-3 border-b border-gray-200 mb-2">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-[10px] font-bold uppercase tracking-wider opacity-50">
+                {{ 'HEADER.SIGNED_IN_AS' | translate }}
+              </span>
+              <span class="font-bold text-base-content text-sm truncate">{{ currentUser.name }}</span>
+            </div>
+          </li>
+          <li>
+            <button
+              type="button"
+              (click)="editProfile()"
+              class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer w-full text-left"
+            >
+              <lucide-icon [name]="icons.Settings" class="h-5 w-5 mr-3 text-gray-500"></lucide-icon>
+              {{ 'SHELL.SIDEBAR.SETTINGS_LINK' | translate }}
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              (click)="logout()"
+              class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer w-full text-left"
+            >
+              <lucide-icon [name]="icons.LogOut" class="h-5 w-5 mr-3 text-gray-500"></lucide-icon>
+              {{ 'LOGIN.FORM.SIGN_OUT' | translate }}
+            </button>
+          </li>
+        </ul>
+      </div>
+    }
   </div>
 </header>
 <app-user-config-modal #userConfigModal></app-user-config-modal>

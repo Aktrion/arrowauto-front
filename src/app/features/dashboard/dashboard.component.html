@@ -184,7 +184,11 @@
             </a>
           </div>
         </div>
-        <app-data-grid [config]="gridConfig" (stateChange)="handleRecentStateChange($event)" />
+        <app-data-grid
+          class="p-4"
+          [config]="gridConfig"
+          (stateChange)="handleRecentStateChange($event)"
+        />
       </div>
     </div>
 

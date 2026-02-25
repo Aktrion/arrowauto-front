@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '@shared/icons';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -43,14 +44,11 @@ export class LoginComponent {
     this.isLoading = true;
     this.authStore
       .login(userName as string, password as string)
+      .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.toastService.success('Login successful', 1200);
-        },
+        next: () => this.toastService.success('Login successful', 1200),
         error: (err) => {
-          this.isLoading = false;
-          this.toastService.error(err.error.message, 2200);
+          this.toastService.error(err.error?.message ?? 'Login failed', 2200);
           console.error('Login failed', err);
         },
       });

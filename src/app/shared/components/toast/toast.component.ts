@@ -1,20 +1,26 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationType, Toast } from '@core/models/toast.model';
 import { ToastService } from '@core/services/toast.service';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-toast',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslateModule],
   template: `
-    @if (toastService.toasts().length) {
-      <div class="toast toast-top toast-end z-[9999] p-4 gap-3 pointer-events-none">
-        @for (toast of toastService.toasts(); track toast.id) {
+    <div
+      #toastPopover
+      popover="manual"
+      class="toast-popover"
+    >
+      @if (toastService.toasts().length) {
+        <div class="flex flex-col gap-3 p-4 pointer-events-none w-full max-w-md">
+          @for (toast of toastService.toasts(); track toast.id) {
           <div
-            class="alert glass-toast border-0 shadow-2xl relative overflow-hidden min-w-[320px] max-w-md p-0 flex flex-col items-stretch animate-slide-up pointer-events-auto"
+            class="alert border-0 shadow-2xl relative overflow-hidden min-w-[320px] max-w-md p-0 flex flex-col items-stretch animate-slide-up pointer-events-auto"
           >
             <!-- Progress Bar -->
             <div class="absolute bottom-0 left-0 h-1.5 bg-white/10 w-full z-10">
@@ -36,10 +42,10 @@ import { ICONS } from '@shared/icons';
 
               <div class="flex-1 flex flex-col gap-1 pr-6">
                 @if (toast.title) {
-                  <h4 class="font-bold text-white text-lg leading-tight">{{ toast.title }}</h4>
+                  <h4 class="font-bold text-white text-lg leading-tight">{{ toast.title | translate }}</h4>
                 }
                 <p class="text-white/95 text-sm font-medium whitespace-pre-line">
-                  {{ toast.message }}
+                  {{ toast.message | translate }}
                 </p>
 
                 @if (toast.action) {
@@ -47,7 +53,7 @@ import { ICONS } from '@shared/icons';
                     class="mt-3 btn btn-xs border-white/20 bg-white/10 hover:bg-white/20 text-white font-bold w-fit uppercase tracking-wider"
                     (click)="handleAction(toast)"
                   >
-                    {{ toast.action.label }}
+                    {{ toast.action.label | translate }}
                   </button>
                 }
               </div>
@@ -61,14 +67,21 @@ import { ICONS } from '@shared/icons';
             </div>
           </div>
         }
-      </div>
-    }
+        </div>
+      }
+    </div>
   `,
   styles: `
-    .glass-toast {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+    .toast-popover {
+      position: fixed;
+      inset: unset;
+      top: 1rem;
+      right: 1rem;
+      left: auto;
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
     }
 
     .progress-bar-fill {
@@ -85,16 +98,16 @@ import { ICONS } from '@shared/icons';
     }
 
     .bg-toast-success {
-      background: var(--gradient-success);
+      background: var(--color-success) !important;
     }
     .bg-toast-error {
-      background: var(--gradient-error);
+      background: var(--color-error) !important;
     }
     .bg-toast-warning {
-      background: var(--gradient-warning);
+      background: var(--color-warning) !important;
     }
     .bg-toast-info {
-      background: var(--gradient-info);
+      background: var(--color-info) !important;
     }
 
     .animate-slide-up {
@@ -116,6 +129,30 @@ import { ICONS } from '@shared/icons';
 export class ToastComponent {
   icons = ICONS;
   toastService = inject(ToastService);
+
+  @ViewChild('toastPopover') toastPopover!: ElementRef<HTMLElement>;
+
+  constructor() {
+    effect(() => {
+      const toasts = this.toastService.toasts();
+      const el = this.toastPopover?.nativeElement;
+      if (!el) return;
+      if (toasts.length > 0) {
+        try {
+          el.showPopover?.();
+        } catch {
+          el.style.display = 'block';
+          el.style.zIndex = '999999';
+        }
+      } else {
+        try {
+          el.hidePopover?.();
+        } catch {
+          el.style.display = 'none';
+        }
+      }
+    });
+  }
 
   alertBgClass(type: NotificationType): string {
     const classes: Record<NotificationType, string> = {

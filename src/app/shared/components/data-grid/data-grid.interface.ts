@@ -24,15 +24,19 @@ export interface CustomAction {
   /** Fallback label for tooltip when no icon, or tooltip text */
   iconLabel?: string;
   tooltip?: string;
+  /** Optional CSS classes for the icon */
+  iconClass?: string;
   action: (row: any) => void;
   visible?: (row: any) => boolean;
 }
 
 export interface CustomHeaderButton {
   label: string;
+  icon?: string; /** Lucide icon key from ICONS (e.g. 'Download', 'Plus') */
   class?: string;
   loading?: boolean;
   disabled?: boolean;
+  tooltip?: string;
   action: () => void;
 }
 

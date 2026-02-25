@@ -86,6 +86,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private clients = signal<Client[]>([]);
   gridConfig: DataGridConfig<any> = {
     title: 'DASHBOARD.RECENT_VEHICLES.TITLE',
+    titleIcon: 'Car',
     columnDefs: [],
     rowData: [],
     pageSize: 5,

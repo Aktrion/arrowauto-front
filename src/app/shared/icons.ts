@@ -1,6 +1,11 @@
 import {
   Menu,
   Car,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  Filter,
+  FilterX,
   LayoutDashboard,
   ClipboardCheck,
   Calendar,
@@ -67,6 +72,11 @@ import {
 export const ICONS = {
   Menu,
   Car,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  Filter,
+  FilterX,
   LayoutDashboard,
   ClipboardCheck,
   Calendar,

@@ -51,6 +51,7 @@ export class InspectionTemplatesListComponent extends BaseListDirective<
     super(inject(InspectionTemplatesService));
     this.gridConfig = {
       ...this.gridConfig,
+      titleIcon: 'FileText',
       showNewButton: true,
       showEditButton: true,
       showDeleteButton: true,
