@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { BaseCrudService } from '@core/services/base-crud.service';
+import { SearchRequestResponse } from '@core/models/request.model';
 import {
   VehicleInstance,
   VehicleInstanceActivityResponse,
@@ -32,6 +33,20 @@ export class VehicleInstancesApiService extends BaseCrudService<
     }).pipe(
       map((res) => (res.data?.length ? res.data[0] : null)),
       catchError(() => of(null)),
+    );
+  }
+
+  searchInspectionHistory(params: {
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: string;
+    search?: string;
+    filters?: Record<string, any>;
+  }): Observable<SearchRequestResponse<Record<string, any>>> {
+    return this.post<SearchRequestResponse<Record<string, any>>>(
+      '/inspection-history/search',
+      params,
     );
   }
 

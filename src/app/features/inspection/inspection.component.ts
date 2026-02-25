@@ -11,14 +11,16 @@ import {
 } from '@features/inspection/models/inspection.model';
 import { InspectionService } from '@features/inspection/services/inspection.service';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
 import { ToastService } from '@core/services/toast.service';
 
 @Component({
   selector: 'app-inspection',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslateModule],
   templateUrl: './inspection.component.html',
   styleUrl: './inspection.component.css',
 })

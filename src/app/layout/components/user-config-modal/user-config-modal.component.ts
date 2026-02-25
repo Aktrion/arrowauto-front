@@ -13,11 +13,18 @@ import { ICONS } from '@shared/icons';
 import { AuthStore } from '@auth/store/auth.store';
 import { CountryEnum, countryNamesMap } from '@shared/enums/country.enum';
 import { User } from '@shared/models/user.model';
+import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 
 @Component({
   selector: 'app-user-config-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, TranslateModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    LucideAngularModule,
+    TranslateModule,
+    SelectComponent,
+  ],
   template: `
     <dialog #modal class="modal">
       <div
@@ -181,13 +188,12 @@ import { User } from '@shared/models/user.model';
                       [name]="icons.Globe"
                       class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40 z-10"
                     ></lucide-icon>
-                    <select
-                      formControlName="language"
-                      class="select select-bordered w-full pl-11 h-11 focus:select-primary transition-all duration-200"
-                    >
-                      <option value="en">English (US)</option>
-                      <option value="es">Español (ES)</option>
-                    </select>
+                    <app-select
+                      [options]="languageOptions"
+                      [selectedValue]="form.get('language')?.value"
+                      (selectionChange)="form.get('language')?.setValue($event)"
+                      [clearable]="false"
+                    ></app-select>
                   </div>
                 </div>
 
@@ -204,17 +210,12 @@ import { User } from '@shared/models/user.model';
                       [name]="icons.MapPin"
                       class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40 z-10"
                     ></lucide-icon>
-                    <select
-                      formControlName="country"
-                      class="select select-bordered w-full pl-11 h-11 focus:select-primary transition-all duration-200"
-                    >
-                      <option [ngValue]="null" disabled>
-                        {{ 'PROFILE.MODAL.SELECT_COUNTRY' | translate }}
-                      </option>
-                      <option *ngFor="let country of countries" [value]="country">
-                        {{ countryNames.get(country) }}
-                      </option>
-                    </select>
+                    <app-select
+                      [options]="countrySelectOptions"
+                      [selectedValue]="form.get('country')?.value"
+                      (selectionChange)="form.get('country')?.setValue($event)"
+                      [placeholder]="'PROFILE.MODAL.SELECT_COUNTRY' | translate"
+                    ></app-select>
                   </div>
                 </div>
 
@@ -231,12 +232,12 @@ import { User } from '@shared/models/user.model';
                       [name]="icons.Clock"
                       class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40 z-10"
                     ></lucide-icon>
-                    <select
-                      formControlName="timeZone"
-                      class="select select-bordered w-full pl-11 h-11 focus:select-primary transition-all duration-200"
-                    >
-                      <option *ngFor="let tz of timezones" [value]="tz">{{ tz }}</option>
-                    </select>
+                    <app-select
+                      [options]="timezoneSelectOptions"
+                      [selectedValue]="form.get('timeZone')?.value"
+                      (selectionChange)="form.get('timeZone')?.setValue($event)"
+                      [placeholder]="'Select timezone'"
+                    ></app-select>
                   </div>
                 </div>
 
@@ -287,10 +288,7 @@ import { User } from '@shared/models/user.model';
                 </button>
               </div>
 
-              <div
-                *ngIf="isChangingPassword()"
-                class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in"
-              >
+              <div *ngIf="isChangingPassword()" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Current Password -->
                 <div class="form-control w-full md:col-span-2">
                   <label class="label px-1">
@@ -452,6 +450,21 @@ export class UserConfigModalComponent {
   countries = Object.values(CountryEnum);
   countryNames = countryNamesMap;
   timezones = (Intl as any).supportedValuesOf ? (Intl as any).supportedValuesOf('timeZone') : [];
+
+  languageOptions: SelectOption[] = [
+    { label: 'English (US)', value: 'en' },
+    { label: 'Español (ES)', value: 'es' },
+  ];
+
+  countrySelectOptions: SelectOption[] = this.countries.map((c) => ({
+    label: countryNamesMap.get(c) || c,
+    value: c,
+  }));
+
+  timezoneSelectOptions: SelectOption[] = this.timezones.map((tz: string) => ({
+    label: tz,
+    value: tz,
+  }));
 
   form = this.fb.group(
     {

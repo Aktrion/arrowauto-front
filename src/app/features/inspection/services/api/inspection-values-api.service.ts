@@ -58,4 +58,20 @@ export class InspectionValuesApiService extends BaseCrudService<
       catchError(() => of([])),
     );
   }
+
+  searchByVehicleInstanceIds(vehicleInstanceIds: string[], limit = 5000) {
+    if (!vehicleInstanceIds.length) return of([]);
+    return this.findByPagination({
+      page: 1,
+      limit: Math.max(100, limit),
+      sortBy: 'updatedAt',
+      sortOrder: 'desc',
+      filters: {
+        vehicleInstanceId: { value: vehicleInstanceIds, operator: 'in' as const },
+      },
+    }).pipe(
+      map((res) => res.data ?? []),
+      catchError(() => of([])),
+    );
+  }
 }

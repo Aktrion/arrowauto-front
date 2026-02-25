@@ -1,32 +1,28 @@
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ClientService } from '@features/clients/services/client.service';
-import { Client } from '@features/clients/models/client.model';
 import { LucideAngularModule } from 'lucide-angular';
-import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '@shared/icons';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { BaseListDirective } from '@core/directives/base-list.directive';
 import { ToastService } from '@core/services/toast.service';
+import { Client } from '@features/clients/models/client.model';
+import { CustomersApiService } from '@features/clients/services/api/customers-api.service';
+import { ClientService } from '@features/clients/services/client.service';
+import { CreateCustomerDto, UpdateCustomerDto } from '@features/clients/models/client.model';
+import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
+import { ICONS } from '@shared/icons';
 
 @Component({
   selector: 'app-clients',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule, TranslateModule],
+  imports: [FormsModule, LucideAngularModule, TranslateModule, DataGridComponent],
   templateUrl: './clients.component.html',
 })
-export class ClientsComponent implements OnInit {
+export class ClientsComponent extends BaseListDirective<Client, CreateCustomerDto, UpdateCustomerDto> {
   icons = ICONS;
   private clientService = inject(ClientService);
   private notificationService = inject(ToastService);
-
-  clients = signal<Client[]>([]);
-  filteredClients = signal<Client[]>([]);
-  isTableView = signal(true);
-  currentPage = signal(1);
-  readonly pageSize = 10;
-
-  searchQuery = '';
-  searchField: 'all' | 'name' | 'email' | 'company' | 'phone' = 'all';
-  typeFilter = '';
+  private translate = inject(TranslateService);
 
   newClient = {
     name: '',
@@ -47,82 +43,79 @@ export class ClientsComponent implements OnInit {
     type: 'individual' as 'individual' | 'company',
   };
 
-  paginatedClients = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredClients().slice(start, start + this.pageSize);
-  });
+  constructor(private customersApi: CustomersApiService) {
+    super(customersApi);
+    this.gridConfig = {
+      ...this.gridConfig,
+      showNewButton: true,
+      showEditButton: true,
+      showDeleteButton: true,
+      selectable: false,
+      storageKey: 'clients_grid',
+    };
+  }
 
-  totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.filteredClients().length / this.pageSize)),
-  );
+  protected getTitle(): string {
+    return 'CLIENTS.TITLE';
+  }
 
-  constructor() {
-    effect(() => {
-      this.filteredClients.set(this.clients());
-      if (this.searchQuery || this.typeFilter) {
-        this.filterClients();
-      }
+  protected getColumnDefinitions(): ColumnDef[] {
+    return [
+      {
+        field: 'name',
+        headerName: 'CLIENTS.MODAL.FULL_NAME',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'company',
+        headerName: 'CLIENTS.MODAL.COMPANY_NAME',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'email',
+        headerName: 'CLIENTS.MODAL.EMAIL',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'phone',
+        headerName: 'CLIENTS.MODAL.PHONE',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'type',
+        headerName: 'CLIENTS.MODAL.TYPE',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+    ];
+  }
+
+  protected override onCreate(): void {
+    this.openNewClientModal();
+  }
+
+  protected override onEdit(item: Client): void {
+    this.openEditClientModal(item);
+  }
+
+  protected override onDelete(item: Client): void {
+    if (!item.id) return;
+    this.customersApi.deleteOne(item.id).subscribe({
+      next: () => {
+        this.notificationService.success(this.translate.instant('CLIENTS.TOAST.DELETED'));
+        this.loadItems();
+      },
+      error: () => this.notificationService.error(this.translate.instant('CLIENTS.TOAST.DELETE_FAILED')),
     });
-  }
-
-  ngOnInit(): void {
-    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
-  }
-
-  setTypeFilter(type: string): void {
-    this.typeFilter = type;
-    this.filterClients();
-  }
-
-  toggleView(isTable: boolean): void {
-    this.isTableView.set(isTable);
-  }
-
-  filterClients(): void {
-    let filtered = this.clients();
-
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter((c) => {
-        const name = c.name.toLowerCase();
-        const email = c.email.toLowerCase();
-        const company = c.company?.toLowerCase() || '';
-        const phone = c.phone?.toLowerCase() || '';
-
-        if (this.searchField === 'name') return name.includes(query);
-        if (this.searchField === 'email') return email.includes(query);
-        if (this.searchField === 'company') return company.includes(query);
-        if (this.searchField === 'phone') return phone.includes(query);
-
-        return (
-          name.includes(query) ||
-          email.includes(query) ||
-          company.includes(query) ||
-          phone.includes(query)
-        );
-      });
-    }
-
-    if (this.typeFilter) {
-      filtered = filtered.filter((c) => c.type === this.typeFilter);
-    }
-
-    this.filteredClients.set(filtered);
-    this.currentPage.set(1);
-  }
-
-  setSearchField(field: 'all' | 'name' | 'email' | 'company' | 'phone'): void {
-    this.searchField = field;
-    this.filterClients();
-  }
-
-  getInitials(name: string): string {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
   }
 
   openNewClientModal(): void {
@@ -144,11 +137,11 @@ export class ClientsComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
+          this.loadItems();
           (document.getElementById('new_client_modal') as HTMLDialogElement)?.close();
-          this.notificationService.success('Client created successfully.');
+          this.notificationService.success(this.translate.instant('CLIENTS.TOAST.CREATED'));
         },
-        error: () => this.notificationService.error('Failed to create client.'),
+        error: () => this.notificationService.error(this.translate.instant('CLIENTS.TOAST.CREATE_FAILED')),
       });
   }
 
@@ -180,22 +173,12 @@ export class ClientsComponent implements OnInit {
       })
       .subscribe({
         next: () => {
-          this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
+          this.loadItems();
           (document.getElementById('edit_client_modal') as HTMLDialogElement)?.close();
-          this.notificationService.success('Client updated successfully.');
+          this.notificationService.success(this.translate.instant('CLIENTS.TOAST.UPDATED'));
         },
-        error: () => this.notificationService.error('Failed to update client.'),
+        error: () => this.notificationService.error(this.translate.instant('CLIENTS.TOAST.UPDATE_FAILED')),
       });
-  }
-
-  nextPage() {
-    if (this.currentPage() >= this.totalPages()) return;
-    this.currentPage.update((p) => p + 1);
-  }
-
-  prevPage() {
-    if (this.currentPage() <= 1) return;
-    this.currentPage.update((p) => p - 1);
   }
 
   resetNewClient(): void {

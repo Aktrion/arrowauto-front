@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseCrudService } from '@core/services/base-crud.service';
 import { Observable, catchError, map, of } from 'rxjs';
+import { SearchRequestResponse } from '@core/models/request.model';
 import { Operation, VehicleOperation } from '@shared/models/service.model';
 
 interface WorkflowDataResponse {
@@ -37,5 +38,13 @@ export class OperationInstancesApiService extends BaseCrudService<
       }),
       catchError(() => of({ operations: [], vehicleOperations: [] })),
     );
+  }
+
+  searchInvoicing(params: any): Observable<SearchRequestResponse<any>> {
+    return this.post<SearchRequestResponse<any>>('/invoicing/search', params);
+  }
+
+  searchEstimation(params: any): Observable<SearchRequestResponse<any>> {
+    return this.post<SearchRequestResponse<any>>('/estimation/search', params);
   }
 }

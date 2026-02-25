@@ -1,17 +1,4 @@
-<div
-  class="min-h-screen bg-gradient-to-br from-base-100 via-base-200/40 to-base-100 p-4 sm:p-8 space-y-8 animate-fade-in"
->
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <h1 class="text-3xl font-black text-base-content tracking-tight">My Tasks</h1>
-      <p class="text-base-content/60 font-medium mt-1">
-        Operations assigned to you. Start, track, and complete your work.
-      </p>
-    </div>
-  </div>
-
-  <!-- Status Filter Tabs -->
+<div class="space-y-6">
   <div
     class="flex flex-wrap items-center gap-2 p-1.5 bg-base-200/50 rounded-xl border border-base-200/80 w-fit"
   >
@@ -19,9 +6,9 @@
       class="btn btn-sm gap-2 font-bold transition-all"
       [class.btn-primary]="filterStatus() === 'all'"
       [class.btn-ghost]="filterStatus() !== 'all'"
-      (click)="filterStatus.set('all')"
+      (click)="setStatusFilter('all')"
     >
-      All
+      {{ 'TASKS.ALL' | translate }}
       <span class="badge badge-sm" [class.badge-primary-content]="filterStatus() === 'all'">
         {{ statusCounts().all }}
       </span>
@@ -30,153 +17,39 @@
       class="btn btn-sm gap-2 font-bold transition-all"
       [class.btn-warning]="filterStatus() === 'pending'"
       [class.btn-ghost]="filterStatus() !== 'pending'"
-      (click)="filterStatus.set('pending')"
+      (click)="setStatusFilter('pending')"
     >
-      Pending
+      {{ 'TASKS.PENDING' | translate }}
       <span class="badge badge-sm">{{ statusCounts().pending }}</span>
     </button>
     <button
       class="btn btn-sm gap-2 font-bold transition-all"
       [class.btn-info]="filterStatus() === 'scheduled'"
       [class.btn-ghost]="filterStatus() !== 'scheduled'"
-      (click)="filterStatus.set('scheduled')"
+      (click)="setStatusFilter('scheduled')"
     >
-      Scheduled
+      {{ 'TASKS.SCHEDULED' | translate }}
       <span class="badge badge-sm">{{ statusCounts().scheduled }}</span>
     </button>
     <button
       class="btn btn-sm gap-2 font-bold transition-all"
       [class.btn-primary]="filterStatus() === 'in_progress'"
       [class.btn-ghost]="filterStatus() !== 'in_progress'"
-      (click)="filterStatus.set('in_progress')"
+      (click)="setStatusFilter('in_progress')"
     >
-      In Progress
+      {{ 'TASKS.IN_PROGRESS' | translate }}
       <span class="badge badge-sm">{{ statusCounts().in_progress }}</span>
     </button>
     <button
       class="btn btn-sm gap-2 font-bold transition-all"
       [class.btn-success]="filterStatus() === 'completed'"
       [class.btn-ghost]="filterStatus() !== 'completed'"
-      (click)="filterStatus.set('completed')"
+      (click)="setStatusFilter('completed')"
     >
-      Completed
+      {{ 'TASKS.COMPLETED' | translate }}
       <span class="badge badge-sm">{{ statusCounts().completed }}</span>
     </button>
   </div>
 
-  <div class="card-premium rounded-xl p-4">
-    <div class="relative w-full max-w-md">
-      <lucide-icon
-        [name]="icons.Search"
-        class="h-5 w-5 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40"
-      ></lucide-icon>
-      <input
-        type="text"
-        placeholder="Search by operation name, code, vehicle plate or model..."
-        class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm"
-        [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
-      />
-    </div>
-  </div>
-
-  <!-- Operations List -->
-  <div class="space-y-3">
-    @for (op of filteredOperations(); track op.id) {
-      <div
-        class="card-premium rounded-2xl border border-base-200/50 p-5 hover:shadow-lg hover:border-primary/20 transition-all group"
-      >
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <!-- Left: Operation Info -->
-          <div class="flex items-center gap-4 min-w-0">
-            <div
-              class="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0"
-            >
-              <lucide-icon [name]="icons.ClipboardList" class="h-6 w-6 text-primary"></lucide-icon>
-            </div>
-            <div class="min-w-0">
-              <p
-                class="font-bold text-base-content text-lg group-hover:text-primary transition-colors truncate"
-              >
-                {{ op.operation?.name }}
-              </p>
-              <p
-                class="text-sm text-base-content/50 font-medium cursor-pointer hover:text-primary hover:underline transition-colors"
-                (click)="openVehicle(op.vehicleId)"
-              >
-                <lucide-icon [name]="icons.Car" class="h-3.5 w-3.5 inline mr-1"></lucide-icon>
-                {{ getVehicleName(op.vehicleId) }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Middle: Details -->
-          <div class="flex items-center gap-6 text-sm text-base-content/60">
-            @if (op.operation?.estimatedDuration) {
-              <div class="flex items-center gap-1.5">
-                <lucide-icon [name]="icons.Clock" class="h-4 w-4"></lucide-icon>
-                <span class="font-semibold">{{ op.operation?.estimatedDuration }} min</span>
-              </div>
-            }
-            @if (op.scheduledDate) {
-              <div class="flex items-center gap-1.5">
-                <lucide-icon [name]="icons.Calendar" class="h-4 w-4"></lucide-icon>
-                <span class="font-semibold">{{ op.scheduledDate | date: 'shortDate' }}</span>
-              </div>
-            }
-            @if (op.scheduledTime) {
-              <span class="font-semibold">{{ op.scheduledTime }}</span>
-            }
-          </div>
-
-          <!-- Right: Status + Actions -->
-          <div class="flex items-center gap-3 shrink-0">
-            <span
-              class="badge font-bold uppercase tracking-wider text-[10px] px-3 py-2.5"
-              [class]="getStatusClass(op.status)"
-            >
-              {{ formatStatus(op.status) }}
-            </span>
-
-            @if (op.status === 'pending' || op.status === 'scheduled') {
-              <button (click)="startOperation(op)" class="btn btn-primary btn-sm gap-1.5 font-bold">
-                <lucide-icon [name]="icons.Zap" class="h-4 w-4"></lucide-icon>
-                Start
-              </button>
-            }
-            @if (op.status === 'in_progress') {
-              <button
-                (click)="completeOperation(op)"
-                class="btn btn-success btn-sm gap-1.5 font-bold"
-              >
-                <lucide-icon [name]="icons.CheckCircle2" class="h-4 w-4"></lucide-icon>
-                Complete
-              </button>
-            }
-          </div>
-        </div>
-      </div>
-    } @empty {
-      <div
-        class="text-center py-24 bg-base-200/20 rounded-3xl border-2 border-dashed border-base-200"
-      >
-        <div
-          class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-6"
-        >
-          <lucide-icon
-            [name]="icons.ClipboardList"
-            class="h-10 w-10 text-base-content/20"
-          ></lucide-icon>
-        </div>
-        <h3 class="font-bold text-xl text-base-content mb-2">No tasks found</h3>
-        <p class="text-base-content/60 max-w-xs mx-auto">
-          @if (filterStatus() === 'all') {
-            No operations have been assigned yet.
-          } @else {
-            No operations with status "{{ formatStatus(filterStatus()) }}".
-          }
-        </p>
-      </div>
-    }
-  </div>
+  <app-data-grid [config]="gridConfig" (stateChange)="handleGridStateChange($event)" />
 </div>

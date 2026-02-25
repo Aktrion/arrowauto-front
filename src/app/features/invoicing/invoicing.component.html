@@ -1,381 +1,113 @@
 <div class="space-y-8">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <h1 class="text-3xl font-bold tracking-tight">Invoicing</h1>
-      <p class="text-base-content/60 mt-1">Manage operations billing and track revenue</p>
-    </div>
-    <div class="flex items-center gap-2">
-      <div class="form-control relative group">
-        <lucide-icon
-          [name]="icons.Search"
-          class="h-5 w-5 absolute left-2 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors"
-        ></lucide-icon>
-        <input
-          type="text"
-          placeholder="Search job number..."
-          class="input input-bordered pl-10 w-full sm:w-64 focus:input-primary transition-all shadow-sm"
-          [ngModel]="searchQuery"
-          (ngModelChange)="onSearchChange($event)"
-        />
-      </div>
-      <select
-        class="select select-bordered w-full sm:w-48"
-        [ngModel]="searchField"
-        (ngModelChange)="setSearchField($event)"
-      >
-        <option value="all">All Fields</option>
-        <option value="job">Job #</option>
-        <option value="plate">Plate</option>
-        <option value="operation">Operation</option>
-        <option value="status">Status</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Stats Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Pending -->
-    <div class="card card-premium group hover:-translate-y-1 transition-transform duration-300">
-      <div class="card-body p-5 flex flex-row items-center justify-between">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
-            Pending
-          </div>
-          <div class="text-3xl font-black text-warning group-hover:drop-shadow-sm transition-all">
-            {{ pendingCount() }}
-          </div>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+          {{ 'INVOICING.PENDING' | translate }}
         </div>
-        <div
-          class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center text-warning group-hover:bg-warning group-hover:text-warning-content transition-colors duration-300"
-        >
-          <lucide-icon [name]="icons.Clock" class="h-6 w-6"></lucide-icon>
+        <div class="text-3xl font-black text-warning">{{ pendingCount() }}</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+          {{ 'INVOICING.READY' | translate }}
+        </div>
+        <div class="text-3xl font-black text-info">{{ readyToInvoiceCount() }}</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+          {{ 'INVOICING.INVOICED' | translate }}
+        </div>
+        <div class="text-3xl font-black text-success">{{ invoicedTodayCount() }}</div>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
+          {{ 'INVOICING.REVENUE_TODAY' | translate }}
+        </div>
+        <div class="text-3xl font-black text-primary">
+          £{{ totalRevenueToday().toLocaleString() }}
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Ready -->
-    <div class="card card-premium group hover:-translate-y-1 transition-transform duration-300">
-      <div class="card-body p-5 flex flex-row items-center justify-between">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
-            Ready
-          </div>
-          <div class="text-3xl font-black text-info group-hover:drop-shadow-sm transition-all">
-            {{ readyToInvoiceCount() }}
-          </div>
-        </div>
-        <div
-          class="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center text-info group-hover:bg-info group-hover:text-info-content transition-colors duration-300"
-        >
-          <lucide-icon [name]="icons.CircleCheckBig" class="h-6 w-6"></lucide-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- Invoiced Today -->
-    <div class="card card-premium group hover:-translate-y-1 transition-transform duration-300">
-      <div class="card-body p-5 flex flex-row items-center justify-between">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
-            Invoiced
-          </div>
-          <div class="text-3xl font-black text-success group-hover:drop-shadow-sm transition-all">
-            {{ invoicedTodayCount() }}
-          </div>
-        </div>
-        <div
-          class="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center text-success group-hover:bg-success group-hover:text-success-content transition-colors duration-300"
-        >
-          <lucide-icon [name]="icons.ClipboardList" class="h-6 w-6"></lucide-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- Revenue -->
-    <div
-      class="card card-premium group hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden"
+  <div class="tabs tabs-boxed bg-base-200/50 p-1 rounded-xl w-fit">
+    <button
+      class="tab rounded-lg px-4"
+      [class.tab-active]="activeTab() === 'pending'"
+      (click)="setTab('pending')"
     >
-      <div class="card-body p-5 flex flex-row items-center justify-between relative z-10">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-1">
-            Revenue Today
-          </div>
-          <div class="text-3xl font-black text-primary group-hover:drop-shadow-sm transition-all">
-            &pound;{{ totalRevenueToday().toLocaleString() }}
-          </div>
-        </div>
-        <div
-          class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-content transition-colors duration-300"
-        >
-          <lucide-icon [name]="icons.CreditCard" class="h-6 w-6"></lucide-icon>
-        </div>
-      </div>
-      <div
-        class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-      ></div>
-    </div>
+      {{ 'INVOICING.PENDING' | translate }}
+    </button>
+    <button
+      class="tab rounded-lg px-4"
+      [class.tab-active]="activeTab() === 'completed'"
+      (click)="setTab('completed')"
+    >
+      {{ 'INVOICING.COMPLETED' | translate }}
+    </button>
+    <button
+      class="tab rounded-lg px-4"
+      [class.tab-active]="activeTab() === 'invoiced'"
+      (click)="setTab('invoiced')"
+    >
+      {{ 'INVOICING.INVOICED' | translate }}
+    </button>
   </div>
 
-  <!-- Operations Table -->
-  <div class="card card-premium overflow-hidden">
-    <div class="card-body p-0 sm:p-5">
+  <app-data-grid
+    [config]="gridConfig"
+    (stateChange)="handleGridStateChange($event)"
+    (selectionChange)="handleSelectionChanged($event)"
+  />
+
+  @if (selectedRows().length > 0) {
+    <div class="sticky bottom-4 z-20">
       <div
-        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 sm:p-0"
+        class="flex items-center justify-between p-4 bg-base-100 rounded-xl shadow-lg border border-primary/20 ring-1 ring-primary/5"
       >
-        <h2 class="card-title text-xl">Operations</h2>
-        <div class="tabs tabs-boxed bg-base-200/50 p-1 rounded-xl">
+        <div class="flex items-center gap-3">
+          <div class="badge badge-primary badge-lg">{{ selectedRows().length }}</div>
+          <span class="font-medium">{{ 'COMMON.OPERATIONS_SELECTED' | translate }}</span>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-sm btn-ghost" (click)="clearSelection()">{{ 'COMMON.CANCEL' | translate }}</button>
           <button
-            class="tab rounded-lg px-4 transition-all duration-300"
-            [class.tab-active]="activeTab() === 'pending'"
-            [class.bg-base-100]="activeTab() === 'pending'"
-            [class.shadow-sm]="activeTab() === 'pending'"
-            (click)="setTab('pending')"
+            class="btn btn-sm btn-outline btn-neutral"
+            onclick="document.getElementById('invoice_preview_modal').showModal()"
           >
-            Pending
+            {{ 'COMMON.PREVIEW' | translate }}
           </button>
-          <button
-            class="tab rounded-lg px-4 transition-all duration-300"
-            [class.tab-active]="activeTab() === 'completed'"
-            [class.bg-base-100]="activeTab() === 'completed'"
-            [class.shadow-sm]="activeTab() === 'completed'"
-            (click)="setTab('completed')"
-          >
-            Completed
-          </button>
-          <button
-            class="tab rounded-lg px-4 transition-all duration-300"
-            [class.tab-active]="activeTab() === 'invoiced'"
-            [class.bg-base-100]="activeTab() === 'invoiced'"
-            [class.shadow-sm]="activeTab() === 'invoiced'"
-            (click)="setTab('invoiced')"
-          >
-            Invoiced
+          <button class="btn btn-sm btn-primary" (click)="invoiceSelection()">
+            {{ 'COMMON.GENERATE_INVOICE' | translate }}
           </button>
         </div>
       </div>
-
-      <div class="overflow-hidden border border-base-200 rounded-xl bg-base-100 shadow-inner">
-        <div class="overflow-x-auto">
-          <table class="table min-w-full">
-            <thead>
-              <tr class="bg-base-200/50 text-xs font-bold uppercase opacity-70">
-                <th class="w-12 text-center">
-                  <label>
-                    <input
-                      type="checkbox"
-                      class="checkbox checkbox-sm rounded-md"
-                      [checked]="allSelected()"
-                      (change)="toggleSelectAll()"
-                    />
-                  </label>
-                </th>
-                <th class="py-4">Job #</th>
-                <th>Vehicle</th>
-                <th>Operation</th>
-                <th>Duration</th>
-                <th>Rate</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th class="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="text-sm">
-              @for (item of paginatedOperations(); track item.op.id) {
-                <tr
-                  class="hover group transition-colors border-b border-base-100 last:border-none"
-                  [class.bg-primary/5]="isSelected(item.op.id)"
-                >
-                  <td class="text-center">
-                    <label>
-                      <input
-                        type="checkbox"
-                        class="checkbox checkbox-sm rounded-md checkbox-primary"
-                        [checked]="isSelected(item.op.id)"
-                        (change)="toggleSelect(item.op.id)"
-                      />
-                    </label>
-                  </td>
-                  <td>
-                    <span class="font-mono text-xs font-bold bg-base-200 px-2 py-1 rounded">{{
-                      item.product?.vehicle?.jobNumber
-                    }}</span>
-                  </td>
-                  <td>
-                    <div class="flex items-center gap-3">
-                      <div class="avatar placeholder">
-                        <div
-                          class="bg-base-200 text-base-content rounded-lg w-10 h-10 font-bold border border-base-300"
-                        >
-                          <span>{{ item.product?.vehicle?.make?.charAt(0) || '?' }}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <p class="font-bold">{{ item.product?.vehicle?.licensePlate }}</p>
-                        <p class="text-[10px] text-base-content/60 uppercase tracking-wide">
-                          {{ item.product?.vehicle?.make }} {{ item.product?.vehicle?.model }}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <p class="font-medium">{{ item.op.operation?.name }}</p>
-                    <p class="text-xs text-base-content/50 font-mono">
-                      {{ item.op.operation?.code }}
-                    </p>
-                  </td>
-                  <td>
-                    @if (item.op.actualDuration) {
-                      <div class="badge badge-sm badge-ghost gap-1">
-                        <lucide-icon [name]="icons.Clock" class="h-4 w-4"></lucide-icon>
-                        {{ item.op.actualDuration }}m
-                      </div>
-                    } @else {
-                      <span class="text-base-content/40 text-xs italic"
-                        >{{ item.op.operation?.estimatedDuration }}m est.</span
-                      >
-                    }
-                  </td>
-                  <td>
-                    @if (item.op.hourlyRate) {
-                      <span class="text-xs">&pound;{{ item.op.hourlyRate }}/hr</span>
-                    } @else {
-                      <span class="text-base-content/40">-</span>
-                    }
-                  </td>
-                  <td>
-                    <span class="font-bold text-primary"
-                      >&pound;{{ calculateTotal(item.op).toFixed(2) }}</span
-                    >
-                  </td>
-                  <td>
-                    <span
-                      class="badge badge-sm border-0 font-medium bg-opacity-15 text-xs py-2"
-                      [class]="getStatusClass(item.op.status)"
-                    >
-                      {{ item.op.status.replace('_', ' ') }}
-                    </span>
-                  </td>
-                  <td class="text-right">
-                    <div
-                      class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      @if (item.op.status !== 'completed') {
-                        <button class="btn btn-primary btn-xs" (click)="openCompleteModal(item)">
-                          Complete
-                        </button>
-                      }
-                      @if (item.op.status === 'completed') {
-                        <button
-                          class="btn btn-outline btn-primary btn-xs"
-                          (click)="markAsInvoiced(item.op.id)"
-                        >
-                          Invoice
-                        </button>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="9" class="text-center py-16 bg-base-50/50">
-                    <div class="flex flex-col items-center justify-center dashed-border">
-                      <lucide-icon
-                        [name]="icons.ChartBarBig"
-                        class="h-12 w-12 text-base-content/20 mb-3"
-                      ></lucide-icon>
-                      <p class="font-medium text-base-content/60">No operations found</p>
-                      <p class="text-xs text-base-content/40">
-                        Try adjusting your filters or search query
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between p-4 border-t border-base-200">
-        <p class="text-sm text-base-content/60">
-          Showing {{ paginatedOperations().length }} of {{ filteredOperations().length }}
-        </p>
-        <div class="join">
-          <button class="join-item btn btn-sm" [disabled]="currentPage() <= 1" (click)="prevPage()">
-            Prev
-          </button>
-          <button class="join-item btn btn-sm btn-ghost cursor-default">
-            Page {{ currentPage() }} / {{ totalPages() }}
-          </button>
-          <button
-            class="join-item btn btn-sm"
-            [disabled]="currentPage() >= totalPages()"
-            (click)="nextPage()"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-
-      <!-- Bulk Actions Sticky Footer -->
-      @if (selectedIds().size > 0) {
-        <div class="sticky bottom-4 mx-4 mt-6 z-20 animate-fade-in-up">
-          <div
-            class="flex items-center justify-between p-4 bg-base-100 rounded-xl shadow-lg border border-primary/20 ring-1 ring-primary/5"
-          >
-            <div class="flex items-center gap-3">
-              <div class="badge badge-primary badge-lg">{{ selectedIds().size }}</div>
-              <span class="font-medium">operations selected</span>
-            </div>
-            <div class="flex gap-2">
-              <button class="btn btn-sm btn-ghost hover:bg-base-200" (click)="clearSelection()">
-                Cancel
-              </button>
-              <button
-                class="btn btn-sm btn-outline btn-neutral"
-                onclick="document.getElementById('invoice_preview_modal').showModal()"
-              >
-                <lucide-icon [name]="icons.Eye" class="h-4 w-4 mr-1"></lucide-icon>
-                Preview
-              </button>
-              <button
-                class="btn btn-sm btn-primary shadow-lg shadow-primary/20"
-                (click)="invoiceSelection()"
-              >
-                <lucide-icon [name]="icons.FileText" class="h-4 w-4 ml-1"></lucide-icon>
-                Generate Invoice
-              </button>
-            </div>
-          </div>
-        </div>
-      }
     </div>
-  </div>
+  }
 
-  <!-- Invoice Preview Modal -->
   <dialog id="invoice_preview_modal" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box w-11/12 max-w-3xl bg-base-100 p-0 overflow-hidden shadow-2xl rounded-2xl">
       @if (invoicePreviewData(); as preview) {
         <div class="p-8 sm:p-12 bg-white text-black min-h-[600px] relative">
-          <!-- Header -->
           <div class="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
             <div>
               <h2 class="text-3xl font-black text-slate-800 tracking-tight">INVOICE</h2>
               <p class="text-slate-500 mt-1 font-medium">{{ preview.invoiceNumber }}</p>
             </div>
             <div class="text-right">
-              <div class="font-bold text-xl text-primary flex items-center justify-end gap-2">
-                <lucide-icon [name]="icons.Wrench" class="h-6 w-6"></lucide-icon>
-                ArrowAuto
-              </div>
+              <div class="font-bold text-xl text-primary">ArrowAuto</div>
               <p class="text-sm text-slate-500 mt-1">
                 123 Mechanics Way<br />London, UK AB1 2CD<br />contact&#64;arrowauto.co.uk
               </p>
             </div>
           </div>
 
-          <!-- Dates & Info -->
           <div class="flex justify-between items-end mb-10">
             <div>
               <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Bill To</p>
@@ -389,99 +121,47 @@
             </div>
           </div>
 
-          <!-- Grouped Operations -->
           <div class="space-y-8">
-            @for (group of preview.groups; track group.vehicle?._id) {
+            @for (group of preview.groups; track $index) {
               <div>
                 <div
                   class="bg-slate-50 py-3 px-4 rounded-xl mb-4 border border-slate-100 flex justify-between items-center"
                 >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-xs"
-                    >
-                      {{ group.vehicle?.make?.charAt(0) || '?' }}
-                    </div>
-                    <div>
-                      <p class="font-bold text-slate-800">
-                        {{ group.vehicle?.licensePlate || 'Unknown Plate' }}
-                      </p>
-                      <p class="text-xs text-slate-500 font-medium">
-                        {{ group.vehicle?.make }} {{ group.vehicle?.model }}
-                      </p>
-                    </div>
+                  <div>
+                    <p class="font-bold text-slate-800">
+                      {{ group.vehicle.licensePlate || 'Unknown Plate' }}
+                    </p>
+                    <p class="text-xs text-slate-500 font-medium">
+                      {{ group.vehicle.make }} {{ group.vehicle.model }}
+                    </p>
                   </div>
                   <div class="text-right">
                     <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">
                       Subtotal
                     </p>
-                    <p class="font-bold text-slate-800">
-                      &pound;{{ group.vehicleTotal.toFixed(2) }}
-                    </p>
+                    <p class="font-bold text-slate-800">£{{ group.vehicleTotal.toFixed(2) }}</p>
                   </div>
                 </div>
-
-                <table class="w-full text-left text-sm">
-                  <thead>
-                    <tr class="text-slate-400 border-b border-slate-100">
-                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px]">
-                        Description
-                      </th>
-                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px] text-center">
-                        Hrs/Qty
-                      </th>
-                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px] text-right">
-                        Rate
-                      </th>
-                      <th class="pb-3 font-bold uppercase tracking-widest text-[10px] text-right">
-                        Total
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="text-slate-700 divide-y divide-slate-50">
-                    @for (item of group.operations; track item.op.id) {
-                      <tr class="group hover:bg-slate-50/50">
-                        <td class="py-3 font-medium">{{ item.op.operation?.name }}</td>
-                        <td class="py-3 text-center text-slate-500">
-                          {{
-                            item.op.actualDuration
-                              ? (item.op.actualDuration / 60).toFixed(1)
-                              : '1.0'
-                          }}
-                        </td>
-                        <td class="py-3 text-right text-slate-500">
-                          &pound;{{
-                            (item.op.hourlyRate || item.op.operation?.defaultPrice || 0).toFixed(2)
-                          }}
-                        </td>
-                        <td class="py-3 text-right font-semibold text-slate-800">
-                          &pound;{{ calculateTotal(item.op).toFixed(2) }}
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
               </div>
             }
           </div>
 
-          <!-- Totals -->
           <div class="mt-12 border-t border-slate-200 pt-8 flex justify-end">
             <div class="w-64 space-y-3">
               <div class="flex justify-between text-sm text-slate-500 font-medium">
                 <span>Subtotal</span>
-                <span>&pound;{{ preview.subtotal.toFixed(2) }}</span>
+                <span>£{{ preview.subtotal.toFixed(2) }}</span>
               </div>
               <div class="flex justify-between text-sm text-slate-500 font-medium">
                 <span>VAT (21%)</span>
-                <span>&pound;{{ preview.tax.toFixed(2) }}</span>
+                <span>£{{ preview.tax.toFixed(2) }}</span>
               </div>
               <div class="flex justify-between items-end pt-4 border-t border-slate-200">
                 <span class="text-sm font-bold text-slate-800 uppercase tracking-widest"
                   >Total Due</span
                 >
                 <span class="text-2xl font-black text-primary"
-                  >&pound;{{ preview.grandTotal.toFixed(2) }}</span
+                  >£{{ preview.grandTotal.toFixed(2) }}</span
                 >
               </div>
             </div>
@@ -489,15 +169,11 @@
         </div>
       }
 
-      <!-- Modal Actions (Sticky Bottom) -->
       <div class="bg-base-200/50 p-4 border-t border-base-300 flex justify-end gap-3">
         <form method="dialog">
           <button class="btn btn-ghost hover:bg-base-300">Close</button>
         </form>
-        <button class="btn btn-primary" onclick="window.print()">
-          <lucide-icon [name]="icons.Printer" class="h-4 w-4 mr-1"></lucide-icon>
-          Print Invoice
-        </button>
+        <button class="btn btn-primary" onclick="window.print()">Print Invoice</button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop bg-neutral/80 backdrop-blur-sm">
@@ -505,102 +181,78 @@
     </form>
   </dialog>
 
-  <!-- Complete Operation Modal -->
   <dialog id="complete_modal" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box bg-base-100/95 backdrop-blur-sm shadow-2xl border border-base-300">
       <form method="dialog">
-        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">x</button>
       </form>
-      <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
-        <lucide-icon [name]="icons.CircleCheckBig" class="h-6 w-6 text-success"></lucide-icon>
-        Complete Operation
-      </h3>
+      <h3 class="font-bold text-xl mb-6">Complete Operation</h3>
 
       @if (selectedItem()) {
         <div class="space-y-6">
           <div class="alert bg-base-200/50 border border-base-200 shadow-sm rounded-xl">
             <div>
-              <p class="font-bold text-lg text-primary">{{ selectedItem()!.op.operation?.name }}</p>
+              <p class="font-bold text-lg text-primary">{{ selectedItem()!.operation }}</p>
               <div class="flex items-center gap-2 text-sm opacity-70 mt-1">
                 <span class="font-mono bg-base-300 px-1 rounded text-xs">{{
-                  selectedItem()!.product?.vehicle?.jobNumber
+                  selectedItem()!.job
                 }}</span>
-                <span>&bull;</span>
-                <span class="font-semibold">{{
-                  selectedItem()!.product?.vehicle?.licensePlate
-                }}</span>
+                <span>•</span>
+                <span class="font-semibold">{{ selectedItem()!.plate }}</span>
               </div>
             </div>
           </div>
 
           <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+            <label class="label"
+              ><span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
                 >Assigned Operator</span
-              >
-            </label>
-            <select
-              class="select select-bordered w-full h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
-              [(ngModel)]="completeForm.operatorId"
+              ></label
             >
-              <option value="">Select operator...</option>
-              @for (op of operators(); track op.id!) {
-                <option [value]="op.id">{{ op.name }}</option>
-              }
-            </select>
+            <app-select
+              [options]="operatorSelectOptions()"
+              [selectedValue]="completeForm.operatorId"
+              (selectionChange)="completeForm.operatorId = $event || ''"
+              [placeholder]="'Select operator...'"
+            ></app-select>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+              <label class="label"
+                ><span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
                   >Actual Duration (min)</span
-                >
-              </label>
-              <div class="relative">
-                <input
-                  type="number"
-                  class="input input-bordered w-full h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
-                  [(ngModel)]="completeForm.duration"
-                  [placeholder]="selectedItem()!.op.operation?.estimatedDuration"
-                />
-                <span
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-xs opacity-50 font-medium pointer-events-none"
-                  >MIN</span
-                >
-              </div>
+                ></label
+              >
+              <input
+                type="number"
+                class="input input-bordered w-full h-11"
+                [(ngModel)]="completeForm.duration"
+              />
             </div>
             <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
-                  >Hourly Rate (&pound;)</span
-                >
-              </label>
-              <div class="relative">
-                <span
-                  class="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 font-medium pointer-events-none"
-                  >&pound;</span
-                >
-                <input
-                  type="number"
-                  class="input input-bordered w-full pl-7 h-11 focus:border-primary focus:ring-1 focus:ring-primary/20"
-                  [(ngModel)]="completeForm.hourlyRate"
-                  placeholder="45.00"
-                />
-              </div>
+              <label class="label"
+                ><span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+                  >Hourly Rate (£)</span
+                ></label
+              >
+              <input
+                type="number"
+                class="input input-bordered w-full h-11"
+                [(ngModel)]="completeForm.hourlyRate"
+              />
             </div>
           </div>
 
           <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
+            <label class="label"
+              ><span class="label-text font-medium text-xs uppercase tracking-wide opacity-70"
                 >Technician Notes</span
-              >
-            </label>
+              ></label
+            >
             <textarea
-              class="textarea textarea-bordered h-24 focus:border-primary focus:ring-1 focus:ring-primary/20"
+              class="textarea textarea-bordered h-24"
               [(ngModel)]="completeForm.notes"
-              placeholder="Add any observations or comments..."
             ></textarea>
           </div>
 
@@ -610,7 +262,7 @@
                 >Calculated Total</span
               >
               <span class="text-2xl font-black text-primary"
-                >&pound;{{ calculateCompleteTotal().toFixed(2) }}</span
+                >£{{ calculateCompleteTotal().toFixed(2) }}</span
               >
             </div>
           </div>
@@ -621,11 +273,7 @@
         <form method="dialog">
           <button class="btn btn-ghost hover:bg-base-200">Cancel</button>
         </form>
-        <button
-          class="btn btn-success shadow-lg shadow-success/20 px-6 text-white"
-          (click)="completeOperation()"
-        >
-          <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-1"></lucide-icon>
+        <button class="btn btn-success px-6 text-white" (click)="completeOperation()">
           Mark Complete
         </button>
       </div>

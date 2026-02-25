@@ -1,59 +1,87 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
-import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
-import { OperationService } from '@shared/services/operation.service';
-import { UserService } from '@core/services/user.service';
-import { ClientService } from '@features/clients/services/client.service';
-import { VehicleOperation } from '@shared/models/service.model';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
-import { Product } from '@features/vehicles/models/vehicle.model';
+import { ClientService } from '@features/clients/services/client.service';
+import { UserService } from '@core/services/user.service';
+import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
+import { BaseListDirective } from '@core/directives/base-list.directive';
+import { MongoEntity } from '@shared/models/mongo-entity.model';
+import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
+import { OperationInstancesApiService } from '@shared/services/api/operation-instances-api.service';
+import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
+
+interface InvoicingRow extends MongoEntity {
+  id: string;
+  productId?: string;
+  customerId?: string;
+  vehicleId?: string;
+  job: string;
+  plate: string;
+  vehicle: string;
+  operation: string;
+  status: string;
+  duration: number;
+  rate: number;
+  total: number;
+  completedAt?: string | Date;
+}
 
 @Component({
   selector: 'app-invoicing',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, DataGridComponent, SelectComponent, TranslateModule],
   templateUrl: './invoicing.component.html',
 })
-export class InvoicingComponent implements OnInit {
+export class InvoicingComponent extends BaseListDirective<
+  InvoicingRow,
+  Partial<InvoicingRow>,
+  Partial<InvoicingRow>
+> {
   icons = ICONS;
   private instanceApi = inject(VehicleInstancesApiService);
-  private operationService = inject(OperationService);
+  private operationInstancesApi = inject(OperationInstancesApiService);
   private userService = inject(UserService);
   private clientService = inject(ClientService);
 
-  vehicles = signal<Product[]>([]);
-  vehicleOperations = signal<any[]>([]);
-  clients = signal<any[]>([]);
-
-  ngOnInit(): void {
-    forkJoin({
-      vehicles: this.instanceApi.findByPagination({
-        page: 1,
-        limit: 500,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-      }),
-      opsData: this.operationService.fetchData(),
-    }).subscribe(({ vehicles, opsData }) => {
-      this.vehicles.set(vehicles.data ?? []);
-      this.vehicleOperations.set(opsData.vehicleOperations);
-    });
-    this.userService.fetchUsers().subscribe((u) => this.users.set(u));
-    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
-  }
-
-  searchQuery = '';
-  searchField: 'all' | 'job' | 'plate' | 'operation' | 'status' = 'all';
   activeTab = signal<'pending' | 'completed' | 'invoiced'>('pending');
-  selectedIds = signal<Set<string>>(new Set());
-  selectedItem = signal<{ op: VehicleOperation; product: any } | null>(null);
-  currentPage = signal(1);
-  readonly pageSize = 10;
+  selectedRows = signal<InvoicingRow[]>([]);
+  users = signal<any[]>([]);
+  clients = signal<any[]>([]);
+  operators = computed(() => this.userService.getOperators(this.users()));
+  operatorSelectOptions = computed<SelectOption[]>(() =>
+    this.operators().map((op: any) => ({
+      label: op.name,
+      value: op.id,
+    })),
+  );
 
+  pendingCount = computed(() => this.tabCounts().pending);
+  readyToInvoiceCount = computed(() => this.tabCounts().completed);
+  invoicedTodayCount = computed(() => {
+    const today = new Date().toDateString();
+    return this.gridConfig.rowData.filter((row) => {
+      if (row.status !== 'invoiced') return false;
+      if (!row.completedAt) return false;
+      return new Date(row.completedAt).toDateString() === today;
+    }).length;
+  });
+  totalRevenueToday = computed(() => {
+    const today = new Date().toDateString();
+    return this.gridConfig.rowData
+      .filter(
+        (row) =>
+          row.status === 'invoiced' &&
+          row.completedAt &&
+          new Date(row.completedAt).toDateString() === today,
+      )
+      .reduce((sum, row) => sum + Number(row.total || 0), 0);
+  });
+
+  selectedItem = signal<InvoicingRow | null>(null);
   completeForm = {
     operatorId: '',
     duration: 0,
@@ -61,202 +89,177 @@ export class InvoicingComponent implements OnInit {
     notes: '',
   };
 
-  users = signal<any[]>([]);
-  operators = computed(() => this.userService.getOperators(this.users()));
-
-  allOperations = computed(() => {
-    const vehicles = this.vehicles();
-    const vehicleOps = this.vehicleOperations();
-
-    return vehicleOps.map((op) => ({
-      op,
-      product: vehicles.find((v) => v.vehicleId === op.vehicleId),
-    }));
-  });
-
-  filteredOperations = computed(() => {
-    const tab = this.activeTab();
-    let ops = this.allOperations();
-
-    if (tab === 'pending') {
-      ops = ops.filter(
-        (item) =>
-          item.op.status === 'pending' ||
-          item.op.status === 'scheduled' ||
-          item.op.status === 'in_progress',
-      );
-    } else if (tab === 'completed') {
-      ops = ops.filter((item) => item.op.status === 'completed');
-    } else if (tab === 'invoiced') {
-      ops = ops.filter(
-        (item) => item.op.status === 'invoiced' || (item.op as any).invoiced === true,
-      );
-    }
-
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
-      ops = ops.filter((item) => {
-        const job = item.product?.vehicle?.jobNumber?.toLowerCase() || '';
-        const plate = item.product?.vehicle?.licensePlate?.toLowerCase() || '';
-        const operation = item.op.operation?.name?.toLowerCase() || '';
-        const status = item.op.status.toLowerCase();
-
-        if (this.searchField === 'job') return job.includes(query);
-        if (this.searchField === 'plate') return plate.includes(query);
-        if (this.searchField === 'operation') return operation.includes(query);
-        if (this.searchField === 'status') return status.includes(query);
-        return (
-          job.includes(query) ||
-          plate.includes(query) ||
-          operation.includes(query) ||
-          status.includes(query)
-        );
-      });
-    }
-
-    return ops;
-  });
-
-  paginatedOperations = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredOperations().slice(start, start + this.pageSize);
-  });
-
-  totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.filteredOperations().length / this.pageSize)),
-  );
-
-  pendingCount = computed(
-    () =>
-      this.allOperations().filter(
-        (i) =>
-          i.op.status === 'pending' || i.op.status === 'scheduled' || i.op.status === 'in_progress',
-      ).length,
-  );
-
-  readyToInvoiceCount = computed(
-    () => this.allOperations().filter((i) => i.op.status === 'completed').length,
-  );
-
-  invoicedTodayCount = computed(
-    () =>
-      this.allOperations().filter((item) => {
-        if (item.op.status !== 'invoiced') return false;
-        if (!item.op.completedAt) return false;
-        return new Date(item.op.completedAt).toDateString() === new Date().toDateString();
-      }).length,
-  );
-
-  totalRevenueToday = computed(() =>
-    this.allOperations()
-      .filter((item) => {
-        if (item.op.status !== 'invoiced') return false;
-        if (!item.op.completedAt) return false;
-        return new Date(item.op.completedAt).toDateString() === new Date().toDateString();
-      })
-      .reduce((sum, item) => sum + this.calculateTotal(item.op), 0),
-  );
-
-  allSelected = computed(() => {
-    const filtered = this.filteredOperations();
-    return filtered.length > 0 && filtered.every((item) => this.selectedIds().has(item.op.id));
-  });
-
   invoicePreviewData = computed(() => {
-    const ids = Array.from(this.selectedIds());
-    if (!ids.length) return null;
-
-    const selectedOps = this.allOperations().filter((item) => ids.includes(item.op.id));
-    const total = selectedOps.reduce((sum, item) => sum + this.calculateTotal(item.op), 0);
+    const selected = this.selectedRows();
+    if (!selected.length) return null;
+    const total = selected.reduce((sum, item) => sum + Number(item.total || 0), 0);
     const tax = total * 0.21;
 
-    // Group by vehicle for better display
-    const byVehicleId = new Map<string, typeof selectedOps>();
-    selectedOps.forEach((item) => {
-      const vId = item.op.vehicleId;
-      const list = byVehicleId.get(vId) || [];
-      list.push(item);
-      byVehicleId.set(vId, list);
+    const byVehicle = new Map<string, InvoicingRow[]>();
+    selected.forEach((row) => {
+      const key = row.vehicleId || row.productId || row.id;
+      const list = byVehicle.get(key) || [];
+      list.push(row);
+      byVehicle.set(key, list);
     });
 
-    const groups = Array.from(byVehicleId.values()).map((opsList) => {
-      return {
-        vehicle: opsList[0].product?.vehicle,
-        client: this.getClientName(opsList[0].product?.customerId),
-        operations: opsList,
-        vehicleTotal: opsList.reduce((sum, it) => sum + this.calculateTotal(it.op), 0),
-      };
-    });
+    const groups = Array.from(byVehicle.values()).map((rows) => ({
+      vehicle: {
+        licensePlate: rows[0].plate,
+        make: rows[0].vehicle.split(' ')[0] || '',
+        model: rows[0].vehicle.split(' ').slice(1).join(' ') || '',
+      },
+      client: this.getClientName(rows[0].customerId),
+      operations: rows,
+      vehicleTotal: rows.reduce((sum, r) => sum + Number(r.total || 0), 0),
+    }));
 
     return {
       groups,
       subtotal: total,
-      tax: tax,
+      tax,
       grandTotal: total + tax,
       invoiceNumber: 'INV-' + Math.floor(100000 + Math.random() * 900000),
       date: new Date(),
     };
   });
 
+  constructor() {
+    const operationInstancesApi = inject(OperationInstancesApiService);
+    super(operationInstancesApi as any, (params) => operationInstancesApi.searchInvoicing(params));
+
+    this.gridConfig = {
+      ...this.gridConfig,
+      showNewButton: false,
+      showEditButton: false,
+      showDeleteButton: false,
+      selectable: true,
+      storageKey: 'invoicing_grid',
+      customActions: [
+        {
+          icon: 'CircleCheckBig',
+          iconLabel: 'Complete',
+          visible: (row) => row.status !== 'completed' && row.status !== 'invoiced',
+          action: (row) => this.openCompleteModal(row),
+        },
+        {
+          icon: 'FileText',
+          iconLabel: 'Invoice',
+          visible: (row) => row.status === 'completed',
+          action: (row) => this.markAsInvoiced(row),
+        },
+      ],
+    };
+
+    this.userService.fetchUsers().subscribe((u) => this.users.set(u));
+    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
+  }
+
+  protected getTitle(): string {
+    return 'INVOICING.TITLE';
+  }
+
+  protected getColumnDefinitions(): ColumnDef[] {
+    return [
+      {
+        field: 'job',
+        headerName: 'Job #',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        dontTranslate: true,
+      },
+      {
+        field: 'plate',
+        headerName: 'Plate',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        dontTranslate: true,
+      },
+      {
+        field: 'vehicle',
+        headerName: 'Vehicle',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        dontTranslate: true,
+      },
+      {
+        field: 'operation',
+        headerName: 'Operation',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        dontTranslate: true,
+      },
+      {
+        field: 'duration',
+        headerName: 'Duration',
+        type: 'number',
+        sortable: true,
+        filterable: false,
+        dontTranslate: true,
+      },
+      {
+        field: 'rate',
+        headerName: 'Rate',
+        type: 'number',
+        sortable: true,
+        filterable: false,
+        dontTranslate: true,
+      },
+      {
+        field: 'total',
+        headerName: 'Total',
+        type: 'number',
+        sortable: true,
+        filterable: false,
+        dontTranslate: true,
+        cellRenderer: ({ value }) => `£${Number(value || 0).toFixed(2)}`,
+      },
+      {
+        field: 'status',
+        headerName: 'Status',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        dontTranslate: true,
+      },
+    ];
+  }
+
+  override handleSelectionChanged(rows: InvoicingRow[]): void {
+    super.handleSelectionChanged(rows);
+    this.selectedRows.set(rows);
+  }
+
+  override handleGridStateChange(state: any): void {
+    const tab = this.activeTab();
+    state.filters = state.filters || {};
+    if (tab === 'pending') {
+      state.filters.status = { value: ['pending', 'scheduled', 'in_progress'], operator: 'in' };
+    } else if (tab === 'completed') {
+      state.filters.status = { value: 'completed', operator: 'equals' };
+    } else {
+      state.filters.status = { value: 'invoiced', operator: 'equals' };
+    }
+    super.handleGridStateChange(state);
+  }
+
   setTab(tab: 'pending' | 'completed' | 'invoiced'): void {
     this.activeTab.set(tab);
-    this.clearSelection();
-    this.currentPage.set(1);
+    this.selectedRows.set([]);
+    this.searchRequest.page = 1;
+    this.loadItems();
   }
 
-  onSearchChange(value: string) {
-    this.searchQuery = value;
-    this.currentPage.set(1);
-  }
-
-  setSearchField(field: 'all' | 'job' | 'plate' | 'operation' | 'status') {
-    this.searchField = field;
-    this.currentPage.set(1);
-  }
-
-  toggleSelectAll(): void {
-    if (this.allSelected()) {
-      this.selectedIds.set(new Set());
-    } else {
-      const ids = new Set(this.filteredOperations().map((item) => item.op.id));
-      this.selectedIds.set(ids);
-    }
-  }
-
-  toggleSelect(id: string): void {
-    this.selectedIds.update((ids) => {
-      const newIds = new Set(ids);
-      if (newIds.has(id)) {
-        newIds.delete(id);
-      } else {
-        newIds.add(id);
-      }
-      return newIds;
-    });
-  }
-
-  isSelected(id: string): boolean {
-    return this.selectedIds().has(id);
-  }
-
-  clearSelection(): void {
-    this.selectedIds.set(new Set());
-  }
-
-  calculateTotal(op: VehicleOperation): number {
-    if (op.actualPrice) return op.actualPrice;
-    if (op.actualDuration && op.hourlyRate) {
-      return (op.actualDuration / 60) * op.hourlyRate;
-    }
-    return op.operation?.defaultPrice || 0;
-  }
-
-  openCompleteModal(item: { op: VehicleOperation; product: any }): void {
-    this.selectedItem.set(item);
+  openCompleteModal(row: InvoicingRow): void {
+    this.selectedItem.set(row);
     this.completeForm = {
-      operatorId: item.op.assignedUserId || '',
-      duration: item.op.operation?.estimatedDuration || 0,
-      hourlyRate: 45,
+      operatorId: '',
+      duration: row.duration || 0,
+      hourlyRate: row.rate || 45,
       notes: '',
     };
     (document.getElementById('complete_modal') as HTMLDialogElement)?.showModal();
@@ -269,106 +272,54 @@ export class InvoicingComponent implements OnInit {
 
   completeOperation(): void {
     const item = this.selectedItem();
-    if (!item) return;
-
-    this.operationService
-      .updateVehicleOperation(
-        item.op.id,
-        {
-          status: 'completed',
-          actualDuration: this.completeForm.duration,
-          hourlyRate: this.completeForm.hourlyRate,
-          assignedUserId: this.completeForm.operatorId,
-          notes: this.completeForm.notes,
-          completedAt: new Date(),
-        },
-        this.vehicleOperations(),
-      )
+    if (!item?.id) return;
+    this.operationInstancesApi
+      .update(item.id, {
+        status: 'completed',
+        timeTaken: this.completeForm.duration,
+        ratePerHour: this.completeForm.hourlyRate,
+        assignedUser: this.completeForm.operatorId || undefined,
+        labourDescription: this.completeForm.notes || undefined,
+        performedDate: new Date(),
+      })
       .subscribe({
         next: () => {
           (document.getElementById('complete_modal') as HTMLDialogElement)?.close();
-          this.operationService
-            .fetchData()
-            .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+          this.loadItems();
         },
       });
   }
 
-  markAsInvoiced(id: string): void {
-    const operation = this.allOperations().find((item) => item.op.id === id);
-    this.operationService.bulkMarkInvoiced([id], this.vehicleOperations()).subscribe({
+  markAsInvoiced(row: InvoicingRow): void {
+    if (!row.id) return;
+    this.operationInstancesApi.update(row.id, { status: 'invoiced' }).subscribe({
       next: () => {
-        if (operation?.op.vehicleId && operation?.product?._id) {
-          this.instanceApi.update(operation.product._id, { status: 'invoiced' } as any).subscribe();
-        } else if (operation?.op.vehicleId) {
-          this.instanceApi.findInstanceByVehicleId(operation.op.vehicleId).subscribe((inst) => {
-            if (inst?._id) {
-              this.instanceApi.update(inst._id, { status: 'invoiced' } as any).subscribe();
-            }
-          });
+        if (row.productId) {
+          this.instanceApi.update(row.productId, { status: 'invoiced' } as any).subscribe();
         }
-        this.operationService
-          .fetchData()
-          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+        this.loadItems();
       },
     });
   }
 
   invoiceSelection(): void {
-    const ids = Array.from(this.selectedIds());
-    if (!ids.length) return;
-    const itemsToInvoice = this.allOperations().filter((item) => ids.includes(item.op.id));
-    const instanceIds = Array.from(
-      new Set(itemsToInvoice.map((item) => item.product?._id).filter((id): id is string => !!id)),
-    );
-    const vehicleIdsWithoutProduct = Array.from(
-      new Set(
-        itemsToInvoice
-          .filter((item) => !item.product?._id && item.op.vehicleId)
-          .map((item) => item.op.vehicleId as string),
-      ),
-    );
-
-    this.operationService.bulkMarkInvoiced(ids, this.vehicleOperations()).subscribe({
-      next: () => {
-        instanceIds.forEach((instanceId) =>
-          this.instanceApi.update(instanceId, { status: 'invoiced' } as any).subscribe(),
-        );
-        vehicleIdsWithoutProduct.forEach((vehicleId) =>
-          this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe((inst) => {
-            if (inst?._id) {
-              this.instanceApi.update(inst._id, { status: 'invoiced' } as any).subscribe();
-            }
-          }),
-        );
-        this.clearSelection();
-        this.operationService
-          .fetchData()
-          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
-      },
+    const rows = this.selectedRows();
+    if (!rows.length) return;
+    rows.forEach((row) => {
+      if (!row.id) return;
+      this.operationInstancesApi.update(row.id, { status: 'invoiced' }).subscribe();
+      if (row.productId) {
+        this.instanceApi.update(row.productId, { status: 'invoiced' } as any).subscribe();
+      }
     });
+    this.selectedRows.set([]);
+    this.selectedItems = [];
+    this.loadItems();
   }
 
-  getStatusClass(status: string): string {
-    const classes: Record<string, string> = {
-      pending: 'badge-ghost',
-      scheduled: 'badge-info',
-      in_progress: 'badge-warning',
-      completed: 'badge-success',
-      invoiced: 'badge-primary',
-      cancelled: 'badge-error',
-    };
-    return classes[status] || 'badge-ghost';
-  }
-
-  nextPage() {
-    if (this.currentPage() >= this.totalPages()) return;
-    this.currentPage.update((p) => p + 1);
-  }
-
-  prevPage() {
-    if (this.currentPage() <= 1) return;
-    this.currentPage.update((p) => p - 1);
+  clearSelection(): void {
+    this.selectedRows.set([]);
+    this.selectedItems = [];
   }
 
   getClientName(clientId?: string): string {
@@ -376,6 +327,12 @@ export class InvoicingComponent implements OnInit {
     return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Walk-in Client';
   }
 
-  // Service Helpers
-  formatStatus = (s: string) => VehicleStatusUtils.formatStatus(s);
+  private tabCounts() {
+    const rows = this.gridConfig.rowData || [];
+    return {
+      pending: rows.filter((r) => ['pending', 'scheduled', 'in_progress'].includes(r.status))
+        .length,
+      completed: rows.filter((r) => r.status === 'completed').length,
+    };
+  }
 }

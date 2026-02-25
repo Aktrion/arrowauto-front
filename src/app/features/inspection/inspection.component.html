@@ -1,43 +1,43 @@
-﻿<div class="space-y-6">
+<div class="space-y-6">
   <section
-    class="card-premium rounded-2xl p-4 sm:p-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 bg-[radial-gradient(circle_at_100%_0%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_40%),var(--color-base-100)]"
+    class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4 sm:p-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4"
   >
     <div>
       <p class="text-[11px] uppercase tracking-[0.14em] font-bold text-base-content/50 mb-1">
-        Operations / Inspection Lab
+        {{ 'INSPECTION.SUBTITLE' | translate }}
       </p>
       <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
-        Vehicle Inspection Command Center
+        {{ 'INSPECTION.COMMAND_CENTER' | translate }}
       </h1>
       <p class="text-sm text-base-content/65 mt-2 max-w-2xl">
-        Registro detallado de la inspeccion del vehiculo seleccionado.
+        {{ 'INSPECTION.DESC' | translate }}
       </p>
       <button class="btn btn-ghost btn-sm mt-3" (click)="backToInspectionList()">
         <lucide-icon [name]="icons.ChevronLeft" class="h-4 w-4"></lucide-icon>
-        Back to queue
+        {{ 'INSPECTION.BACK_TO_QUEUE' | translate }}
       </button>
     </div>
 
     <div class="grid grid-cols-3 gap-2 w-full lg:w-auto lg:min-w-[340px]">
       <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
-        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">Vehicle</p>
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">{{ 'INSPECTION.VEHICLE' | translate }}</p>
         <p class="text-sm sm:text-base font-extrabold truncate">
           {{ selectedVehicle()?.vehicle?.licensePlate || 'N/A' }}
         </p>
       </div>
       <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
-        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">Checked</p>
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">{{ 'INSPECTION.CHECKED' | translate }}</p>
         <p class="text-sm sm:text-base font-extrabold">{{ inspectedCount() }}</p>
       </div>
       <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
-        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">Estimated</p>
+        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">{{ 'INSPECTION.ESTIMATED' | translate }}</p>
         <p class="text-sm sm:text-base font-extrabold">&pound;{{ totalCost().toFixed(0) }}</p>
       </div>
     </div>
   </section>
 
   @if (selectedVehicleId()) {
-    <section class="card-premium rounded-2xl p-4">
+    <section class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
         <h2 class="text-base sm:text-lg font-bold">
           {{ selectedVehicle()?.vehicle?.make }} {{ selectedVehicle()?.vehicle?.model }}
@@ -48,20 +48,20 @@
       <div class="grid grid-cols-3 gap-2">
         <article class="rounded-xl border border-success/30 bg-success/10 text-center py-2">
           <p class="text-xl font-extrabold leading-none">{{ countByStatus('ok') }}</p>
-          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">OK</p>
+          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">{{ 'INSPECTION.OK' | translate }}</p>
         </article>
         <article class="rounded-xl border border-warning/30 bg-warning/10 text-center py-2">
           <p class="text-xl font-extrabold leading-none">{{ countByStatus('warning') }}</p>
-          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">Warn</p>
+          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">{{ 'INSPECTION.WARN' | translate }}</p>
         </article>
         <article class="rounded-xl border border-error/30 bg-error/10 text-center py-2">
           <p class="text-xl font-extrabold leading-none">{{ countByStatus('defect') }}</p>
-          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">Defect</p>
+          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">{{ 'INSPECTION.DEFECT' | translate }}</p>
         </article>
       </div>
 
       <div class="mt-3 mb-1 flex items-center justify-between text-xs text-base-content/70">
-        <span>Progress</span>
+        <span>{{ 'INSPECTION.PROGRESS' | translate }}</span>
         <span class="font-bold"
           >{{ inspectedCount() }} / {{ activeInspectionPoints().length }}</span
         >
@@ -75,43 +75,43 @@
       @if (totalCost() > 0) {
         <div class="mt-3 rounded-xl border border-base-300/80 bg-base-200/70 p-3 text-center">
           <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/60">
-            Estimated repair cost
+            {{ 'INSPECTION.EST_REPAIR_COST' | translate }}
           </p>
           <p class="text-2xl font-black text-primary">&pound;{{ totalCost().toFixed(2) }}</p>
         </div>
       }
 
       <button
-        class="btn-premium w-full mt-4"
+        class="btn btn-primary w-full mt-4"
         [disabled]="!hasInspectionResults()"
         (click)="submitInspection()"
       >
         <lucide-icon [name]="icons.Send" class="h-4 w-4 mr-2"></lucide-icon>
-        {{ isSaving() ? 'Saving...' : 'Save Inspection' }}
+        {{ isSaving() ? ('INSPECTION.SAVING' | translate) : ('INSPECTION.SAVE_INSPECTION' | translate) }}
       </button>
 
       @if (saveError()) {
         <p class="text-error text-xs mt-2">{{ saveError() }}</p>
       }
       @if (saveSuccess()) {
-        <p class="text-success text-xs mt-2">Inspection saved successfully.</p>
+        <p class="text-success text-xs mt-2">{{ 'INSPECTION.SAVED_SUCCESS' | translate }}</p>
       }
     </section>
 
-    <section class="card-premium rounded-2xl p-4">
+    <section class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <div>
           <p class="text-[11px] uppercase tracking-[0.14em] font-bold text-base-content/50">
-            Checklist
+            {{ 'INSPECTION.CHECKLIST' | translate }}
           </p>
-          <h2 class="text-base sm:text-lg font-bold">Vehicle Health Check Record</h2>
+          <h2 class="text-base sm:text-lg font-bold">{{ 'INSPECTION.HEALTH_RECORD' | translate }}</h2>
         </div>
         <div
           class="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] font-bold text-base-content/60"
         >
-          <span class="w-2 h-2 rounded-full bg-success"></span><span>OK</span>
-          <span class="w-2 h-2 rounded-full bg-warning"></span><span>Warn</span>
-          <span class="w-2 h-2 rounded-full bg-error"></span><span>Fail</span>
+          <span class="w-2 h-2 rounded-full bg-success"></span><span>{{ 'INSPECTION.OK' | translate }}</span>
+          <span class="w-2 h-2 rounded-full bg-warning"></span><span>{{ 'INSPECTION.WARN' | translate }}</span>
+          <span class="w-2 h-2 rounded-full bg-error"></span><span>{{ 'INSPECTION.FAIL' | translate }}</span>
         </div>
       </div>
 
@@ -261,7 +261,7 @@
       </div>
     </section>
 
-    <section class="card-premium rounded-2xl p-4">
+    <section class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4">
       <div class="text-center mb-6">
         <h2 class="card-title text-xl justify-center mb-1 flex items-center gap-2">
           <lucide-icon [name]="icons.Disc" class="h-5 w-5 text-primary"></lucide-icon>
@@ -538,7 +538,7 @@
     </section>
   } @else {
     <section
-      class="card-premium rounded-2xl min-h-[60vh] flex flex-col items-center justify-center text-center p-8"
+      class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl min-h-[60vh] flex flex-col items-center justify-center text-center p-8"
     >
       <div
         class="w-16 h-16 rounded-full flex items-center justify-center bg-base-200 border border-base-300"
@@ -548,11 +548,11 @@
           class="h-9 w-9 text-base-content/35"
         ></lucide-icon>
       </div>
-      <h3 class="mt-4 text-2xl font-extrabold">Inspection not found</h3>
+      <h3 class="mt-4 text-2xl font-extrabold">{{ 'INSPECTION.NOT_FOUND' | translate }}</h3>
       <p class="mt-2 text-base-content/60 max-w-xl">
-        No se pudo cargar la inspeccion solicitada. Vuelve al listado para seleccionar otra.
+        {{ 'INSPECTION.LOAD_ERROR' | translate }}
       </p>
-      <button class="btn-premium mt-4" (click)="backToInspectionList()">Back to queue</button>
+      <button class="btn btn-primary mt-4" (click)="backToInspectionList()">{{ 'INSPECTION.BACK_TO_QUEUE' | translate }}</button>
     </section>
   }
 </div>

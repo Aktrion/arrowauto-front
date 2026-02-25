@@ -1,15 +1,22 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { AfterViewInit, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 import { UserService } from '@core/services/user.service';
 import { Client } from '@features/clients/models/client.model';
 import { ClientService } from '@features/clients/services/client.service';
 import { DashboardService } from '@features/dashboard/services/dashboard.service';
 import { ICONS } from '@shared/icons';
+import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import {
+  ColumnDef,
+  DataGridConfig,
+  GridState,
+} from '@shared/components/data-grid/data-grid.interface';
+import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,16 +28,18 @@ import { ICONS } from '@shared/icons';
     LucideAngularModule,
     TranslateModule,
     FormsModule,
+    DataGridComponent,
+    SelectComponent,
   ],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit {
   icons = ICONS;
   private userService = inject(UserService);
   private clientService = inject(ClientService);
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private translate = inject(TranslateService);
 
   private vehiclesSignal = signal<any[]>([]);
   private statsSignal = signal<any>({
@@ -46,6 +55,14 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.fetchDashboard().subscribe((data) => {
       this.vehiclesSignal.set(data.vehicles);
       this.statsSignal.set(data.stats);
+      this.gridConfig = {
+        ...this.gridConfig,
+        rowData: (data.vehicles || []).slice(0, 5),
+        total: Math.min((data.vehicles || []).length, 5),
+        currentPage: 0,
+        totalPages: 1,
+        loading: false,
+      };
     });
     this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
     this.userService.fetchUsers().subscribe((u) => this.users.set(u));
@@ -53,6 +70,12 @@ export class DashboardComponent implements OnInit {
 
   searchQuery = '';
   searchField = 'plate';
+  get searchFieldOptions(): SelectOption[] {
+    return [
+      { label: this.translate.instant('DASHBOARD.PLATE_VIN'), value: 'plate' },
+      { label: this.translate.instant('DASHBOARD.JOB_NUMBER'), value: 'job' },
+    ];
+  }
   isSearching = false;
 
   readonly vehicles = this.vehiclesSignal.asReadonly();
@@ -61,10 +84,25 @@ export class DashboardComponent implements OnInit {
   readonly stats = this.statsSignal.asReadonly();
 
   private clients = signal<Client[]>([]);
+  gridConfig: DataGridConfig<any> = {
+    title: 'DASHBOARD.RECENT_VEHICLES.TITLE',
+    columnDefs: [],
+    rowData: [],
+    pageSize: 5,
+    total: 0,
+    currentPage: 0,
+    totalPages: 1,
+    loading: true,
+    selectable: false,
+    showNewButton: false,
+    showEditButton: false,
+    showDeleteButton: false,
+    storageKey: 'dashboard_recent_vehicles_grid',
+  };
 
   getClientName(clientId?: string): string {
-    if (!clientId) return 'Unassigned';
-    return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Unknown';
+    if (!clientId) return this.translate.instant('DASHBOARD.UNASSIGNED');
+    return this.clientService.getClientById(this.clients(), clientId)?.name ?? this.translate.instant('DASHBOARD.UNKNOWN');
   }
 
   getInitials(name: string): string {
@@ -107,5 +145,52 @@ export class DashboardComponent implements OnInit {
         this.router.navigate(['/vehicles-instances'], { queryParams: { q: lowerQuery } });
       }
     }, 400);
+  }
+
+  handleRecentStateChange(_state: GridState): void {}
+
+  ngAfterViewInit(): void {
+    this.gridConfig = {
+      ...this.gridConfig,
+      columnDefs: this.getRecentColumns(),
+    };
+  }
+
+  private getRecentColumns(): ColumnDef[] {
+    return [
+      {
+        field: 'vehicle.licensePlate',
+        headerName: 'DASHBOARD.TABLE.VEHICLE',
+        type: 'string',
+        sortable: false,
+        filterable: false,
+        cellRenderer: ({ data }) =>
+          `${data?.vehicle?.licensePlate || ''} (${data?.vehicle?.make || ''} ${data?.vehicle?.model || ''})`,
+      },
+      {
+        field: 'customerId',
+        headerName: 'DASHBOARD.TABLE.CLIENT',
+        type: 'string',
+        sortable: false,
+        filterable: false,
+        cellRenderer: ({ data }) => this.getClientName(data?.customerId),
+      },
+      {
+        field: 'status',
+        headerName: 'DASHBOARD.TABLE.STATUS',
+        type: 'string',
+        sortable: false,
+        filterable: false,
+        cellRenderer: ({ value }) => this.formatStatus(value),
+      },
+      {
+        field: 'status',
+        headerName: 'DASHBOARD.TABLE.PROGRESS',
+        type: 'number',
+        sortable: false,
+        filterable: false,
+        cellRenderer: ({ value }) => `${this.getProgress(value)}/4`,
+      },
+    ];
   }
 }

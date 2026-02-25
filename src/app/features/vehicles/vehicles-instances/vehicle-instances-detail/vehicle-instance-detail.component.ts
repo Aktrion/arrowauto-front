@@ -24,11 +24,20 @@ import {
 } from '@features/vehicles/models/vehicle.model';
 import { ToastService } from '@core/services/toast.service';
 import { InspectionTemplatesService } from '@features/settings/inspection-templates/services/inspection-templates.service';
+import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 
 @Component({
   selector: 'app-vehicle-instance-detail',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, RouterLink, LucideAngularModule, TranslateModule],
+  imports: [
+    CommonModule,
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    LucideAngularModule,
+    TranslateModule,
+    SelectComponent,
+  ],
   templateUrl: './vehicle-instance-detail.component.html',
 })
 export class VehicleInstanceDetailComponent implements OnInit {
@@ -87,6 +96,37 @@ export class VehicleInstanceDetailComponent implements OnInit {
     'cancelled',
   ];
 
+  statusSelectOptions: SelectOption[] = this.statusOptions.map((s) => ({
+    label: VehicleStatusUtils.formatStatus(s),
+    value: s,
+  }));
+
+  operationStatusSelectOptions: SelectOption[] = this.operationStatusOptions.map((s) => ({
+    label: VehicleStatusUtils.formatStatus(s),
+    value: s,
+  }));
+
+  clientSelectOptions = computed<SelectOption[]>(() =>
+    this.clients().map((c: any) => ({
+      label: `${c.name} - ${c.company || 'Private'}`,
+      value: c.id,
+    })),
+  );
+
+  inspectionTemplateSelectOptions = computed<SelectOption[]>(() =>
+    this.inspectionTemplates().map((t: any) => ({
+      label: t.name,
+      value: t._id,
+    })),
+  );
+
+  masterOperationSelectOptions = computed<SelectOption[]>(() =>
+    this.masterOperations().map((op) => ({
+      label: `${op.shortName} — ${op.defaultDuration}min • £${op.defaultRatePerHour}/hr`,
+      value: op.id,
+    })),
+  );
+
   constructor() {
     effect(() => {
       const id = this.routeId();
@@ -128,7 +168,9 @@ export class VehicleInstanceDetailComponent implements OnInit {
     this.operationService
       .fetchData()
       .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
-    this.operationService.fetchOperationMasters().subscribe((ops) => this.masterOperations.set(ops));
+    this.operationService
+      .fetchOperationMasters()
+      .subscribe((ops) => this.masterOperations.set(ops));
     this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
     this.route.params.subscribe((params) => {
       const id = params['id'];

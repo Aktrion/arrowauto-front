@@ -6,8 +6,10 @@ import { UserService } from '@core/services/user.service';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { OperationService } from '@shared/services/operation.service';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
 import { Product } from '@features/vehicles/models/vehicle.model';
+import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 
 interface DaySlot {
   date: Date;
@@ -26,7 +28,7 @@ interface TimeSlot {
 @Component({
   selector: 'app-scheduling',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SelectComponent, TranslateModule],
   templateUrl: './scheduling.component.html',
 })
 export class SchedulingComponent implements OnInit {
@@ -109,6 +111,13 @@ export class SchedulingComponent implements OnInit {
           vehicles.find((v) => v.vehicleId === vo.vehicleId)?.vehicle?.licensePlate || 'Unknown',
       }));
   });
+
+  pendingOperationSelectOptions = computed<SelectOption[]>(() =>
+    this.pendingOperations().map((op: any) => ({
+      label: `${op.vehiclePlate} - ${op.operation?.name} (${op.operation?.estimatedDuration}min)`,
+      value: op.id,
+    })),
+  );
 
   scheduledOperations = computed(() => {
     const selectedDay = this.selectedDay().toDateString();

@@ -1,10 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OperationMaster } from '@shared/models/operation.model';
-import { User } from '@shared/models/user.model';
 import { OperationService } from '@shared/services/operation.service';
-import { InspectionService } from '@features/inspection/services/inspection.service';
-import { UserService } from '@core/services/user.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '@shared/icons';
 import { InspectionTemplatesListComponent } from '@features/settings/inspection-templates/inspection-templates-list/inspection-templates-list.component';
@@ -24,16 +21,12 @@ import { TyreConfigurationsComponent } from '@features/settings/tyre-configurati
 export class SettingsComponent implements OnInit {
   icons = ICONS;
   private operationService = inject(OperationService);
-  private inspectionService = inject(InspectionService);
-  private userService = inject(UserService);
 
-  activeSection = signal('general');
+  activeSection = signal('operations');
   operations = signal<OperationMaster[]>([]);
-  users = signal<User[]>([]);
 
   ngOnInit(): void {
     this.operationService.fetchOperationMasters().subscribe((ops) => this.operations.set(ops));
-    this.userService.fetchUsers().subscribe((u) => this.users.set(u));
   }
 
   // Operation CRUD state
@@ -50,11 +43,6 @@ export class SettingsComponent implements OnInit {
 
   sections = [
     {
-      id: 'general',
-      name: 'General',
-      icon: this.icons.Settings,
-    },
-    {
       id: 'operations',
       name: 'Operations',
       icon: this.icons.Briefcase,
@@ -69,27 +57,7 @@ export class SettingsComponent implements OnInit {
       name: 'Tyre Configurations',
       icon: this.icons.Disc,
     },
-    {
-      id: 'users',
-      name: 'Users & Operators',
-      icon: this.icons.Users,
-    },
-    {
-      id: 'rates',
-      name: 'Labor Rates',
-      icon: this.icons.CreditCard,
-    },
   ];
-
-  getInitials(name?: string): string {
-    return (name ?? '')
-      .split(' ')
-      .map((n) => n[0])
-      .filter(Boolean)
-      .join('')
-      .toUpperCase()
-      .slice(0, 2) || '?';
-  }
 
   openAddOperation() {
     this.editingOperationId.set(null);

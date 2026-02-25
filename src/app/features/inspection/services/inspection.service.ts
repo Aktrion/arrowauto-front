@@ -32,6 +32,13 @@ export class InspectionService {
     return this.valuesApi.searchByIds(ids);
   }
 
+  getInspectionValuesByVehicleInstanceIds(
+    vehicleInstanceIds: string[],
+    limit?: number,
+  ): Observable<InspectionValue[]> {
+    return this.valuesApi.searchByVehicleInstanceIds(vehicleInstanceIds, limit);
+  }
+
   createInspectionValue(payload: Record<string, unknown>) {
     return this.valuesApi.create(payload);
   }

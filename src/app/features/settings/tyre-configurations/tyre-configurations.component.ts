@@ -15,11 +15,11 @@ import { ToastService } from '@core/services/toast.service';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
   template: `
-    <div class="form-section space-y-5">
+    <div class="card bg-base-100 shadow-xl border border-base-200 rounded-xl p-6 mb-6 space-y-5">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="form-section-title">Tyre Configurations</h3>
-          <p class="form-section-description">
+          <h3 class="text-base font-semibold text-base-content mb-1">Tyre Configurations</h3>
+          <p class="text-sm text-base-content/60 mb-4">
             Manage tyre templates used by inspection points of type "Tyre".
           </p>
         </div>
@@ -108,7 +108,10 @@ import { ToastService } from '@core/services/toast.service';
                   <lucide-icon [name]="icons.Pencil" class="h-4 w-4"></lucide-icon>
                   Edit
                 </button>
-                <button class="btn btn-ghost btn-xs text-error" (click)="config._id && remove(config._id)">
+                <button
+                  class="btn btn-ghost btn-xs text-error"
+                  (click)="config._id && remove(config._id)"
+                >
                   <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
                   Delete
                 </button>

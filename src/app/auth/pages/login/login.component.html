@@ -13,7 +13,7 @@
   <div class="absolute inset-0 bg-primary/25"></div>
   <div class="absolute inset-0 bg-base-content/20"></div>
 
-  <div class="relative z-10 w-full max-w-5xl px-4 py-10 animate-slide-up">
+  <div class="relative z-10 w-full max-w-5xl px-4 py-10">
     <div
       class="mx-auto grid w-full overflow-hidden rounded-3xl border border-base-300/60 bg-base-100/20 shadow-2xl backdrop-blur-xl md:grid-cols-2"
     >
@@ -110,7 +110,11 @@
 
           <div class="flex items-center justify-between pt-1">
             <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" formControlName="remember" class="checkbox checkbox-primary checkbox-sm" />
+              <input
+                type="checkbox"
+                formControlName="remember"
+                class="checkbox checkbox-primary checkbox-sm"
+              />
               <span class="text-sm text-base-content/70">{{
                 'LOGIN.FORM.REMEMBER_ME' | translate
               }}</span>
@@ -121,7 +125,11 @@
             </a>
           </div>
 
-          <button type="button" (click)="login()" class="btn btn-primary btn-lg w-full mt-2 rounded-xl">
+          <button
+            type="button"
+            (click)="login()"
+            class="btn btn-primary btn-lg w-full mt-2 rounded-xl"
+          >
             {{ 'LOGIN.FORM.SIGN_IN' | translate }}
           </button>
         </form>
@@ -133,4 +141,3 @@
     <app-language-switcher></app-language-switcher>
   </div>
 </div>
-

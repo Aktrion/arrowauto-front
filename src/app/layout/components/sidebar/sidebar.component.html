@@ -218,7 +218,7 @@
             routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
             class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
             [class.justify-center]="collapsed"
-            [title]="collapsed ? 'Tasks' : ''"
+            [title]="collapsed ? ('SHELL.SIDEBAR.TASKS' | translate) : ''"
           >
             <lucide-icon
               [name]="icons.Wrench"
@@ -230,7 +230,7 @@
               [class.w-0]="collapsed"
               [class.hidden]="collapsed"
             >
-              Tasks
+              {{ 'SHELL.SIDEBAR.TASKS' | translate }}
             </span>
           </a>
         </li>
@@ -262,7 +262,7 @@
             routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
             class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary"
             [class.justify-center]="collapsed"
-            [title]="collapsed ? 'Estimation' : ''"
+            [title]="collapsed ? ('SHELL.SIDEBAR.ESTIMATION' | translate) : ''"
           >
             <lucide-icon
               [name]="icons.DollarSign"
@@ -274,7 +274,7 @@
               [class.w-0]="collapsed"
               [class.hidden]="collapsed"
             >
-              Estimation
+              {{ 'SHELL.SIDEBAR.ESTIMATION' | translate }}
             </span>
           </a>
         </li>
@@ -302,7 +302,7 @@
             routerLinkActive="!bg-primary/10 !text-primary shadow-sm"
             class="flex items-center p-3 rounded-xl transition-all duration-200 group hover:bg-base-100 text-base-content/70 hover:text-primary min-w-0"
             [class.justify-center]="collapsed"
-            [title]="collapsed ? 'Approvals' : ''"
+            [title]="collapsed ? ('SHELL.SIDEBAR.APPROVALS' | translate) : ''"
           >
             <div class="relative">
               <lucide-icon
@@ -316,7 +316,7 @@
               [class.w-0]="collapsed"
               [class.hidden]="collapsed"
             >
-              Approvals
+              {{ 'SHELL.SIDEBAR.APPROVALS' | translate }}
             </span>
           </a>
         </li>

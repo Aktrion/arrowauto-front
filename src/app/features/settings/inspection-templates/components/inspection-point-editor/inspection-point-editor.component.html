@@ -27,10 +27,12 @@
     <!-- Type -->
     <div class="form-control">
       <label class="label"><span class="label-text">Type</span></label>
-      <select [(ngModel)]="type" class="select select-bordered w-full">
-        <option value="standard">Standard</option>
-        <option value="tyre">Tyre</option>
-      </select>
+      <app-select
+        [options]="typeOptions"
+        [selectedValue]="type"
+        (selectionChange)="type = $event"
+        [clearable]="false"
+      ></app-select>
     </div>
 
     <!-- Active -->
@@ -45,23 +47,22 @@
     @if (type === 'tyre') {
       <div class="form-control">
         <label class="label"><span class="label-text">Tyre Configuration</span></label>
-        <select [(ngModel)]="tyreConfigurationId" class="select select-bordered w-full">
-          <option [ngValue]="null">Select Configuration</option>
-          @for (config of tyreConfigs(); track config._id) {
-            <option [value]="config._id">{{ config.code }}</option>
-          }
-        </select>
+        <app-select
+          [options]="tyreConfigSelectOptions()"
+          [selectedValue]="tyreConfigurationId"
+          (selectionChange)="tyreConfigurationId = $event"
+          [placeholder]="'Select Configuration'"
+        ></app-select>
       </div>
 
       <div class="form-control">
         <label class="label"><span class="label-text">Tyre Position</span></label>
-        <select [(ngModel)]="tyrePosition" class="select select-bordered w-full">
-          <option value="Front Left">Front Left</option>
-          <option value="Front Right">Front Right</option>
-          <option value="Rear Left">Rear Left</option>
-          <option value="Rear Right">Rear Right</option>
-          <option value="Spare">Spare</option>
-        </select>
+        <app-select
+          [options]="tyrePositionOptions"
+          [selectedValue]="tyrePosition"
+          (selectionChange)="tyrePosition = $event"
+          [clearable]="false"
+        ></app-select>
       </div>
     }
 
@@ -75,20 +76,22 @@
 
     <div class="form-control">
       <label class="label"><span class="label-text">Mandatory Media</span></label>
-      <select [(ngModel)]="mandatoryMedia" class="select select-bordered w-full">
-        <option value="optional">Optional</option>
-        <option value="required">Required</option>
-        <option value="requiredIfNok">Required if Not OK</option>
-      </select>
+      <app-select
+        [options]="mandatoryMediaOptions"
+        [selectedValue]="mandatoryMedia"
+        (selectionChange)="mandatoryMedia = $event"
+        [clearable]="false"
+      ></app-select>
     </div>
 
     <div class="form-control">
       <label class="label"><span class="label-text">Mandatory Comment</span></label>
-      <select [(ngModel)]="mandatoryComment" class="select select-bordered w-full">
-        <option value="optional">Optional</option>
-        <option value="required">Required</option>
-        <option value="requiredIfNok">Required if Not OK</option>
-      </select>
+      <app-select
+        [options]="mandatoryCommentOptions"
+        [selectedValue]="mandatoryComment"
+        (selectionChange)="mandatoryComment = $event"
+        [clearable]="false"
+      ></app-select>
     </div>
   </div>
 
@@ -110,4 +113,3 @@
     </button>
   </div>
 </div>
-

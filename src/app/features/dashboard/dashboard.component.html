@@ -1,14 +1,11 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div class="animate-slide-up">
+    <div>
       <h1 class="text-2xl font-bold text-base-content">{{ 'DASHBOARD.TITLE' | translate }}</h1>
       <p class="text-base-content/60">{{ 'DASHBOARD.WELCOME' | translate }}</p>
     </div>
-    <a
-      routerLink="/vehicles-instances/new"
-      class="btn-premium inline-flex items-center gap-2 animate-slide-up stagger-1"
-    >
+    <a routerLink="/vehicles-instances/new" class="btn btn-primary">
       <lucide-icon [name]="icons.Plus" class="h-5 w-5"></lucide-icon>
       {{ 'DASHBOARD.NEW_VEHICLE' | translate }}
     </a>
@@ -16,7 +13,7 @@
 
   <!-- Quick Search -->
   <div
-    class="card-premium rounded-xl p-4 flex flex-col sm:flex-row gap-3 animate-slide-up stagger-1"
+    class="card bg-base-100 shadow-xl border border-base-200 p-4 flex flex-col sm:flex-row gap-3"
   >
     <div class="flex-1 relative">
       <lucide-icon
@@ -25,22 +22,22 @@
       ></lucide-icon>
       <input
         type="text"
-        class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm shadow-inner"
-        placeholder="Quick locate vehicle..."
+        class="w-full pl-10 pr-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all text-sm"
+        [placeholder]="'DASHBOARD.SEARCH_PLACEHOLDER' | translate"
         [(ngModel)]="searchQuery"
         (keydown.enter)="quickSearch()"
       />
     </div>
     <div class="flex gap-2 w-full sm:w-auto">
-      <select
-        class="select select-bordered bg-base-200 border-0 rounded-xl text-sm flex-1 sm:w-40"
-        [(ngModel)]="searchField"
-      >
-        <option value="plate">Plate / VIN</option>
-        <option value="job">Job Number</option>
-      </select>
+      <app-select
+        [options]="searchFieldOptions"
+        [selectedValue]="searchField"
+        (selectionChange)="searchField = $event"
+        [clearable]="false"
+        class="flex-1 sm:w-40"
+      ></app-select>
       <button
-        class="btn btn-primary shadow-lg shadow-primary/20 whitespace-nowrap"
+        class="btn btn-primary whitespace-nowrap"
         (click)="quickSearch()"
         [disabled]="isSearching || !searchQuery.trim()"
       >
@@ -48,7 +45,7 @@
           <span class="loading loading-spinner loading-sm"></span>
         } @else {
           <lucide-icon [name]="icons.ArrowRight" class="h-4 w-4"></lucide-icon>
-          Find
+          {{ 'DASHBOARD.FIND' | translate }}
         }
       </button>
     </div>
@@ -57,129 +54,108 @@
   <!-- Stats Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <!-- Active Vehicles -->
-    <div class="stat-card animate-slide-up stagger-1">
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-base-content/60">
-            {{ 'DASHBOARD.STATS.ACTIVE_VEHICLES' | translate }}
-          </p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ stats().activeVehicles }}</p>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-base-content/60">
+              {{ 'DASHBOARD.STATS.ACTIVE_VEHICLES' | translate }}
+            </p>
+            <p class="text-3xl font-bold text-base-content mt-1">{{ stats().activeVehicles }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+            <lucide-icon [name]="icons.Car" class="h-5 w-5 text-primary-content"></lucide-icon>
+          </div>
         </div>
-        <div class="stat-icon stat-icon-primary">
-          <lucide-icon [name]="icons.Car" class="h-6 w-6"></lucide-icon>
+        <div class="mt-3 flex items-center gap-2">
+          <span class="text-sm text-success font-medium flex items-center gap-1">
+            <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
+            +12%
+          </span>
+          <span class="text-xs text-base-content/50">{{
+            'DASHBOARD.STATS.FROM_YESTERDAY' | translate
+          }}</span>
         </div>
-      </div>
-      <div class="mt-4 flex items-center gap-2">
-        <div class="trend-up">
-          <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
-          <span>+12%</span>
-        </div>
-        <span class="text-xs text-base-content/50">{{
-          'DASHBOARD.STATS.FROM_YESTERDAY' | translate
-        }}</span>
-      </div>
-      <!-- Mini sparkline -->
-      <div class="mt-3 flex items-end gap-0.5 h-8">
-        <div class="flex-1 bg-primary/20 rounded-t" style="height: 40%"></div>
-        <div class="flex-1 bg-primary/20 rounded-t" style="height: 60%"></div>
-        <div class="flex-1 bg-primary/20 rounded-t" style="height: 45%"></div>
-        <div class="flex-1 bg-primary/20 rounded-t" style="height: 80%"></div>
-        <div class="flex-1 bg-primary/20 rounded-t" style="height: 55%"></div>
-        <div class="flex-1 bg-primary/20 rounded-t" style="height: 90%"></div>
-        <div class="flex-1 bg-primary rounded-t" style="height: 100%"></div>
       </div>
     </div>
 
     <!-- Pending Inspections -->
-    <div class="stat-card animate-slide-up stagger-2">
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-base-content/60">
-            {{ 'DASHBOARD.STATS.PENDING_INSPECTIONS' | translate }}
-          </p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ stats().pendingInspections }}</p>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-base-content/60">
+              {{ 'DASHBOARD.STATS.PENDING_INSPECTIONS' | translate }}
+            </p>
+            <p class="text-3xl font-bold text-base-content mt-1">
+              {{ stats().pendingInspections }}
+            </p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-warning flex items-center justify-center">
+            <lucide-icon
+              [name]="icons.ClipboardCheck"
+              class="h-5 w-5 text-warning-content"
+            ></lucide-icon>
+          </div>
         </div>
-        <div class="stat-icon stat-icon-warning">
-          <lucide-icon [name]="icons.ClipboardCheck" class="h-6 w-6"></lucide-icon>
+        <div class="mt-3">
+          <span class="text-sm text-warning font-medium"
+            >⚡ {{ 'DASHBOARD.STATS.REQUIRES_ATTENTION' | translate }}</span
+          >
         </div>
-      </div>
-      <div class="mt-4">
-        <span class="text-sm text-warning font-medium"
-          >⚡ {{ 'DASHBOARD.STATS.REQUIRES_ATTENTION' | translate }}</span
-        >
-      </div>
-      <div class="mt-3 flex items-end gap-0.5 h-8">
-        <div class="flex-1 bg-warning/20 rounded-t" style="height: 30%"></div>
-        <div class="flex-1 bg-warning/20 rounded-t" style="height: 50%"></div>
-        <div class="flex-1 bg-warning/20 rounded-t" style="height: 40%"></div>
-        <div class="flex-1 bg-warning/20 rounded-t" style="height: 60%"></div>
-        <div class="flex-1 bg-warning/20 rounded-t" style="height: 35%"></div>
-        <div class="flex-1 bg-warning/20 rounded-t" style="height: 45%"></div>
-        <div class="flex-1 bg-warning rounded-t" style="height: 70%"></div>
       </div>
     </div>
 
     <!-- Awaiting Approval -->
-    <div class="stat-card animate-slide-up stagger-3">
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-base-content/60">
-            {{ 'DASHBOARD.STATS.AWAITING_APPROVAL' | translate }}
-          </p>
-          <p class="text-3xl font-bold text-base-content mt-1">{{ stats().awaitingApproval }}</p>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-base-content/60">
+              {{ 'DASHBOARD.STATS.AWAITING_APPROVAL' | translate }}
+            </p>
+            <p class="text-3xl font-bold text-base-content mt-1">{{ stats().awaitingApproval }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-info flex items-center justify-center">
+            <lucide-icon [name]="icons.Clock" class="h-5 w-5 text-info-content"></lucide-icon>
+          </div>
         </div>
-        <div class="stat-icon stat-icon-info">
-          <lucide-icon [name]="icons.Clock" class="h-6 w-6"></lucide-icon>
+        <div class="mt-3">
+          <span class="text-sm text-info font-medium"
+            >📧 {{ 'DASHBOARD.STATS.CUSTOMER_RESPONSE_PENDING' | translate }}</span
+          >
         </div>
-      </div>
-      <div class="mt-4">
-        <span class="text-sm text-info font-medium"
-          >📧 {{ 'DASHBOARD.STATS.CUSTOMER_RESPONSE_PENDING' | translate }}</span
-        >
-      </div>
-      <div class="mt-3 flex items-end gap-0.5 h-8">
-        <div class="flex-1 bg-info/20 rounded-t" style="height: 60%"></div>
-        <div class="flex-1 bg-info/20 rounded-t" style="height: 40%"></div>
-        <div class="flex-1 bg-info/20 rounded-t" style="height: 55%"></div>
-        <div class="flex-1 bg-info/20 rounded-t" style="height: 30%"></div>
-        <div class="flex-1 bg-info/20 rounded-t" style="height: 45%"></div>
-        <div class="flex-1 bg-info/20 rounded-t" style="height: 25%"></div>
-        <div class="flex-1 bg-info rounded-t" style="height: 50%"></div>
       </div>
     </div>
 
     <!-- Revenue Today -->
-    <div class="stat-card animate-slide-up stagger-4">
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-base-content/60">
-            {{ 'DASHBOARD.STATS.REVENUE_TODAY' | translate }}
-          </p>
-          <p class="text-3xl font-bold text-base-content mt-1">
-            £{{ stats().totalRevenue | number: '1.0-0' }}
-          </p>
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+      <div class="card-body p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm font-medium text-base-content/60">
+              {{ 'DASHBOARD.STATS.REVENUE_TODAY' | translate }}
+            </p>
+            <p class="text-3xl font-bold text-base-content mt-1">
+              £{{ stats().totalRevenue | number: '1.0-0' }}
+            </p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-success flex items-center justify-center">
+            <lucide-icon
+              [name]="icons.CreditCard"
+              class="h-5 w-5 text-success-content"
+            ></lucide-icon>
+          </div>
         </div>
-        <div class="stat-icon stat-icon-success">
-          <lucide-icon [name]="icons.CreditCard" class="h-6 w-6"></lucide-icon>
+        <div class="mt-3 flex items-center gap-2">
+          <span class="text-sm text-success font-medium flex items-center gap-1">
+            <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
+            +8%
+          </span>
+          <span class="text-xs text-base-content/50">{{
+            'DASHBOARD.STATS.FROM_LAST_WEEK' | translate
+          }}</span>
         </div>
-      </div>
-      <div class="mt-4 flex items-center gap-2">
-        <div class="trend-up">
-          <lucide-icon [name]="icons.TrendingUp" class="h-4 w-4"></lucide-icon>
-          <span>+8%</span>
-        </div>
-        <span class="text-xs text-base-content/50">{{
-          'DASHBOARD.STATS.FROM_LAST_WEEK' | translate
-        }}</span>
-      </div>
-      <div class="mt-3 flex items-end gap-0.5 h-8">
-        <div class="flex-1 bg-success/20 rounded-t" style="height: 50%"></div>
-        <div class="flex-1 bg-success/20 rounded-t" style="height: 70%"></div>
-        <div class="flex-1 bg-success/20 rounded-t" style="height: 55%"></div>
-        <div class="flex-1 bg-success/20 rounded-t" style="height: 85%"></div>
-        <div class="flex-1 bg-success/20 rounded-t" style="height: 65%"></div>
-        <div class="flex-1 bg-success/20 rounded-t" style="height: 90%"></div>
-        <div class="flex-1 bg-success rounded-t" style="height: 100%"></div>
       </div>
     </div>
   </div>
@@ -188,7 +164,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Recent Vehicles Table -->
     <div class="lg:col-span-2">
-      <div class="card-premium rounded-xl overflow-hidden animate-slide-up stagger-2">
+      <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
         <div class="p-6 border-b border-base-200">
           <div class="flex items-center justify-between">
             <div>
@@ -208,121 +184,63 @@
             </a>
           </div>
         </div>
-        <div class="overflow-x-auto">
-          <table class="table-premium">
-            <thead>
-              <tr>
-                <th class="text-left">{{ 'DASHBOARD.TABLE.VEHICLE' | translate }}</th>
-                <th class="text-left">{{ 'DASHBOARD.TABLE.CLIENT' | translate }}</th>
-                <th class="text-left">{{ 'DASHBOARD.TABLE.STATUS' | translate }}</th>
-                <th class="text-left">{{ 'DASHBOARD.TABLE.PROGRESS' | translate }}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (product of vehicles().slice(0, 5); track product._id; let i = $index) {
-                <tr class="hover:bg-base-200/30 transition-colors">
-                  <td>
-                    <div class="flex items-center gap-3">
-                      <div
-                        class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white font-bold text-sm"
-                      >
-                        {{ product.vehicle?.make?.charAt(0) }}
-                      </div>
-                      <div>
-                        <p class="font-semibold text-base-content">
-                          {{ product.vehicle?.licensePlate }}
-                        </p>
-                        <p class="text-sm text-base-content/60">
-                          {{ product.vehicle?.make }} {{ product.vehicle?.model }}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="text-sm text-base-content">{{
-                      getClientName(product.customerId)
-                    }}</span>
-                  </td>
-                  <td>
-                    <span class="status-badge" [class]="getStatusBadgeClass(product.status)">
-                      {{ formatStatus(product.status) }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="progress-tracker w-24">
-                      <div
-                        class="progress-step"
-                        [class.completed]="getProgress(product.status) >= 1"
-                      ></div>
-                      <div
-                        class="progress-step"
-                        [class.completed]="getProgress(product.status) >= 2"
-                        [class.current]="getProgress(product.status) === 1"
-                      ></div>
-                      <div
-                        class="progress-step"
-                        [class.completed]="getProgress(product.status) >= 3"
-                        [class.current]="getProgress(product.status) === 2"
-                      ></div>
-                      <div
-                        class="progress-step"
-                        [class.completed]="getProgress(product.status) >= 4"
-                        [class.current]="getProgress(product.status) === 3"
-                      ></div>
-                    </div>
-                  </td>
-                  <td>
-                    <a
-                      [routerLink]="['/vehicles-instances', product._id]"
-                      class="btn btn-ghost btn-sm btn-square hover:bg-primary/10 hover:text-primary"
-                    >
-                      <lucide-icon [name]="icons.ChevronRight" class="h-4 w-4"></lucide-icon>
-                    </a>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+        <app-data-grid [config]="gridConfig" (stateChange)="handleRecentStateChange($event)" />
       </div>
     </div>
 
     <!-- Right Column -->
     <div class="space-y-6">
       <!-- Quick Actions -->
-      <div class="card-premium rounded-xl p-6 animate-slide-up stagger-3">
+      <div class="card bg-base-100 shadow-xl border border-base-200 p-6">
         <h2 class="text-lg font-semibold text-base-content mb-4">
           {{ 'DASHBOARD.QUICK_ACTIONS.TITLE' | translate }}
         </h2>
         <div class="grid grid-cols-2 gap-3">
-          <a routerLink="/vehicles-instances/new" class="action-card">
-            <div class="action-card-icon">
-              <lucide-icon [name]="icons.Plus" class="h-6 w-6"></lucide-icon>
+          <a
+            routerLink="/vehicles-instances/new"
+            class="flex flex-col items-center gap-3 p-4 rounded-xl border border-base-200 hover:bg-base-200 transition-colors cursor-pointer"
+          >
+            <div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center">
+              <lucide-icon [name]="icons.Plus" class="h-6 w-6 text-primary-content"></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">{{
               'DASHBOARD.NEW_VEHICLE' | translate
             }}</span>
           </a>
-          <a routerLink="/inspection" class="action-card">
-            <div class="action-card-icon" style="background: var(--gradient-warning)">
-              <lucide-icon [name]="icons.ClipboardCheck" class="h-6 w-6"></lucide-icon>
+          <a
+            routerLink="/inspection"
+            class="flex flex-col items-center gap-3 p-4 rounded-xl border border-base-200 hover:bg-base-200 transition-colors cursor-pointer"
+          >
+            <div class="w-12 h-12 rounded-lg bg-warning flex items-center justify-center">
+              <lucide-icon
+                [name]="icons.ClipboardCheck"
+                class="h-6 w-6 text-warning-content"
+              ></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">{{
               'DASHBOARD.QUICK_ACTIONS.INSPECTION' | translate
             }}</span>
           </a>
-          <a routerLink="/scheduling" class="action-card">
-            <div class="action-card-icon" style="background: var(--gradient-info)">
-              <lucide-icon [name]="icons.Calendar" class="h-6 w-6"></lucide-icon>
+          <a
+            routerLink="/scheduling"
+            class="flex flex-col items-center gap-3 p-4 rounded-xl border border-base-200 hover:bg-base-200 transition-colors cursor-pointer"
+          >
+            <div class="w-12 h-12 rounded-lg bg-info flex items-center justify-center">
+              <lucide-icon [name]="icons.Calendar" class="h-6 w-6 text-info-content"></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">{{
               'DASHBOARD.QUICK_ACTIONS.SCHEDULE' | translate
             }}</span>
           </a>
-          <a routerLink="/invoicing" class="action-card">
-            <div class="action-card-icon" style="background: var(--gradient-success)">
-              <lucide-icon [name]="icons.FileText" class="h-6 w-6"></lucide-icon>
+          <a
+            routerLink="/invoicing"
+            class="flex flex-col items-center gap-3 p-4 rounded-xl border border-base-200 hover:bg-base-200 transition-colors cursor-pointer"
+          >
+            <div class="w-12 h-12 rounded-lg bg-success flex items-center justify-center">
+              <lucide-icon
+                [name]="icons.FileText"
+                class="h-6 w-6 text-success-content"
+              ></lucide-icon>
             </div>
             <span class="text-sm font-medium text-base-content">{{
               'DASHBOARD.QUICK_ACTIONS.INVOICE' | translate
@@ -332,25 +250,29 @@
       </div>
 
       <!-- Available Operators -->
-      <div class="card-premium rounded-xl p-6 animate-slide-up stagger-4">
+      <div class="card bg-base-100 shadow-xl border border-base-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-base-content">
             {{ 'DASHBOARD.OPERATORS.TITLE' | translate }}
           </h2>
-          <span class="px-2 py-1 text-xs font-semibold rounded-full bg-success/20 text-success">
+          <span class="badge badge-success badge-sm">
             {{ operators().length }} {{ 'DASHBOARD.OPERATORS.ONLINE' | translate }}
           </span>
         </div>
         <div class="space-y-3">
           @for (operator of operators().slice(0, 4); track operator.id!) {
-            <div class="user-card">
-              <div class="user-avatar">
+            <div
+              class="flex items-center gap-3 p-3 rounded-xl border border-base-200 hover:bg-base-200 transition-colors"
+            >
+              <div class="relative">
                 <div
-                  class="w-10 h-10 rounded-xl bg-gradient-secondary flex items-center justify-center text-white font-semibold text-sm"
+                  class="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-secondary-content font-semibold text-sm"
                 >
                   {{ getInitials(operator.name) }}
                 </div>
-                <div class="user-status online"></div>
+                <div
+                  class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-success border-2 border-white"
+                ></div>
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-base-content truncate">{{ operator.name }}</p>
@@ -360,7 +282,7 @@
               </div>
               <div class="w-16">
                 <div class="h-1.5 bg-base-200 rounded-full overflow-hidden">
-                  <div class="h-full bg-gradient-success rounded-full" style="width: 30%"></div>
+                  <div class="h-full bg-success rounded-full" style="width: 30%"></div>
                 </div>
                 <p class="text-xs text-base-content/50 mt-1">
                   30% {{ 'DASHBOARD.OPERATORS.BUSY' | translate }}

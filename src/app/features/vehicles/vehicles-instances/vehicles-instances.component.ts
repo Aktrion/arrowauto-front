@@ -1,102 +1,120 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
-import { LucideAngularModule } from 'lucide-angular';
-import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '@shared/icons';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { BaseListDirective } from '@core/directives/base-list.directive';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 import { ClientService } from '@features/clients/services/client.service';
 import { Product } from '@features/vehicles/models/vehicle.model';
-import { SearchRequest } from '@shared/utils/search-request.class';
+import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 
 @Component({
   selector: 'app-vehicles-instances',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule, TranslateModule],
-  templateUrl: './vehicles-instances.component.html',
+  imports: [DataGridComponent],
+  template: `
+    <app-data-grid
+      [config]="gridConfig"
+      (stateChange)="handleGridStateChange($event)"
+      (selectionChange)="handleSelectionChanged($event)"
+      (create)="handleCreate()"
+      (edit)="handleEdit($event)"
+      (delete)="handleDelete($event)"
+    />
+  `,
 })
-export class VehiclesInstancesComponent implements OnInit {
-  icons = ICONS;
+export class VehiclesInstancesComponent
+  extends BaseListDirective<Product, Partial<Product>, Partial<Product>>
+  implements OnInit
+{
   private instanceApi = inject(VehicleInstancesApiService);
   private clientService = inject(ClientService);
   private router = inject(Router);
 
-  // SearchRequest manages state, pagination and fetching
-  searchRequest = new SearchRequest((params) => this.instanceApi.findByPagination(params));
-
-  vehicles = signal<Product[]>([]);
   clients = signal<any[]>([]);
-  isLoading = this.searchRequest.isLoading$;
-  totalItems = signal(0);
-  totalPages = signal(1);
-  isTableView = signal(true);
+  constructor() {
+    super(inject(VehicleInstancesApiService));
+    this.gridConfig = {
+      ...this.gridConfig,
+      showNewButton: true,
+      showEditButton: true,
+      showDeleteButton: false,
+      selectable: false,
+      storageKey: 'vehicles_instances_grid',
+    };
+  }
 
-  // Search and Filter state (now mapped to SearchRequest)
-  searchField: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job' = 'all';
-  statusFilter = signal('');
-
-  constructor() {}
-
-  ngOnInit() {
+  override ngOnInit() {
     this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
-    // SearchRequest handles its own reload/fetch cycle
-    this.searchRequest.loadData().subscribe((response) => {
-      this.vehicles.set(response.data ?? []);
-      this.totalItems.set(response.total);
-      this.totalPages.set(response.totalPages);
-    });
+    super.ngOnInit();
   }
 
-  toggleView(isTable: boolean): void {
-    this.isTableView.set(isTable);
+  protected getTitle(): string {
+    return 'VEHICLES.TITLE';
   }
 
-  setStatusFilter(status: string): void {
-    this.statusFilter.set(status);
-    if (status) {
-      this.searchRequest.addFilter('statusId', { value: status, operator: 'equals' });
-    } else {
-      this.searchRequest.removeFilter('statusId');
-    }
-    this.searchRequest.setPage(1);
-    this.searchRequest.reload();
+  protected getColumnDefinitions(): ColumnDef[] {
+    return [
+      {
+        field: 'vehicle.make',
+        headerName: 'VEHICLES.TABLE.VEHICLE',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        cellRenderer: ({ data }) => `${data?.vehicle?.make || ''} ${data?.vehicle?.model || ''}`.trim(),
+      },
+      {
+        field: 'vehicle.licensePlate',
+        headerName: 'VEHICLES.TABLE.LICENSE_PLATE',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'customerId',
+        headerName: 'VEHICLES.TABLE.CLIENT',
+        type: 'string',
+        sortable: false,
+        filterable: true,
+        cellRenderer: ({ data }) => this.getClientName(data?.customerId),
+      },
+      {
+        field: 'vehicle.jobNumber',
+        headerName: 'VEHICLES.TABLE.JOB_NUMBER',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'status',
+        headerName: 'VEHICLES.TABLE.STATUS',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        cellRenderer: ({ value }) => VehicleStatusUtils.formatStatus(value),
+      },
+      {
+        field: 'updatedAt',
+        headerName: 'VEHICLES.TABLE.CREATED',
+        type: 'date',
+        sortable: true,
+        filterable: false,
+        cellRenderer: ({ data }) => {
+          const dateValue = data?.updatedAt || data?.createdAt;
+          return dateValue ? new Date(dateValue).toLocaleDateString('en-GB') : '-';
+        },
+      },
+    ];
   }
 
-  onSearch(query: string) {
-    this.searchRequest.search = query;
-    this.searchRequest.setPage(1);
-    this.searchRequest.reload();
-  }
-
-  setSearchField(field: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job') {
-    this.searchField = field;
-    // In a real paginated API, we might need to adjust the backend filters
-    // For now, we use the general search property of SearchRequest
-    this.searchRequest.reload();
-  }
-
-  nextPage() {
-    if (this.searchRequest.page >= this.totalPages()) return;
-    this.searchRequest.setPage(this.searchRequest.page + 1);
-    this.searchRequest.reload();
-  }
-
-  prevPage() {
-    if (this.searchRequest.page <= 1) return;
-    this.searchRequest.setPage(this.searchRequest.page - 1);
-    this.searchRequest.reload();
-  }
-
-  openNewVehicleModal(): void {
+  protected override onCreate(): void {
     this.router.navigate(['/vehicles-instances/new']);
   }
 
-  formatStatus = (s: string) => VehicleStatusUtils.formatStatus(s);
-  getStatusBadgeClass = (s: string) => VehicleStatusUtils.getStatusBadgeClass(s);
-  getProgress = (s: string) => VehicleStatusUtils.getProgressStep(s);
-  getProgressPercent = (s: string) => VehicleStatusUtils.getProgressPercent(s);
+  protected override onEdit(item: Product): void {
+    if (!item?._id) return;
+    this.router.navigate(['/vehicles-instances', item._id]);
+  }
 
   getClientName(clientId?: string): string {
     if (!clientId) return 'Unassigned';

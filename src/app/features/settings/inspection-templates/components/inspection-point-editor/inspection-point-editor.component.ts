@@ -19,11 +19,12 @@ import {
 import { InspectionPointsService } from '@features/settings/inspection-templates/services/inspection-points.service';
 import { TyreConfigurationsService } from '@features/settings/inspection-templates/services/tyre-configurations.service';
 import { ICONS } from '@shared/icons';
+import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 
 @Component({
   selector: 'app-inspection-point-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SelectComponent],
   templateUrl: './inspection-point-editor.component.html',
 })
 export class InspectionPointEditorComponent {
@@ -51,6 +52,38 @@ export class InspectionPointEditorComponent {
   mandatoryMedia: 'required' | 'requiredIfNok' | 'optional' = 'optional';
   mandatoryComment: 'required' | 'requiredIfNok' | 'optional' = 'optional';
   scriptedCommentsText = '';
+
+  typeOptions: SelectOption[] = [
+    { label: 'Standard', value: 'standard' },
+    { label: 'Tyre', value: 'tyre' },
+  ];
+
+  tyreConfigSelectOptions = computed<SelectOption[]>(() =>
+    this.tyreConfigs().map((c: any) => ({
+      label: c.code,
+      value: c._id,
+    })),
+  );
+
+  tyrePositionOptions: SelectOption[] = [
+    { label: 'Front Left', value: 'Front Left' },
+    { label: 'Front Right', value: 'Front Right' },
+    { label: 'Rear Left', value: 'Rear Left' },
+    { label: 'Rear Right', value: 'Rear Right' },
+    { label: 'Spare', value: 'Spare' },
+  ];
+
+  mandatoryMediaOptions: SelectOption[] = [
+    { label: 'Optional', value: 'optional' },
+    { label: 'Required', value: 'required' },
+    { label: 'Required if Not OK', value: 'requiredIfNok' },
+  ];
+
+  mandatoryCommentOptions: SelectOption[] = [
+    { label: 'Optional', value: 'optional' },
+    { label: 'Required', value: 'required' },
+    { label: 'Required if Not OK', value: 'requiredIfNok' },
+  ];
 
   constructor() {
     effect(() => {

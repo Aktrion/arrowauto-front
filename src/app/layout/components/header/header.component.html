@@ -25,7 +25,7 @@
 
   <!-- Mobile Branding -->
   <div class="flex-1 flex items-center gap-2 lg:hidden ml-2 transition-all duration-300">
-    <div class="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-sm">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
       <lucide-icon [name]="icons.Car" class="h-5 w-5 text-white"></lucide-icon>
     </div>
     <span
@@ -67,7 +67,7 @@
         <li class="menu-title px-4 py-3 border-b border-base-200/50 mb-2">
           <div class="flex flex-col gap-0.5">
             <span class="text-[10px] font-bold uppercase tracking-wider opacity-50"
-              >Signed in as</span
+              >{{ 'HEADER.SIGNED_IN_AS' | translate }}</span
             >
             <span class="font-bold text-base-content text-sm truncate">{{ currentUser.name }}</span>
           </div>
@@ -104,4 +104,3 @@
   </div>
 </header>
 <app-user-config-modal #userConfigModal></app-user-config-modal>
-

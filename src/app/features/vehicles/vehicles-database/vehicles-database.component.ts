@@ -1,54 +1,84 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { LucideAngularModule } from 'lucide-angular';
-import { TranslateModule } from '@ngx-translate/core';
-import { ICONS } from '@shared/icons';
+import { Component } from '@angular/core';
+import { BaseListDirective } from '@core/directives/base-list.directive';
 import { VehiclesApiService } from '@features/vehicles/services/api/vehicles-api.service';
 import { Vehicle } from '@features/vehicles/models/vehicle.model';
-import { SearchRequest } from '@shared/utils/search-request.class';
+import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 
 @Component({
   selector: 'app-vehicles-database',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, TranslateModule],
-  templateUrl: './vehicles-database.component.html',
-  styleUrl: './vehicles-database.component.css',
+  imports: [DataGridComponent],
+  template: `
+    <app-data-grid
+      [config]="gridConfig"
+      (stateChange)="handleGridStateChange($event)"
+      (selectionChange)="handleSelectionChanged($event)"
+      (create)="handleCreate()"
+      (edit)="handleEdit($event)"
+      (delete)="handleDelete($event)"
+    />
+  `,
 })
-export class VehiclesDatabaseComponent implements OnInit {
-  icons = ICONS;
-  private vehiclesApi = inject(VehiclesApiService);
-
-  searchRequest = new SearchRequest((params) => this.vehiclesApi.findByPagination(params));
-
-  vehicles = signal<Vehicle[]>([]);
-  totalItems = signal(0);
-  totalPages = signal(1);
-  isLoading = this.searchRequest.isLoading$;
-
-  ngOnInit() {
-    this.searchRequest.loadData().subscribe((response) => {
-      this.vehicles.set(response.data);
-      this.totalItems.set(response.total);
-      this.totalPages.set(response.totalPages);
-    });
+export class VehiclesDatabaseComponent extends BaseListDirective<
+  Vehicle,
+  Partial<Vehicle>,
+  Partial<Vehicle>
+> {
+  constructor(private vehiclesApi: VehiclesApiService) {
+    super(vehiclesApi);
+    this.gridConfig = {
+      ...this.gridConfig,
+      showNewButton: false,
+      showEditButton: false,
+      showDeleteButton: false,
+      selectable: false,
+      storageKey: 'vehicles_database_grid',
+    };
   }
 
-  onSearch(query: string) {
-    this.searchRequest.search = query;
-    this.searchRequest.setPage(1);
-    this.searchRequest.reload();
+  protected getTitle(): string {
+    return 'VEHICLES.DATABASE_TITLE';
   }
 
-  nextPage() {
-    if (this.searchRequest.page >= this.totalPages()) return;
-    this.searchRequest.setPage(this.searchRequest.page + 1);
-    this.searchRequest.reload();
-  }
-
-  prevPage() {
-    if (this.searchRequest.page <= 1) return;
-    this.searchRequest.setPage(this.searchRequest.page - 1);
-    this.searchRequest.reload();
+  protected getColumnDefinitions(): ColumnDef[] {
+    return [
+      {
+        field: 'make',
+        headerName: 'VEHICLES.DATABASE.MAKE_MODEL',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        cellRenderer: ({ data }) => `${data.make || ''} ${data.model || ''}`.trim(),
+      },
+      {
+        field: 'licensePlate',
+        headerName: 'VEHICLES.DATABASE.LICENSE_PLATE',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'vin',
+        headerName: 'VEHICLES.DATABASE.VIN',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'year',
+        headerName: 'VEHICLES.DATABASE.YEAR',
+        type: 'number',
+        sortable: true,
+        filterable: true,
+      },
+      {
+        field: 'colour',
+        headerName: 'VEHICLES.DATABASE.COLOR',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+    ];
   }
 }

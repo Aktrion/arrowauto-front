@@ -8,7 +8,7 @@
       >
         <lucide-icon [name]="icons.ChevronLeft" class="h-6 w-6"></lucide-icon>
       </button>
-      <div class="animate-slide-up">
+      <div>
         <h1 class="text-2xl font-bold text-base-content">
           {{
             isNew()
@@ -34,7 +34,7 @@
       </button>
       <button
         (click)="save()"
-        class="btn-premium flex items-center gap-2 group shadow-glow-primary px-4 sm:px-8 flex-1 sm:flex-none"
+        class="btn btn-primary flex items-center gap-2 group px-4 sm:px-8 flex-1 sm:flex-none"
         [disabled]="
           !product().vehicle?.licensePlate || !product().vehicle?.make || !product().vehicle?.model
         "
@@ -54,12 +54,12 @@
 
   @if (!isNew()) {
     <!-- Profile Summary Card (Full Width, Horizontal) -->
-    <div class="card-premium rounded-2xl p-6 animate-slide-up">
+    <div class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-6">
       <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
         <!-- Avatar & Identity -->
         <div class="flex items-center gap-5 flex-1 min-w-0">
           <div
-            class="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center text-white font-bold text-2xl shadow-glow-primary shrink-0"
+            class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-content font-bold text-2xl shrink-0"
           >
             {{ product().vehicle?.make?.charAt(0) }}
           </div>
@@ -120,17 +120,13 @@
             <p class="text-[9px] text-base-content/40 uppercase font-bold tracking-widest mb-1.5">
               {{ 'VEHICLES.TABLE.STATUS' | translate }}
             </p>
-            <select
-              class="select select-bordered select-sm w-full bg-base-100 font-semibold"
-              [ngModel]="product().status"
-              (ngModelChange)="onStatusChange($event)"
-            >
-              @for (status of statusOptions; track status) {
-                <option [ngValue]="status">
-                  {{ formatStatus(status) }}
-                </option>
-              }
-            </select>
+            <app-select
+              [options]="statusSelectOptions"
+              [selectedValue]="product().status"
+              (selectionChange)="onStatusChange($event)"
+              [placeholder]="'Select status'"
+              [clearable]="false"
+            ></app-select>
           </div>
         </div>
       </div>
@@ -186,8 +182,10 @@
 
   <!-- Tab Content: Details (Full Width) -->
   @if (activeTab() === 'details' || isNew()) {
-    <div class="animate-fade-in">
-      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8 space-y-8">
+    <div>
+      <div
+        class="card bg-base-100 shadow-xl rounded-2xl border border-base-200 p-4 sm:p-8 space-y-8"
+      >
         <!-- HPI & Primary Section -->
         <section>
           <div class="flex items-center gap-3 mb-6">
@@ -229,7 +227,7 @@
 
             @if (lookupLoading()) {
               <div
-                class="lg:col-span-3 p-4 rounded-2xl bg-base-200/50 border border-base-300 flex items-center gap-4 animate-slide-up"
+                class="lg:col-span-3 p-4 rounded-2xl bg-base-200/50 border border-base-300 flex items-center gap-4"
               >
                 <span class="loading loading-spinner loading-sm text-primary"></span>
                 <p class="text-sm text-base-content/60 font-medium">
@@ -239,7 +237,7 @@
             }
             @if (foundVehicle() && !existingVehicleId()) {
               <div
-                class="lg:col-span-3 p-4 rounded-2xl bg-warning/10 border border-warning/30 flex flex-col sm:flex-row items-start sm:items-center gap-4 animate-slide-up"
+                class="lg:col-span-3 p-4 rounded-2xl bg-warning/10 border border-warning/30 flex flex-col sm:flex-row items-start sm:items-center gap-4"
               >
                 <div
                   class="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center shrink-0"
@@ -277,7 +275,7 @@
             }
             @if (existingVehicleId()) {
               <div
-                class="lg:col-span-3 p-4 rounded-2xl bg-success/10 border border-success/30 flex items-center gap-4 animate-slide-up"
+                class="lg:col-span-3 p-4 rounded-2xl bg-success/10 border border-success/30 flex items-center gap-4"
               >
                 <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
                   <lucide-icon
@@ -295,7 +293,7 @@
             }
             @if (hpiResult() && !existingVehicleId()) {
               <div
-                class="lg:col-span-3 p-4 rounded-2xl bg-success/10 border border-success/30 flex items-center gap-4 animate-slide-up"
+                class="lg:col-span-3 p-4 rounded-2xl bg-success/10 border border-success/30 flex items-center gap-4"
               >
                 <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
                   <lucide-icon
@@ -457,19 +455,12 @@
                 class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
                 >{{ 'VEHICLE.DETAIL.ASSIGNMENT.ASSIGN_CLIENT' | translate }}</label
               >
-              <select
-                class="select select-bordered select-sm w-full bg-base-200 font-semibold"
-                [(ngModel)]="product().customerId"
-              >
-                <option value="">
-                  {{ 'VEHICLE.DETAIL.ASSIGNMENT.SELECT_CLIENT' | translate }}
-                </option>
-                @for (client of clients(); track client.id) {
-                  <option [value]="client.id">
-                    {{ client.name }} - {{ client.company || 'Private' }}
-                  </option>
-                }
-              </select>
+              <app-select
+                [options]="clientSelectOptions()"
+                [selectedValue]="product().customerId"
+                (selectionChange)="product().customerId = $event"
+                [placeholder]="'VEHICLE.DETAIL.ASSIGNMENT.SELECT_CLIENT' | translate"
+              ></app-select>
             </div>
 
             <div class="space-y-2">
@@ -478,15 +469,12 @@
               >
                 Inspection template
               </label>
-              <select
-                class="select select-bordered select-sm w-full bg-base-200 font-semibold"
-                [(ngModel)]="product().inspectionTemplateId"
-              >
-                <option value="">No template</option>
-                @for (template of inspectionTemplates(); track template._id) {
-                  <option [value]="template._id">{{ template.name }}</option>
-                }
-              </select>
+              <app-select
+                [options]="inspectionTemplateSelectOptions()"
+                [selectedValue]="product().inspectionTemplateId"
+                (selectionChange)="product().inspectionTemplateId = $event"
+                [placeholder]="'No template'"
+              ></app-select>
             </div>
           </div>
         </section>
@@ -496,8 +484,8 @@
 
   <!-- Tab Content: Operations (Full Width) -->
   @if (activeTab() === 'operations') {
-    <div class="animate-fade-in">
-      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8">
+    <div>
+      <div class="card bg-base-100 shadow-xl rounded-2xl border border-base-200 p-4 sm:p-8">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-7">
           <div>
             <h3 class="font-bold text-xl text-base-content">
@@ -525,20 +513,13 @@
         <div
           class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6 p-4 bg-base-200/30 rounded-xl border border-base-200/50"
         >
-          <select
-            class="select select-bordered select-sm flex-1 bg-base-100 font-semibold"
-            [ngModel]="selectedOperationId()"
-            (ngModelChange)="selectedOperationId.set($event)"
-          >
-            <option value="">Select an operation to add...</option>
-            @for (op of masterOperations(); track op.id) {
-              <option [value]="op.id">
-                {{ op.shortName }} — {{ op.defaultDuration }}min &bull; £{{
-                  op.defaultRatePerHour
-                }}/hr
-              </option>
-            }
-          </select>
+          <app-select
+            [options]="masterOperationSelectOptions()"
+            [selectedValue]="selectedOperationId()"
+            (selectionChange)="selectedOperationId.set($event || '')"
+            [placeholder]="'Select an operation to add...'"
+            class="flex-1"
+          ></app-select>
           <button
             (click)="addOperationFromMaster()"
             class="btn btn-primary btn-sm gap-2 font-bold"
@@ -550,7 +531,10 @@
         </div>
 
         <div class="space-y-3.5">
-          @for (op of getVehicleOperations(product().vehicleId || product()._id || ''); track op.id) {
+          @for (
+            op of getVehicleOperations(product().vehicleId || product()._id || '');
+            track op.id
+          ) {
             <div
               class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-gradient-to-r from-base-100 to-base-200/60 border border-base-200 rounded-2xl hover:shadow-md hover:border-primary/20 transition-all group"
             >
@@ -588,16 +572,14 @@
                 </div>
               </div>
               <div class="flex items-center justify-between sm:justify-end gap-3">
-                <select
-                  class="select select-bordered select-sm w-[150px] bg-base-100 font-semibold"
+                <app-select
+                  [options]="operationStatusSelectOptions"
+                  [selectedValue]="op.status"
+                  (selectionChange)="updateOperationStatus(op, $event)"
                   [disabled]="isOperationSaving(op.id)"
-                  [ngModel]="op.status"
-                  (ngModelChange)="updateOperationStatus(op, $event)"
-                >
-                  @for (status of operationStatusOptions; track status) {
-                    <option [ngValue]="status">{{ formatStatus(status) }}</option>
-                  }
-                </select>
+                  [clearable]="false"
+                  [placeholder]="'Select status'"
+                ></app-select>
                 @if (isOperationSaving(op.id)) {
                   <span class="loading loading-spinner loading-sm text-primary"></span>
                 } @else {
@@ -641,8 +623,8 @@
 
   <!-- Tab Content: History (Full Width) -->
   @if (activeTab() === 'history') {
-    <div class="animate-fade-in">
-      <div class="card-premium rounded-2xl border border-base-200/50 p-4 sm:p-8">
+    <div>
+      <div class="card bg-base-100 shadow-xl rounded-2xl border border-base-200 p-4 sm:p-8">
         @if (activityLoading()) {
           <div class="text-center py-16">
             <span class="loading loading-spinner loading-lg text-primary"></span>

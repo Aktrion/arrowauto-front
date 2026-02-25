@@ -1,12 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { LucideAngularModule } from 'lucide-angular';
-import { ICONS } from '@shared/icons';
+import { Subject, Subscription } from 'rxjs';
+import { finalize, switchMap } from 'rxjs/operators';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
-import { InspectionService } from '@features/inspection/services/inspection.service';
+import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { ColumnDef, DataGridConfig, GridState } from '@shared/components/data-grid/data-grid.interface';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 interface InspectionHistoryItem {
   vehicleId: string;
@@ -24,174 +24,154 @@ interface InspectionHistoryItem {
 @Component({
   selector: 'app-inspection-history',
   standalone: true,
-  imports: [FormsModule, LucideAngularModule, DatePipe],
-  templateUrl: './inspection-history.component.html',
+  imports: [DataGridComponent],
+  template: `
+    <app-data-grid
+      [config]="gridConfig"
+      (stateChange)="handleGridStateChange($event)"
+      (edit)="openInspection($event)"
+    />
+  `,
 })
-export class InspectionHistoryComponent {
-  icons = ICONS;
-  private readonly inspectionService = inject(InspectionService);
+export class InspectionHistoryComponent implements OnInit, OnDestroy {
   private readonly instanceApi = inject(VehicleInstancesApiService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  inspectionHistory = signal<InspectionHistoryItem[]>([]);
-  isLoadingHistory = signal(false);
-  historyError = signal<string | null>(null);
-  historySearchQuery = '';
-  historySearchField: 'all' | 'plate' | 'makeModel' = 'all';
-  historyPage = signal(1);
-  readonly historyPageSize = 10;
+  private readonly load$ = new Subject<GridState>();
+  private subscription?: Subscription;
 
-  filteredInspectionHistory = computed(() => {
-    const history = this.inspectionHistory();
-    const query = this.historySearchQuery.trim().toLowerCase();
-    if (!query) return history;
+  gridConfig: DataGridConfig<InspectionHistoryItem> = {
+    title: 'INSPECTION_HISTORY.TITLE',
+    columnDefs: this.getColumnDefinitions(),
+    rowData: [],
+    pageSize: 15,
+    total: 0,
+    currentPage: 0,
+    totalPages: 0,
+    loading: false,
+    selectable: false,
+    showNewButton: false,
+    showEditButton: true,
+    showDeleteButton: false,
+    storageKey: 'inspection_history_grid',
+  };
 
-    return history.filter((item) => {
-      const plate = item.plate.toLowerCase();
-      const makeModel = item.makeModel.toLowerCase();
-      if (this.historySearchField === 'plate') return plate.includes(query);
-      if (this.historySearchField === 'makeModel') return makeModel.includes(query);
-      return plate.includes(query) || makeModel.includes(query);
-    });
-  });
+  ngOnInit(): void {
+    this.subscription = this.load$
+      .pipe(
+        switchMap((state) => {
+          this.gridConfig = { ...this.gridConfig, loading: true };
+          this.cdr.detectChanges();
+          const page = (state.currentPage ?? 0) + 1;
+          const limit = state.pageSize ?? 15;
+          const sortBy = state.sortField || 'updatedAt';
+          const sortOrder = state.sortDirection === 'asc' ? 'asc' : 'desc';
+          const search = (state.quickFilter || '').trim();
 
-  paginatedInspectionHistory = computed(() => {
-    const start = (this.historyPage() - 1) * this.historyPageSize;
-    return this.filteredInspectionHistory().slice(start, start + this.historyPageSize);
-  });
+          return this.instanceApi.searchInspectionHistory({
+            page,
+            limit,
+            sortBy,
+            sortOrder,
+            search: search || undefined,
+          }).pipe(
+            catchError(() =>
+              of({
+                data: [],
+                total: 0,
+                totalPages: 0,
+                page: 1,
+                limit,
+              }),
+            ),
+            finalize(() => {
+              this.gridConfig = { ...this.gridConfig, loading: false };
+              this.cdr.detectChanges();
+            }),
+          );
+        }),
+      )
+      .subscribe({
+        next: (res) => {
+          const data = (res.data ?? []).map((d: Record<string, unknown>): InspectionHistoryItem => ({
+            vehicleId: String(d['vehicleId'] ?? ''),
+            vehicleInstanceId: String(d['vehicleInstanceId'] ?? ''),
+            plate: String(d['plate'] ?? 'N/A'),
+            makeModel: String(d['makeModel'] ?? 'Unknown'),
+            pointsCount: Number(d['pointsCount'] ?? 0),
+            okCount: Number(d['okCount'] ?? 0),
+            warningCount: Number(d['warningCount'] ?? 0),
+            defectCount: Number(d['defectCount'] ?? 0),
+            totalCost: Number(d['totalCost'] ?? 0),
+            updatedAt: d['updatedAt'] ? new Date(d['updatedAt'] as string) : undefined,
+          }));
+          this.gridConfig = {
+            ...this.gridConfig,
+            rowData: data,
+            total: res.total ?? 0,
+            totalPages: res.totalPages ?? 0,
+            currentPage: Math.max(0, (res.page ?? 1) - 1),
+            pageSize: res.limit ?? 15,
+            loading: false,
+          };
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.gridConfig = {
+            ...this.gridConfig,
+            rowData: [],
+            total: 0,
+            totalPages: 1,
+            currentPage: 0,
+            loading: false,
+          };
+          this.cdr.detectChanges();
+        },
+      });
 
-  historyTotalPages = computed(() =>
-    Math.max(1, Math.ceil(this.filteredInspectionHistory().length / this.historyPageSize)),
-  );
-
-  constructor() {
-    this.loadInspectionHistory();
+    setTimeout(() => {
+      this.load$.next({
+        currentPage: 0,
+        pageSize: 15,
+        totalItems: 0,
+        filters: {},
+        quickFilter: '',
+      });
+    }, 0);
   }
 
-  onHistorySearchChange(value: string): void {
-    this.historySearchQuery = value;
-    this.historyPage.set(1);
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
   }
 
-  setHistorySearchField(field: 'all' | 'plate' | 'makeModel'): void {
-    this.historySearchField = field;
-    this.historyPage.set(1);
+  handleGridStateChange(state: GridState): void {
+    this.load$.next(state);
   }
 
-  editInspectionFromHistory(vehicleInstanceId: string): void {
-    this.router.navigate(['/inspection', vehicleInstanceId]);
+  openInspection(item?: InspectionHistoryItem): void {
+    const id = item?.vehicleInstanceId;
+    if (!id) return;
+    this.router.navigate(['/inspection', id]);
   }
 
-  loadInspectionHistory(): void {
-    this.isLoadingHistory.set(true);
-    this.historyError.set(null);
-
-    forkJoin({
-      products: this.instanceApi.findAll(),
-      inspectionValues: this.inspectionService.getAllInspectionValues(),
-    }).subscribe({
-      next: ({ products, inspectionValues }) => {
-        if (!inspectionValues.length) {
-          this.inspectionHistory.set([]);
-          this.historyPage.set(1);
-          this.isLoadingHistory.set(false);
-          return;
-        }
-
-        const vehicleById = new Map<string, any>();
-        products.forEach((v: any) => {
-          if (v.vehicle?._id) vehicleById.set(v.vehicle._id, v.vehicle);
-          if (v.vehicleId && v.vehicle) vehicleById.set(v.vehicleId, v.vehicle);
-        });
-
-        const inspectionValueById = new Map<string, any>();
-        inspectionValues.forEach((value: any) => {
-          const id = value._id || value.id;
-          if (id) inspectionValueById.set(id, value);
-        });
-
-        const history: InspectionHistoryItem[] = [];
-        products.forEach((product: any) => {
-          const instanceId = product._id || product.id;
-          if (!instanceId) return;
-
-          const productValueIds = (product.inspectionValueIds || []).filter(Boolean);
-          if (!productValueIds.length) return;
-
-          const values = productValueIds
-            .map((vid: string) => inspectionValueById.get(vid))
-            .filter(Boolean);
-          if (!values.length) return;
-
-          const vehicleId = product.vehicleId;
-          const vehicle = vehicleId ? vehicleById.get(vehicleId) : product.vehicle;
-
-          let totalCost = 0;
-          let okCount = 0;
-          let warningCount = 0;
-          let defectCount = 0;
-          let latestTimestamp = 0;
-
-          values.forEach((value: any) => {
-            const status = this.inspectionService.mapValueToStatus(value.value);
-            if (status === 'ok') okCount++;
-            else if (status === 'warning') warningCount++;
-            else if (status === 'defect') defectCount++;
-
-            const costs = this.inspectionService.readCostsFromComments(value.comments || []);
-            totalCost += costs.partsCost + costs.laborCost;
-
-            const stamp = new Date(value.updatedAt || value.createdAt || '').getTime();
-            if (!isNaN(stamp) && stamp > latestTimestamp) latestTimestamp = stamp;
-          });
-
-          history.push({
-            vehicleId: vehicleId || '',
-            vehicleInstanceId: instanceId,
-            plate: vehicle?.licensePlate || 'N/A',
-            makeModel: `${vehicle?.make || ''} ${vehicle?.model || ''}`.trim() || 'Unknown',
-            pointsCount: values.length,
-            okCount,
-            warningCount,
-            defectCount,
-            totalCost,
-            updatedAt: latestTimestamp ? new Date(latestTimestamp) : undefined,
-          });
-        });
-
-        history.sort((a, b) => (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0));
-        this.inspectionHistory.set(history);
-        this.historyPage.set(1);
-        this.isLoadingHistory.set(false);
+  private getColumnDefinitions(): ColumnDef[] {
+    return [
+      { field: 'plate', headerName: 'VEHICLES.TABLE.LICENSE_PLATE', type: 'string', sortable: true, filterable: true },
+      { field: 'makeModel', headerName: 'VEHICLES.TABLE.VEHICLE', type: 'string', sortable: true, filterable: true },
+      { field: 'pointsCount', headerName: 'INSPECTION_HISTORY.POINTS', type: 'number', sortable: true, filterable: false },
+      { field: 'okCount', headerName: 'INSPECTION_HISTORY.OK', type: 'number', sortable: true, filterable: false },
+      { field: 'warningCount', headerName: 'INSPECTION_HISTORY.WARNING', type: 'number', sortable: true, filterable: false },
+      { field: 'defectCount', headerName: 'INSPECTION_HISTORY.DEFECT', type: 'number', sortable: true, filterable: false },
+      {
+        field: 'totalCost',
+        headerName: 'INSPECTION_HISTORY.TOTAL_COST',
+        type: 'number',
+        sortable: true,
+        filterable: false,
+        cellRenderer: ({ value }) => `${Number(value || 0).toFixed(2)}`,
       },
-      error: () => {
-        this.historyError.set('Failed to load inspection history.');
-        this.isLoadingHistory.set(false);
-      },
-    });
-  }
-
-  nextHistoryPage() {
-    if (this.historyPage() >= this.historyTotalPages()) return;
-    this.historyPage.update((p) => p + 1);
-  }
-
-  prevHistoryPage() {
-    if (this.historyPage() <= 1) return;
-    this.historyPage.update((p) => p - 1);
-  }
-
-  private mapValueToStatus(
-    value?: 'red' | 'yellow' | 'ok',
-  ): 'ok' | 'warning' | 'defect' | 'not_inspected' {
-    return this.inspectionService.mapValueToStatus(value);
-  }
-
-  private readCostsFromComments(comments: string[]): { partsCost: number; laborCost: number } {
-    return this.inspectionService.readCostsFromComments(comments);
-  }
-
-  private normalizeId(ref?: any): string {
-    return this.inspectionService.normalizeId(ref);
+      { field: 'updatedAt', headerName: 'COMMON.UPDATED_AT', type: 'date', sortable: true, filterable: false },
+    ];
   }
 }

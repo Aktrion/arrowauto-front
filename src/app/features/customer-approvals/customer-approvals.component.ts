@@ -13,18 +13,18 @@ import { Product } from '@features/vehicles/models/vehicle.model';
   standalone: true,
   imports: [CommonModule, LucideAngularModule, TranslateModule],
   template: `
-    <div class="p-4 sm:p-8 space-y-8 animate-fade-in">
+    <div class="p-4 sm:p-8 space-y-8">
       <div>
-        <h1 class="text-3xl font-black text-base-content tracking-tight">Pending Approvals</h1>
+        <h1 class="text-3xl font-black text-base-content tracking-tight">{{ 'CUSTOMER_APPROVALS.TITLE' | translate }}</h1>
         <p class="text-base-content/60 font-medium mt-1">
-          Vehicles waiting for customer approval on estimated repairs
+          {{ 'CUSTOMER_APPROVALS.SUBTITLE' | translate }}
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (vehicle of pendingVehicles(); track vehicle._id) {
           <div
-            class="card-premium rounded-2xl border border-warning/30 hover:border-warning/60 bg-warning/5 transition-all group overflow-hidden cursor-pointer"
+            class="card bg-base-100 shadow-xl rounded-2xl border border-warning/30 hover:border-warning/60 bg-warning/5 transition-all group overflow-hidden cursor-pointer"
             (click)="openPortal(vehicle.vehicleId!)"
           >
             <div class="p-6 relative">
@@ -45,7 +45,7 @@ import { Product } from '@features/vehicles/models/vehicle.model';
 
               <div class="mt-6 flex items-center justify-between">
                 <span class="badge badge-warning font-bold text-xs uppercase tracking-wider py-2.5"
-                  >Pending Approval</span
+                  >{{ 'CUSTOMER_APPROVALS.PENDING_APPROVAL' | translate }}</span
                 >
                 <button
                   class="btn btn-circle btn-sm btn-ghost hover:bg-warning/20 hover:text-warning"
@@ -68,9 +68,9 @@ import { Product } from '@features/vehicles/models/vehicle.model';
                   class="h-10 w-10 text-success/50"
                 ></lucide-icon>
               </div>
-              <h3 class="font-bold text-xl text-base-content mb-2">No pending approvals</h3>
+              <h3 class="font-bold text-xl text-base-content mb-2">{{ 'CUSTOMER_APPROVALS.NO_PENDING' | translate }}</h3>
               <p class="text-base-content/60 max-w-xs mx-auto">
-                All sent estimations have been processed or none are currently pending.
+                {{ 'CUSTOMER_APPROVALS.ALL_PROCESSED' | translate }}
               </p>
             </div>
           </div>

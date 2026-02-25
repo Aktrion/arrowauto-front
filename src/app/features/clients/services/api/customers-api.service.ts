@@ -6,7 +6,8 @@ import {
   CreateCustomerDto,
   UpdateCustomerDto,
 } from '@features/clients/models/client.model';
-import { map, catchError, of } from 'rxjs';
+import { SearchRequestResponse } from '@core/models/request.model';
+import { map, catchError, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,15 @@ export class CustomersApiService extends BaseCrudService<
       map((customers) =>
         (customers as Customer[]).map((c) => this.mapClient(c)),
       ),
+    );
+  }
+
+  override findByPagination(body: any): Observable<SearchRequestResponse<Client>> {
+    return super.findByPagination(body).pipe(
+      map((response: any) => ({
+        ...response,
+        data: ((response?.data || []) as Customer[]).map((c) => this.mapClient(c)),
+      })),
     );
   }
 

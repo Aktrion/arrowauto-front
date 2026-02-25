@@ -41,7 +41,7 @@
       <!-- Repair Items List -->
       <div class="lg:col-span-2 space-y-6">
         <div
-          class="card card-premium bg-gradient-to-br from-warning/5 to-transparent border-l-4 border-l-warning"
+          class="card bg-base-100 shadow-xl border border-base-200 bg-gradient-to-br from-warning/5 to-transparent border-l-4 border-l-warning"
         >
           <div class="card-body p-6">
             <h2 class="card-title flex items-center gap-3 text-lg">
@@ -56,7 +56,7 @@
 
         @for (item of repairItems; track item.id) {
           <div
-            class="card card-premium transition-all duration-300 group hover:shadow-lg hover:-translate-y-0.5 border-l-4"
+            class="card bg-base-100 shadow-xl border border-base-200 transition-all duration-300 group hover:shadow-lg hover:-translate-y-0.5 border-l-4"
             [class.border-l-primary]="isInCart(item.id)"
             [class.border-l-transparent]="!isInCart(item.id)"
           >
@@ -180,7 +180,7 @@
         }
 
         <!-- Full Inspection Report -->
-        <div class="card card-premium">
+        <div class="card bg-base-100 shadow-xl border border-base-200">
           <div class="card-body p-6">
             <h2 class="card-title flex items-center gap-3">
               <div
@@ -251,7 +251,7 @@
       <!-- Cart / Summary Sticky Sidebar -->
       <div class="lg:col-span-1">
         <div
-          class="card card-premium lg:sticky lg:top-6 shadow-xl shadow-primary/5 ring-1 ring-primary/5"
+          class="card bg-base-100 shadow-xl border border-base-200 lg:sticky lg:top-6 shadow-xl shadow-primary/5 ring-1 ring-primary/5"
         >
           <div class="card-body p-6">
             <h2 class="card-title text-lg mb-4">{{ 'PORTAL.SELECTION.TITLE' | translate }}</h2>
@@ -394,5 +394,4 @@
       <button>close</button>
     </form>
   </dialog>
-
 </div>

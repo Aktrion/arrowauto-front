@@ -2,14 +2,14 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <h1 class="text-3xl font-bold tracking-tight">Scheduling</h1>
-      <p class="text-base-content/60 mt-1">Plan and assign operations to operators efficiently</p>
+      <h1 class="text-3xl font-bold tracking-tight">{{ 'SCHEDULING.TITLE' | translate }}</h1>
+      <p class="text-base-content/60 mt-1">{{ 'SCHEDULING.SUBTITLE' | translate }}</p>
     </div>
     <div class="join shadow-sm border border-base-300 rounded-lg bg-base-100">
       <button
         class="join-item btn btn-ghost btn-sm px-3"
         (click)="previousWeek()"
-        title="Previous Week"
+        [title]="'SCHEDULING.PREV_WEEK' | translate"
       >
         <lucide-icon [name]="icons.ChevronLeft" class="h-5 w-5"></lucide-icon>
       </button>
@@ -18,14 +18,14 @@
       >
         {{ formatWeekRange() }}
       </button>
-      <button class="join-item btn btn-ghost btn-sm px-3" (click)="nextWeek()" title="Next Week">
+      <button class="join-item btn btn-ghost btn-sm px-3" (click)="nextWeek()" [title]="'SCHEDULING.NEXT_WEEK' | translate">
         <lucide-icon [name]="icons.ChevronRight" class="h-5 w-5"></lucide-icon>
       </button>
       <button
         class="join-item btn btn-ghost btn-sm px-3 border-l border-base-200 text-primary font-medium"
         (click)="goToToday()"
       >
-        Today
+        {{ 'SCHEDULING.TODAY' | translate }}
       </button>
     </div>
   </div>
@@ -34,7 +34,7 @@
   <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
     @for (day of weekDays(); track day.date) {
       <button
-        class="card card-premium hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
+        class="card bg-base-100 shadow-xl border border-base-200 hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group"
         [class.ring-2]="isSelectedDay(day.date)"
         [class.ring-primary]="isSelectedDay(day.date)"
         [class.ring-offset-2]="isSelectedDay(day.date)"
@@ -55,7 +55,7 @@
             <div
               class="flex justify-between text-[10px] uppercase font-bold text-base-content/50 mb-1"
             >
-              <span>Progress</span>
+              <span>{{ 'SCHEDULING.PROGRESS' | translate }}</span>
               <span>{{ day.scheduledHours }}/{{ day.totalHours }}h</span>
             </div>
             <progress
@@ -77,19 +77,19 @@
   <!-- Daily Schedule View -->
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
     <div class="lg:col-span-3">
-      <div class="card card-premium h-full">
+      <div class="card bg-base-100 shadow-xl border border-base-200 h-full">
         <div class="card-body p-0 sm:p-5">
           <div class="flex items-center justify-between mb-6 p-4 sm:p-0">
             <div>
               <h2 class="card-title text-xl">
                 {{ selectedDay() | date: 'fullDate' }}
               </h2>
-              <p class="text-sm text-base-content/60 mt-1">Daily schedule overview</p>
+              <p class="text-sm text-base-content/60 mt-1">{{ 'SCHEDULING.DAILY_OVERVIEW' | translate }}</p>
             </div>
             <div class="flex items-center gap-2">
               <span class="badge badge-neutral gap-1 pl-1.5 py-3">
                 <lucide-icon [name]="icons.User" class="h-4 w-4 text-base-content/70"></lucide-icon>
-                {{ operators().length }} operators
+                {{ operators().length }} {{ 'SCHEDULING.OPERATORS' | translate }}
               </span>
               <span class="badge badge-primary gap-1 pl-1.5 py-3 shadow-sm shadow-primary/20">
                 <lucide-icon [name]="icons.Clock" class="h-4 w-4"></lucide-icon>
@@ -107,7 +107,7 @@
                     <th
                       class="sticky left-0 bg-base-100 z-20 w-44 shadow-lg shadow-base-300/20 py-3 uppercase text-[10px] font-bold text-base-content/50 tracking-wider"
                     >
-                      Operator
+                      {{ 'SCHEDULING.OPERATOR' | translate }}
                     </th>
                     @for (slot of timeSlots(); track slot.time) {
                       <th
@@ -179,22 +179,22 @@
           <div
             class="flex flex-wrap items-center gap-6 mt-6 px-4 py-2 border border-base-200 rounded-lg bg-base-100/50"
           >
-            <span class="text-xs font-bold uppercase text-base-content/40 mr-2">Status Key:</span>
+            <span class="text-xs font-bold uppercase text-base-content/40 mr-2">{{ 'SCHEDULING.STATUS_KEY' | translate }}</span>
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-primary shadow-sm shadow-primary/40"></div>
-              <span class="text-sm font-medium">Scheduled</span>
+              <span class="text-sm font-medium">{{ 'SCHEDULING.SCHEDULED' | translate }}</span>
             </div>
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-warning shadow-sm shadow-warning/40"></div>
-              <span class="text-sm font-medium">In Progress</span>
+              <span class="text-sm font-medium">{{ 'SCHEDULING.IN_PROGRESS' | translate }}</span>
             </div>
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-success shadow-sm shadow-success/40"></div>
-              <span class="text-sm font-medium">Completed</span>
+              <span class="text-sm font-medium">{{ 'SCHEDULING.COMPLETED' | translate }}</span>
             </div>
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-base-200 border border-base-300"></div>
-              <span class="text-sm font-medium text-base-content/60">Available</span>
+              <span class="text-sm font-medium text-base-content/60">{{ 'SCHEDULING.AVAILABLE_SLOT' | translate }}</span>
             </div>
           </div>
         </div>
@@ -203,17 +203,19 @@
 
     <!-- Pending Operations Sidebar -->
     <div class="lg:col-span-1">
-      <div class="card card-premium h-full lg:sticky lg:top-4">
+      <div class="card bg-base-100 shadow-xl border border-base-200 h-full lg:sticky lg:top-4">
         <div class="card-body p-5">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="card-title text-lg">Pending Operations</h2>
+            <h2 class="card-title text-lg">{{ 'SCHEDULING.PENDING_OPERATIONS' | translate }}</h2>
             <div class="badge badge-neutral badge-sm">{{ pendingOperations().length }}</div>
           </div>
 
-          <div class="space-y-3 h-[50vh] lg:h-[calc(100vh-20rem)] overflow-y-auto custom-scrollbar pr-1">
+          <div
+            class="space-y-3 h-[50vh] lg:h-[calc(100vh-20rem)] overflow-y-auto custom-scrollbar pr-1"
+          >
             @for (op of pendingOperations(); track op.id) {
               <div
-                class="p-3 bg-base-100 border border-base-200 rounded-xl cursor-move hover:border-primary hover:shadow-md hover:shadow-primary/5 transition-all group animate-fade-in-up"
+                class="p-3 bg-base-100 border border-base-200 rounded-xl cursor-move hover:border-primary hover:shadow-md transition-all group"
               >
                 <div class="flex items-start justify-between mb-2">
                   <span class="badge badge-sm badge-outline font-mono text-[10px] opacity-70">{{
@@ -243,8 +245,8 @@
                 >
                   <lucide-icon [name]="icons.Check" class="h-6 w-6"></lucide-icon>
                 </div>
-                <p class="text-sm font-medium opacity-60">No pending operations</p>
-                <p class="text-xs opacity-40 mt-1">All qualified operations have been scheduled.</p>
+                <p class="text-sm font-medium opacity-60">{{ 'SCHEDULING.NO_PENDING' | translate }}</p>
+                <p class="text-xs opacity-40 mt-1">{{ 'SCHEDULING.ALL_SCHEDULED' | translate }}</p>
               </div>
             }
           </div>
@@ -261,7 +263,7 @@
       </form>
       <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
         <lucide-icon [name]="icons.Calendar" class="h-6 w-6 text-primary"></lucide-icon>
-        Assign Operation
+        {{ 'SCHEDULING.ASSIGN_OPERATION' | translate }}
       </h3>
 
       <div class="space-y-6">
@@ -272,7 +274,7 @@
             <lucide-icon [name]="icons.User" class="h-6 w-6"></lucide-icon>
           </div>
           <div>
-            <p class="text-xs uppercase tracking-wide opacity-60 font-bold">Operator</p>
+            <p class="text-xs uppercase tracking-wide opacity-60 font-bold">{{ 'SCHEDULING.OPERATOR' | translate }}</p>
             <p class="font-bold text-lg leading-tight">{{ selectedOperatorName() }}</p>
             <p class="text-sm opacity-70 mt-0.5">
               {{ selectedSlotTime() }} - {{ selectedDay() | date: 'mediumDate' }}
@@ -282,45 +284,35 @@
 
         <div class="form-control">
           <label class="label">
-            <span class="label-text font-medium">Select Pending Operation</span>
+            <span class="label-text font-medium">{{ 'SCHEDULING.SELECT_PENDING' | translate }}</span>
             <span class="label-text-alt text-base-content/50"
-              >{{ pendingOperations().length }} available</span
+              >{{ pendingOperations().length }} {{ 'SCHEDULING.AVAILABLE_COUNT' | translate }}</span
             >
           </label>
-          <select
-            class="select select-bordered w-full h-12 text-base shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            [ngModel]="selectedPendingOperationId()"
-            (ngModelChange)="selectedPendingOperationId.set($event)"
-          >
-            <option value="" disabled selected>Choose an operation...</option>
-            @for (op of pendingOperations(); track op.id) {
-              <option [value]="op.id" class="py-2">
-                {{ op.vehiclePlate }} - {{ op.operation?.name }} ({{
-                  op.operation?.estimatedDuration
-                }}min)
-              </option>
-            }
-          </select>
+          <app-select
+            [options]="pendingOperationSelectOptions()"
+            [selectedValue]="selectedPendingOperationId()"
+            (selectionChange)="selectedPendingOperationId.set($event || '')"
+            [placeholder]="'SCHEDULING.CHOOSE_OPERATION' | translate"
+          ></app-select>
         </div>
       </div>
 
       <div class="modal-action mt-8">
         <form method="dialog">
-          <button class="btn btn-ghost hover:bg-base-200">Cancel</button>
+          <button class="btn btn-ghost hover:bg-base-200">{{ 'COMMON.CANCEL' | translate }}</button>
         </form>
         <button
           class="btn btn-primary shadow-lg shadow-primary/20 px-8"
           [disabled]="!selectedPendingOperationId()"
           (click)="confirmAssignment()"
         >
-          Confirm Assignment
+          {{ 'SCHEDULING.CONFIRM_ASSIGNMENT' | translate }}
         </button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop bg-neutral/50 backdrop-blur-sm">
-      <button>close</button>
+      <button>{{ 'COMMON.CLOSE' | translate }}</button>
     </form>
   </dialog>
 </div>
-
-

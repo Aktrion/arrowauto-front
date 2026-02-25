@@ -1,18 +1,16 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
 import { User } from '@shared/models/user.model';
-import { environment } from '@env/environment';
+import { UsersApiService } from '@core/services/api/users-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/users`;
+  private readonly usersApi = inject(UsersApiService);
 
   fetchUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl).pipe(
+    return this.usersApi.findAll().pipe(
       catchError(() => of([])),
       map((users) => users.map((user) => this.mapUser(user))),
     );
