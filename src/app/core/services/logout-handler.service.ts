@@ -1,19 +1,13 @@
 import { Injectable, inject } from '@angular/core';
-import { Store } from '@ngxs/store';
+import { AuthStore } from '@auth/store/auth.store';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LogoutHandlerService {
-  private store = inject(Store);
+  private authStore = inject(AuthStore);
 
-  //   async triggerLogout(): Promise<void> {
-  //     try {
-  //       const { LogoutAction } = await import('../../../store/main.store');
-  //       this.store.dispatch(new LogoutAction());
-  //     } catch (error) {
-  //       console.error('Failed to trigger logout:', error);
-  //       window.location.href = '/login';
-  //     }
-  //   }
+  triggerLogout(): void {
+    this.authStore.logout().subscribe();
+  }
 }

@@ -3,13 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '@shared/icons';
-// import { AuthService } from '../../service/auth.service'; // Removed unused
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { LanguageSwitcherComponent } from '@shared/components/language-switcher/language-switcher.component';
-import { Store } from '@ngxs/store';
-import { Login } from '@auth/store/auth.actions';
 import { ToastService } from '@core/services/toast.service';
+import { AuthStore } from '@auth/store/auth.store';
 
 @Component({
   selector: 'app-login',
@@ -25,8 +23,7 @@ import { ToastService } from '@core/services/toast.service';
 })
 export class LoginComponent {
   icons = ICONS;
-  // private authService = inject(AuthService); // Removed
-  private store = inject(Store);
+  private authStore = inject(AuthStore);
   public router = inject(Router);
   private formBuilder = inject(FormBuilder);
   private toastService = inject(ToastService);
@@ -44,8 +41,8 @@ export class LoginComponent {
     if (this.form.invalid) return;
     const { userName, password } = this.form.value;
     this.isLoading = true;
-    this.store
-      .dispatch(new Login({ userName: userName as string, password: password as string }))
+    this.authStore
+      .login(userName as string, password as string)
       .subscribe({
         next: () => {
           this.isLoading = false;

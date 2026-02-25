@@ -8,9 +8,6 @@ import { routes } from '@app/app.routes';
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideStore } from '@ngxs/store';
-import { withNgxsStoragePlugin } from '@ngxs/storage-plugin';
-import { AuthState } from '@auth/store/auth.state';
 import { authInterceptor } from '@auth/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -18,12 +15,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideStore(
-      [AuthState],
-      withNgxsStoragePlugin({
-        keys: ['auth'],
-      }),
-    ),
     provideTranslateService({
       loader: provideTranslateHttpLoader({
         prefix: '/assets/i18n/',

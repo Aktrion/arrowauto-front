@@ -4,11 +4,8 @@ import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { LanguageSwitcherComponent } from '@shared/components/language-switcher/language-switcher.component';
 import { ICONS } from '@shared/icons';
-import { Store } from '@ngxs/store';
-import { AuthState } from '@auth/store/auth.state';
-import { Logout } from '@auth/store/auth.actions';
+import { AuthStore } from '@auth/store/auth.store';
 import { UserConfigModalComponent } from '@layout/components/user-config-modal/user-config-modal.component';
-import { User } from '@shared/models/user.model';
 
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -30,13 +27,13 @@ export class HeaderComponent {
   collapsed = input<boolean>(false);
   icons = ICONS;
 
-  private store = inject(Store);
-  user = this.store.selectSignal(AuthState.user);
+  private authStore = inject(AuthStore);
+  user = this.authStore.user;
 
   @ViewChild(UserConfigModalComponent) userConfigModal!: UserConfigModalComponent;
 
   logout() {
-    this.store.dispatch(new Logout());
+    this.authStore.logout().subscribe();
   }
 
   editProfile() {

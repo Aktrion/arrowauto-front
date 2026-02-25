@@ -10,9 +10,7 @@ import {
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
-import { Store } from '@ngxs/store';
-import { AuthState } from '@auth/store/auth.state';
-import { UpdateUser } from '@auth/store/auth.actions';
+import { AuthStore } from '@auth/store/auth.store';
 import { CountryEnum, countryNamesMap } from '@shared/enums/country.enum';
 import { User } from '@shared/models/user.model';
 
@@ -443,9 +441,9 @@ import { User } from '@shared/models/user.model';
 export class UserConfigModalComponent {
   @ViewChild('modal') modal!: ElementRef<HTMLDialogElement>;
   icons = ICONS;
-  store = inject(Store);
+  authStore = inject(AuthStore);
   fb = inject(FormBuilder);
-  user = this.store.selectSignal(AuthState.user);
+  user = this.authStore.user;
 
   isChangingPassword = signal(false);
   showPasswords = signal(false);
@@ -550,7 +548,7 @@ export class UserConfigModalComponent {
         payload.password = newPassword;
       }
 
-      this.store.dispatch(new UpdateUser(payload));
+      this.authStore.updateUser(payload);
       this.close();
     }
   }

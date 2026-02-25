@@ -1,19 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-
-const AUTH_STORAGE_KEY = 'auth';
+import { inject } from '@angular/core';
+import { AuthStore } from '@auth/store/auth.store';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  let token: string | null = null;
-
-  try {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      token = parsed?.token ?? null;
-    }
-  } catch {
-    token = null;
-  }
+  const authStore = inject(AuthStore);
+  const token = authStore.token();
 
   const request = token
     ? req.clone({
