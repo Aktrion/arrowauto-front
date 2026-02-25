@@ -26,11 +26,11 @@
               {{ vehicleData.make }} {{ vehicleData.model }}
             </p>
           </div>
-          <div
-            class="w-10 h-10 rounded-full bg-neutral text-neutral-content flex items-center justify-center font-bold"
-          >
-            {{ vehicleData.make.charAt(0) }}
-          </div>
+          <app-brand-logo
+            [make]="vehicleData.make"
+            containerClass="w-10 h-10 rounded-full bg-neutral"
+            fallbackClass="text-neutral-content"
+          />
         </div>
       </div>
     </div>

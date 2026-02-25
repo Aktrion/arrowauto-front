@@ -7,6 +7,7 @@ import { ClientService } from '@features/clients/services/client.service';
 import { Product } from '@features/vehicles/models/vehicle.model';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
+import { licensePlateBadge } from '@shared/utils/license-plate.utils';
 
 @Component({
   selector: 'app-vehicles-instances',
@@ -57,12 +58,20 @@ export class VehiclesInstancesComponent
   protected getColumnDefinitions(): ColumnDef[] {
     return [
       {
+        field: 'code',
+        headerName: 'VEHICLES.TABLE.JOB_NUMBER',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+      },
+      {
         field: 'vehicle.make',
         headerName: 'VEHICLES.TABLE.VEHICLE',
         type: 'string',
         sortable: true,
         filterable: true,
-        cellRenderer: ({ data }) => `${data?.vehicle?.make || ''} ${data?.vehicle?.model || ''}`.trim(),
+        cellRenderer: ({ data }) =>
+          `${data?.vehicle?.make || ''} ${data?.vehicle?.model || ''}`.trim(),
       },
       {
         field: 'vehicle.licensePlate',
@@ -70,6 +79,7 @@ export class VehiclesInstancesComponent
         type: 'string',
         sortable: true,
         filterable: true,
+        cellRenderer: ({ value }) => licensePlateBadge(value),
       },
       {
         field: 'customerId',
@@ -80,19 +90,12 @@ export class VehiclesInstancesComponent
         cellRenderer: ({ data }) => this.getClientName(data?.customerId),
       },
       {
-        field: 'vehicle.jobNumber',
-        headerName: 'VEHICLES.TABLE.JOB_NUMBER',
-        type: 'string',
-        sortable: true,
-        filterable: true,
-      },
-      {
         field: 'status',
         headerName: 'VEHICLES.TABLE.STATUS',
         type: 'string',
         sortable: true,
         filterable: true,
-        cellRenderer: ({ value }) => VehicleStatusUtils.formatStatus(value),
+        cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
       },
       {
         field: 'updatedAt',

@@ -1,3 +1,11 @@
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 /**
  * Static utility functions for vehicle status display and progress
  */
@@ -11,14 +19,26 @@ export class VehicleStatusUtils {
     if (!status) return 'status-pending';
     const classes: Record<string, string> = {
       pending: 'status-pending',
+      scheduled: 'status-in-progress',
       in_progress: 'status-in-progress',
       inspection: 'status-inspection',
       awaiting_approval: 'status-awaiting',
       approved: 'status-completed',
       completed: 'status-completed',
       invoiced: 'status-completed',
+      cancelled: 'status-error',
+      sent: 'status-awaiting',
     };
     return classes[status] || 'status-pending';
+  }
+
+  /** Returns HTML for a standardized status badge (for data-grid cellRenderer) */
+  static statusBadge(value: string | null | undefined): string {
+    const text = value != null && typeof value === 'string'
+      ? this.formatStatus(value)
+      : 'Pending';
+    const badgeClass = this.getStatusBadgeClass(value ?? 'pending');
+    return `<span class="status-badge ${badgeClass}">${escapeHtml(text)}</span>`;
   }
 
   static getProgressStep(status?: string): number {

@@ -6,6 +6,7 @@ import { VehiclesApiService } from '@features/vehicles/services/api/vehicles-api
 import { Vehicle } from '@features/vehicles/models/vehicle.model';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
+import { licensePlateBadge } from '@shared/utils/license-plate.utils';
 import { ToastService } from '@core/services/toast.service';
 import { VehicleEditModalComponent } from './vehicle-edit-modal/vehicle-edit-modal.component';
 import { ICONS } from '@shared/icons';
@@ -61,6 +62,7 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
         type: 'string',
         sortable: true,
         filterable: true,
+        cellRenderer: ({ value }) => licensePlateBadge(value),
       },
       {
         field: 'vin',

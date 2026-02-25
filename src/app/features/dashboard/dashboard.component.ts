@@ -4,6 +4,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { licensePlateBadge } from '@shared/utils/license-plate.utils';
 import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 import { UserService } from '@core/services/user.service';
 import { Client } from '@features/clients/models/client.model';
@@ -135,7 +136,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             v.vehicle?.vin?.toLowerCase().includes(lowerQuery)
           );
         } else {
-          return v.vehicle?.jobNumber?.toLowerCase().includes(lowerQuery);
+          return v.code?.toLowerCase().includes(lowerQuery);
         }
       });
 
@@ -165,8 +166,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         type: 'string',
         sortable: false,
         filterable: false,
-        cellRenderer: ({ data }) =>
-          `${data?.vehicle?.licensePlate || ''} (${data?.vehicle?.make || ''} ${data?.vehicle?.model || ''})`,
+        cellRenderer: ({ data }) => {
+          const plate = data?.vehicle?.licensePlate || '';
+          const makeModel = `${data?.vehicle?.make || ''} ${data?.vehicle?.model || ''}`.trim();
+          const plateBadge = licensePlateBadge(plate);
+          const parts = [plateBadge, makeModel].filter(Boolean);
+          return parts.length ? parts.join(' ') : '-';
+        },
       },
       {
         field: 'customerId',
@@ -182,7 +188,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         type: 'string',
         sortable: false,
         filterable: false,
-        cellRenderer: ({ value }) => this.formatStatus(value),
+        cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
       },
       {
         field: 'status',

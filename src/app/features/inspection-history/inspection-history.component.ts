@@ -4,6 +4,7 @@ import { Subject, Subscription } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { licensePlateBadge } from '@shared/utils/license-plate.utils';
 import { ColumnDef, DataGridConfig, GridState } from '@shared/components/data-grid/data-grid.interface';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -158,7 +159,14 @@ export class InspectionHistoryComponent implements OnInit, OnDestroy {
 
   private getColumnDefinitions(): ColumnDef[] {
     return [
-      { field: 'plate', headerName: 'VEHICLES.TABLE.LICENSE_PLATE', type: 'string', sortable: true, filterable: true },
+      {
+        field: 'plate',
+        headerName: 'VEHICLES.TABLE.LICENSE_PLATE',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        cellRenderer: ({ value }) => licensePlateBadge(value),
+      },
       { field: 'makeModel', headerName: 'VEHICLES.TABLE.VEHICLE', type: 'string', sortable: true, filterable: true },
       { field: 'pointsCount', headerName: 'INSPECTION_HISTORY.POINTS', type: 'number', sortable: true, filterable: false },
       { field: 'okCount', headerName: 'INSPECTION_HISTORY.OK', type: 'number', sortable: true, filterable: false },

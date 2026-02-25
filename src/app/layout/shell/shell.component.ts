@@ -23,10 +23,10 @@ import { SidebarComponent } from '@layout/components/sidebar/sidebar.component';
 export class ShellComponent implements OnInit, OnDestroy {
   sidenavMode: 'side' | 'over' = 'side';
   visibleDrawer = true;
-  isCollapsed = true;
+  isCollapsed = false;
   private destroy$ = new Subject<void>();
 
-  isSidebarCollapsed = signal(true);
+  isSidebarCollapsed = signal(false);
 
   constructor(
     private breakpointObserver: BreakpointObserver,
@@ -59,7 +59,7 @@ export class ShellComponent implements OnInit, OnDestroy {
           } else {
             this.sidenavMode = 'side';
             this.visibleDrawer = true;
-            this.isCollapsed = true;
+            this.isCollapsed = false;
           }
           this.isSidebarCollapsed.set(this.isCollapsed);
         });

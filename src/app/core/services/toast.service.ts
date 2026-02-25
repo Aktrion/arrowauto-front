@@ -5,19 +5,19 @@ import { NotificationType, Toast } from '@core/models/toast.model';
 export class ToastService {
   toasts = signal<Toast[]>([]);
 
-  success(message: string, durationMs = 1200) {
+  success(message: string, durationMs = 2400) {
     this.push('success', message, undefined, durationMs);
   }
 
-  error(message: string, durationMs = 2200) {
+  error(message: string, durationMs = 2400) {
     this.push('error', message, undefined, durationMs);
   }
 
-  warning(message: string, durationMs = 2600) {
+  warning(message: string, durationMs = 2400) {
     this.push('warning', message, undefined, durationMs);
   }
 
-  info(message: string, durationMs = 2200) {
+  info(message: string, durationMs = 2400) {
     this.push('info', message, undefined, durationMs);
   }
 
@@ -48,7 +48,7 @@ export class ToastService {
     type: NotificationType,
     message: string,
     title?: string,
-    durationMs: number = 3200,
+    durationMs: number = 6400,
     action?: { label: string; callback: () => void },
   ) {
     const toast: Toast = {

@@ -11,62 +11,60 @@ import { ICONS } from '@shared/icons';
   standalone: true,
   imports: [CommonModule, LucideAngularModule, TranslateModule],
   template: `
-    <div
-      #toastPopover
-      popover="manual"
-      class="toast-popover"
-    >
+    <div #toastPopover popover="manual" class="toast-popover">
       @if (toastService.toasts().length) {
         <div class="flex flex-col gap-3 p-4 pointer-events-none w-full max-w-md">
           @for (toast of toastService.toasts(); track toast.id) {
-          <div
-            class="alert border-0 shadow-2xl relative overflow-hidden min-w-[320px] max-w-md p-0 flex flex-col items-stretch animate-slide-up pointer-events-auto"
-          >
-            <!-- Progress Bar -->
-            <div class="absolute bottom-0 left-0 h-1.5 bg-white/10 w-full z-10">
-              <div
-                class="h-full bg-white/30 progress-bar-fill"
-                [style.animation-duration.ms]="toast.durationMs"
-              ></div>
-            </div>
+            <div
+              class="alert border-0 shadow-lg relative overflow-hidden min-w-[320px] max-w-md p-0 flex flex-col items-stretch animate-slide-up pointer-events-auto"
+            >
+              <!-- Progress Bar -->
+              <div class="absolute bottom-0 left-0 h-1.5 bg-white/10 w-full z-10">
+                <div
+                  class="h-full bg-white/30 progress-bar-fill"
+                  [style.animation-duration.ms]="toast.durationMs"
+                ></div>
+              </div>
 
-            <div class="flex items-start gap-4 p-4" [class]="alertBgClass(toast.type)">
-              <div class="flex-shrink-0 mt-0.5">
-                <div class="p-2 rounded-xl bg-white/20 backdrop-blur-md">
-                  <lucide-icon
-                    [name]="iconFor(toast.type)"
-                    class="h-6 w-6 text-white"
-                  ></lucide-icon>
+              <div class="flex items-start gap-4 p-4" [class]="alertBgClass(toast.type)">
+                <div class="flex-shrink-0 mt-0.5">
+                  <div class="p-2 rounded-xl bg-white/20 backdrop-blur-md">
+                    <lucide-icon
+                      [name]="iconFor(toast.type)"
+                      class="h-6 w-6 text-white"
+                    ></lucide-icon>
+                  </div>
                 </div>
+
+                <div class="flex-1 flex flex-col gap-1 pr-6">
+                  @if (toast.title) {
+                    <h4 class="font-bold text-white text-lg leading-tight">
+                      {{ toast.title | translate }}
+                    </h4>
+                  }
+                  <p class="text-white/95 text-sm font-medium whitespace-pre-line">
+                    {{ toast.message | translate }}
+                  </p>
+
+                  @if (toast.action) {
+                    <button
+                      class="mt-3 btn btn-xs border-white/20 bg-white/10 hover:bg-white/20 text-white font-bold w-fit uppercase tracking-wider"
+                      (click)="handleAction(toast)"
+                    >
+                      {{ toast.action.label | translate }}
+                    </button>
+                  }
+                </div>
+
+                <button
+                  class="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/20 transition-colors text-white/70 hover:text-white"
+                  (click)="toastService.dismiss(toast.id)"
+                >
+                  <lucide-icon [name]="icons.X" class="h-4 w-4"></lucide-icon>
+                </button>
               </div>
-
-              <div class="flex-1 flex flex-col gap-1 pr-6">
-                @if (toast.title) {
-                  <h4 class="font-bold text-white text-lg leading-tight">{{ toast.title | translate }}</h4>
-                }
-                <p class="text-white/95 text-sm font-medium whitespace-pre-line">
-                  {{ toast.message | translate }}
-                </p>
-
-                @if (toast.action) {
-                  <button
-                    class="mt-3 btn btn-xs border-white/20 bg-white/10 hover:bg-white/20 text-white font-bold w-fit uppercase tracking-wider"
-                    (click)="handleAction(toast)"
-                  >
-                    {{ toast.action.label | translate }}
-                  </button>
-                }
-              </div>
-
-              <button
-                class="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/20 transition-colors text-white/70 hover:text-white"
-                (click)="toastService.dismiss(toast.id)"
-              >
-                <lucide-icon [name]="icons.X" class="h-4 w-4"></lucide-icon>
-              </button>
             </div>
-          </div>
-        }
+          }
         </div>
       }
     </div>

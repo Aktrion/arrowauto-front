@@ -1,4 +1,4 @@
-﻿@import 'tailwindcss';
+@import 'tailwindcss';
 @plugin "daisyui";
 @plugin "daisyui/theme" {
   name: 'arrow';
@@ -175,4 +175,52 @@ textarea {
     transform: translateY(-20px);
     opacity: 0;
   }
+}
+
+/* === Status Badges (standardized for grids and detail views) === */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* Draft / Pending - light grey, black text */
+.status-badge.status-pending,
+.status-badge.status-draft {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+/* Assigned / In progress - purple, white text */
+.status-badge.status-in-progress,
+.status-badge.status-inspection,
+.status-badge.status-assigned {
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+/* Authorization required / Awaiting approval - red, white text */
+.status-badge.status-awaiting,
+.status-badge.status-alert {
+  background-color: var(--color-error);
+  color: var(--color-error-content);
+}
+
+/* Completed / Done - soft green */
+.status-badge.status-completed {
+  background-color: rgba(155, 197, 61, 0.25);
+  color: #004c39;
+}
+
+/* Error / Cancelled */
+.status-badge.status-error {
+  background-color: var(--color-error);
+  color: var(--color-error-content);
 }

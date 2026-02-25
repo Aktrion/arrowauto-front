@@ -7,6 +7,8 @@ import { ICONS } from '@shared/icons';
 import { ClientService } from '@features/clients/services/client.service';
 import { UserService } from '@core/services/user.service';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { licensePlateBadge } from '@shared/utils/license-plate.utils';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { BaseListDirective } from '@core/directives/base-list.directive';
 import { MongoEntity } from '@shared/models/mongo-entity.model';
@@ -177,6 +179,7 @@ export class InvoicingComponent extends BaseListDirective<
         sortable: true,
         filterable: true,
         dontTranslate: true,
+        cellRenderer: ({ value }) => licensePlateBadge(value),
       },
       {
         field: 'vehicle',
@@ -226,6 +229,7 @@ export class InvoicingComponent extends BaseListDirective<
         sortable: true,
         filterable: true,
         dontTranslate: true,
+        cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
       },
     ];
   }

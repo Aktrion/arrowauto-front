@@ -2,10 +2,11 @@ import { Component, computed, effect, inject, OnInit, signal } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { form, FormField, required } from '@angular/forms/signals';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { of, Subject, switchMap } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import { ICONS } from '@shared/icons';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
@@ -25,6 +26,7 @@ import {
 import { ToastService } from '@core/services/toast.service';
 import { InspectionTemplatesService } from '@features/settings/inspection-templates/services/inspection-templates.service';
 import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
+import { BrandLogoComponent } from '@shared/components/brand-logo/brand-logo.component';
 
 @Component({
   selector: 'app-vehicle-instance-detail',
@@ -33,10 +35,12 @@ import { SelectComponent, SelectOption } from '@shared/components/select/select.
     CommonModule,
     DatePipe,
     FormsModule,
+    FormField,
     RouterLink,
     LucideAngularModule,
     TranslateModule,
     SelectComponent,
+    BrandLogoComponent,
   ],
   templateUrl: './vehicle-instance-detail.component.html',
 })
@@ -56,6 +60,51 @@ export class VehicleInstanceDetailComponent implements OnInit {
   selectedOperationId = signal('');
 
   isNew = signal(false);
+
+  /** Form model for editable fields - synced with product */
+  formModel = signal<{
+    vehicle: {
+      licensePlate: string;
+      make: string;
+      model: string;
+      colour: string;
+      vin: string;
+      mileage: number;
+      engine: string;
+      description: string;
+      year: number;
+      nextEntryDate: string;
+    };
+    status: string;
+    customerId: string;
+    inspectionTemplateId: string;
+  }>({
+    vehicle: {
+      licensePlate: '',
+      make: '',
+      model: '',
+      colour: '',
+      vin: '',
+      mileage: 0,
+      engine: '',
+      description: '',
+      year: 0,
+      nextEntryDate: '',
+    },
+    status: 'pending',
+    customerId: '',
+    inspectionTemplateId: '',
+  });
+
+  /** Signal Forms - main form with validation */
+  detailForm = form(this.formModel, (s) => {
+    required(s.vehicle.licensePlate);
+    required(s.vehicle.make);
+    required(s.customerId);
+    required(s.inspectionTemplateId);
+  });
+
+  /** Product metadata from API (_id, code, vehicleId, etc.) */
   product = signal<Partial<Product>>({
     vehicle: {} as Vehicle,
     status: 'pending',
@@ -96,6 +145,16 @@ export class VehicleInstanceDetailComponent implements OnInit {
     'cancelled',
   ];
 
+  canSave = computed(() => {
+    const m = this.formModel();
+    return (
+      !!m.vehicle.licensePlate?.trim() &&
+      !!m.vehicle.make?.trim() &&
+      !!m.customerId &&
+      !!m.inspectionTemplateId
+    );
+  });
+
   statusSelectOptions: SelectOption[] = this.statusOptions.map((s) => ({
     label: VehicleStatusUtils.formatStatus(s),
     value: s,
@@ -134,9 +193,11 @@ export class VehicleInstanceDetailComponent implements OnInit {
 
       this.instanceApi.findOne(id).subscribe({
         next: (found) => {
-          this.product.set({ ...found });
+          const normalized = this.normalizeProductFromApi(found);
+          this.product.set(normalized);
+          this.syncFormModelFromProduct(normalized);
           this.isNew.set(false);
-          this.initialStatus.set(found.status);
+          this.initialStatus.set(normalized.status ?? 'pending');
           this.loadActivityTimeline(id);
         },
         error: () => this.router.navigate(['/vehicles-instances']),
@@ -156,6 +217,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
           this.lookupLoading.set(false);
           if (vehicle) {
             this.foundVehicle.set(vehicle);
+            this.autoFillVehicleFromLookup(vehicle);
           } else {
             this.foundVehicle.set(null);
             this.existingVehicleId.set(null);
@@ -185,38 +247,83 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }
 
   resetProduct() {
-    this.product.set({
-      status: 'pending',
+    this.formModel.set({
       vehicle: {
         licensePlate: '',
         make: '',
         model: '',
-        year: new Date().getFullYear(),
-        registrationDate: '',
-        engine: '',
         colour: '',
         vin: '',
         mileage: 0,
+        engine: '',
+        description: '',
+        year: new Date().getFullYear(),
+        nextEntryDate: '',
       },
+      status: 'pending',
+      customerId: '',
+      inspectionTemplateId: '',
     });
+    this.product.set({ status: 'pending', vehicle: {} as Vehicle });
     this.initialStatus.set('pending');
   }
 
+  private syncFormModelFromProduct(p: Partial<Product>) {
+    const v = p.vehicle;
+    const nextEntry = (v as any)?.nextEntryDate;
+    const nextEntryStr =
+      nextEntry instanceof Date
+        ? nextEntry.toISOString().slice(0, 10)
+        : typeof nextEntry === 'string'
+          ? nextEntry.slice(0, 10)
+          : '';
+    this.formModel.set({
+      vehicle: {
+        licensePlate: v?.licensePlate ?? '',
+        make: v?.make ?? '',
+        model: v?.model ?? (v as any)?.vehicleModel ?? '',
+        colour: v?.colour ?? '',
+        vin: v?.vin ?? '',
+        mileage: v?.mileage ?? 0,
+        engine: v?.engine ?? '',
+        description: v?.description ?? '',
+        year: v?.year ?? 0,
+        nextEntryDate: nextEntryStr,
+      },
+      status: p.status ?? 'pending',
+      customerId: p.customerId ?? '',
+      inspectionTemplateId: p.inspectionTemplateId ?? '',
+    });
+  }
+
   onFieldLookup(field: 'vin' | 'licensePlate', value: string) {
-    if (!this.isNew()) return;
     this.lookupSubject$.next({ field, value });
+  }
+
+  private autoFillVehicleFromLookup(vehicle: Vehicle) {
+    const normalized = {
+      ...vehicle,
+      model: vehicle.model ?? (vehicle as any).vehicleModel ?? '',
+    };
+    this.formModel.update((m) => ({
+      ...m,
+      vehicle: {
+        ...m.vehicle,
+        licensePlate: normalized.licensePlate ?? m.vehicle.licensePlate,
+        make: normalized.make ?? m.vehicle.make,
+        model: normalized.model ?? m.vehicle.model,
+        colour: normalized.colour ?? m.vehicle.colour,
+        vin: normalized.vin ?? m.vehicle.vin,
+        mileage: normalized.mileage ?? m.vehicle.mileage,
+        engine: normalized.engine ?? m.vehicle.engine,
+      },
+    }));
   }
 
   useExistingVehicle() {
     const vehicle = this.foundVehicle();
     if (!vehicle) return;
-    this.product.update((p) => ({
-      ...p,
-      vehicle: {
-        ...p.vehicle!,
-        ...vehicle,
-      },
-    }));
+    this.autoFillVehicleFromLookup(vehicle);
     this.existingVehicleId.set(vehicle._id || null);
     this.hpiResult.set(true);
   }
@@ -227,7 +334,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }
 
   performHPICheck() {
-    const plate = this.product().vehicle?.licensePlate;
+    const plate = this.formModel().vehicle.licensePlate;
     if (!plate) return;
 
     this.vehiclesApi.lookup('licensePlate', plate).subscribe((vehicle) => {
@@ -235,66 +342,127 @@ export class VehicleInstanceDetailComponent implements OnInit {
         this.hpiResult.set(false);
         return;
       }
-
-      this.product.update((p) => ({
-        ...p,
-        vehicle: {
-          ...p.vehicle!,
-          ...vehicle,
-        },
-      }));
+      this.autoFillVehicleFromLookup(vehicle);
       this.hpiResult.set(true);
     });
   }
 
   save() {
+    const m = this.formModel();
     const p = this.product();
-    if (!p.vehicle?.licensePlate || !p.vehicle?.make || !p.vehicle?.model) return;
+    if (!this.canSave()) return;
+
+    const vehiclePayload = {
+      licensePlate: m.vehicle.licensePlate,
+      make: m.vehicle.make,
+      model: m.vehicle.model,
+      colour: m.vehicle.colour,
+      vin: m.vehicle.vin,
+      mileage: m.vehicle.mileage,
+      engine: m.vehicle.engine,
+      description: m.vehicle.description,
+    };
 
     if (this.isNew()) {
       const existingId = this.existingVehicleId();
       if (existingId) {
-        // Link to existing vehicle instead of creating a new one
-        this.instanceApi.create({ ...p, vehicleId: existingId } as any).subscribe({
+        const instancePayload = this.buildInstanceCreatePayload(m, p, existingId);
+        this.instanceApi.create(instancePayload).subscribe({
           next: () => {
-            this.notificationService.success(
-              'Vehicle instance created and linked to existing vehicle.',
-            );
-            this.router.navigate(['/vehicles']);
+            this.notificationService.success('Vehicle instance created and linked.');
+            this.router.navigate(['/vehicles-instances']);
           },
           error: () => this.notificationService.error('Failed to create vehicle instance.'),
         });
       } else {
-        this.instanceApi.create(p as any).subscribe({
-          next: () => {
-            this.notificationService.success('Vehicle created successfully.');
-            this.router.navigate(['/vehicles']);
+        this.vehiclesApi
+          .create({
+            ...vehiclePayload,
+            vin: vehiclePayload.vin || 'TBD',
+          } as any)
+          .subscribe({
+          next: (created) => {
+            const vehicleId = created?._id;
+            if (!vehicleId) {
+              this.notificationService.error('Failed to create vehicle.');
+              return;
+            }
+            const instancePayload = this.buildInstanceCreatePayload(m, p, vehicleId);
+            this.instanceApi.create(instancePayload).subscribe({
+              next: () => {
+                this.notificationService.success('Vehicle instance created.');
+                this.router.navigate(['/vehicles-instances']);
+              },
+              error: () => this.notificationService.error('Failed to create vehicle instance.'),
+            });
           },
           error: () => this.notificationService.error('Failed to create vehicle.'),
         });
       }
     } else {
-      this.instanceApi
-        .update(p._id!, p as any)
-        .pipe(
-          switchMap((updated) => {
-            if (!p._id || !p.status || p.status === this.initialStatus()) {
-              return of(updated);
-            }
-            return this.instanceApi.update(p._id!, { status: p.status } as any);
-          }),
-        )
-        .subscribe({
-          next: () => {
-            if (p.status) {
-              this.initialStatus.set(p.status);
-            }
-            this.notificationService.success('Vehicle updated successfully.');
-            this.router.navigate(['/vehicles']);
-          },
-          error: () => this.notificationService.error('Failed to update vehicle.'),
-        });
+      const instancePayload = this.buildInstanceUpdatePayload(m, p);
+      const ops: any[] = [this.instanceApi.update(p._id!, instancePayload)];
+      if (p.vehicleId) {
+        ops.push(this.vehiclesApi.update(p.vehicleId, vehiclePayload));
+      }
+      forkJoin(ops).subscribe({
+        next: () => {
+          if (m.status) this.initialStatus.set(m.status as VehicleStatus);
+          this.notificationService.success('Vehicle updated successfully.');
+          this.router.navigate(['/vehicles-instances']);
+        },
+        error: () => this.notificationService.error('Failed to update vehicle.'),
+      });
     }
+  }
+
+  private buildInstanceCreatePayload(
+    m: ReturnType<typeof this.formModel>,
+    p: Partial<Product>,
+    vehicleId: string,
+  ): any {
+    const raw = p as Record<string, unknown>;
+    return {
+      vehicleId,
+      status: m.status,
+      customerId: m.customerId,
+      inspectionTemplateId: m.inspectionTemplateId,
+      checkInDate: p.checkInDate,
+      inspectionDate: p.inspectionDate,
+      partsEstimatedDate: p.partsEstimatedDate,
+      labourEstimatedDate: p.labourEstimatedDate,
+      taskAuthDate: p.taskAuthDate,
+      checkOutDate: p.checkOutDate,
+      odometer: p.odometer,
+      distanceUnit: (p as any).distanceUnit ?? 'km',
+      services: p.services,
+      operations: p.operations,
+      movements: raw['movements'],
+    };
+  }
+
+  private buildInstanceUpdatePayload(
+    m: ReturnType<typeof this.formModel>,
+    p: Partial<Product>,
+  ): any {
+    const raw = p as Record<string, unknown>;
+    return {
+      vehicleId: p.vehicleId,
+      status: m.status,
+      customerId: m.customerId,
+      inspectionTemplateId: m.inspectionTemplateId,
+      checkInDate: p.checkInDate,
+      inspectionDate: p.inspectionDate,
+      partsEstimatedDate: p.partsEstimatedDate,
+      labourEstimatedDate: p.labourEstimatedDate,
+      taskAuthDate: p.taskAuthDate,
+      checkOutDate: p.checkOutDate,
+      odometer: p.odometer,
+      distanceUnit: p.distanceUnit,
+      services: p.services,
+      operations: p.operations,
+      movements: raw['movements'],
+    };
   }
 
   getVehicleOperations(vehicleId: string) {
@@ -391,11 +559,16 @@ export class VehicleInstanceDetailComponent implements OnInit {
     return index % 2 === 0 ? 'md:col-start-1' : 'md:col-start-3';
   }
 
+  onCustomerChange(customerId: string) {
+    this.formModel.update((m) => ({ ...m, customerId }));
+  }
+
+  onInspectionTemplateChange(inspectionTemplateId: string) {
+    this.formModel.update((m) => ({ ...m, inspectionTemplateId }));
+  }
+
   onStatusChange(status: VehicleStatus) {
-    this.product.update((current) => ({
-      ...current,
-      status,
-    }));
+    this.formModel.update((m) => ({ ...m, status }));
   }
 
   updateOperationStatus(operation: VehicleOperation, status: OperationStatus) {
@@ -461,6 +634,28 @@ export class VehicleInstanceDetailComponent implements OnInit {
         this.activityLoading.set(false);
       },
     });
+  }
+
+  private normalizeProductFromApi(p: Partial<Product>): Partial<Product> {
+    const out = { ...p };
+    if (out.vehicle) {
+      out.vehicle = {
+        ...out.vehicle,
+        model: out.vehicle.model ?? (out.vehicle as any).vehicleModel ?? '',
+      };
+    }
+    const rawStatus = (out as any).status;
+    if (typeof rawStatus === 'object' && rawStatus?.name) {
+      const slugMap: Record<string, string> = {
+        'Checked In': 'pending',
+        Inspection: 'inspection',
+        'Waiting Approval': 'awaiting_approval',
+        'In Repair': 'in_progress',
+        'Ready for Pickup': 'completed',
+      };
+      out.status = (slugMap[rawStatus.name] as VehicleStatus) ?? 'pending';
+    }
+    return out;
   }
 
   goToInspection() {

@@ -46,9 +46,9 @@ export class LoginComponent {
       .login(userName as string, password as string)
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: () => this.toastService.success('Login successful', 1200),
+        next: () => this.toastService.success('Login successful'),
         error: (err) => {
-          this.toastService.error(err.error?.message ?? 'Login failed', 2200);
+          this.toastService.error(err.error?.message ?? 'Login failed');
           console.error('Login failed', err);
         },
       });

@@ -11,6 +11,7 @@ import { DataGridComponent } from '@shared/components/data-grid/data-grid.compon
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { BaseListDirective } from '@core/directives/base-list.directive';
 import { OperationInstancesApiService } from '@shared/services/api/operation-instances-api.service';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 
 interface TaskRow {
   id: string;
@@ -102,7 +103,7 @@ export class TasksComponent extends BaseListDirective<
         sortable: true,
         filterable: true,
         dontTranslate: true,
-        cellRenderer: ({ value }) => this.formatStatus(value),
+        cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
       },
     ];
   }

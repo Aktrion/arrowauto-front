@@ -12,6 +12,7 @@ import { InspectionValue } from '@features/inspection/models/inspection.model';
 import { InspectionService } from '@features/inspection/services/inspection.service';
 import { ToastService } from '@core/services/toast.service';
 import { OperationService } from '@shared/services/operation.service';
+import { BrandLogoComponent } from '@shared/components/brand-logo/brand-logo.component';
 
 interface RepairItem {
   id: string;
@@ -28,7 +29,7 @@ interface RepairItem {
 @Component({
   selector: 'app-customer-portal',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, TranslateModule],
+  imports: [CommonModule, LucideAngularModule, TranslateModule, BrandLogoComponent],
   templateUrl: './customer-portal.component.html',
 })
 export class CustomerPortalComponent implements OnInit {

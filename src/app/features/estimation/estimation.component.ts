@@ -7,6 +7,8 @@ import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehi
 import { CustomerCommunicationsApiService } from '@features/estimation/services/api/customer-communications-api.service';
 import { ToastService } from '@core/services/toast.service';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
+import { licensePlateBadge } from '@shared/utils/license-plate.utils';
+import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { BaseListDirective } from '@core/directives/base-list.directive';
 import { MongoEntity } from '@shared/models/mongo-entity.model';
@@ -78,9 +80,25 @@ export class EstimationComponent extends BaseListDirective<
   protected getColumnDefinitions(): ColumnDef[] {
     return [
       { field: 'vehicleName', headerName: 'Vehicle', type: 'string', sortable: true, filterable: true, dontTranslate: true },
-      { field: 'licensePlate', headerName: 'Plate', type: 'string', sortable: true, filterable: true, dontTranslate: true },
+      {
+        field: 'licensePlate',
+        headerName: 'Plate',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        dontTranslate: true,
+        cellRenderer: ({ value }) => licensePlateBadge(value),
+      },
       { field: 'operation', headerName: 'Operation', type: 'string', sortable: true, filterable: true, dontTranslate: true },
-      { field: 'status', headerName: 'Status', type: 'string', sortable: true, filterable: true, dontTranslate: true },
+      {
+        field: 'status',
+        headerName: 'Status',
+        type: 'string',
+        sortable: true,
+        filterable: true,
+        dontTranslate: true,
+        cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
+      },
       { field: 'duration', headerName: 'Duration', type: 'number', sortable: true, filterable: false, dontTranslate: true },
       {
         field: 'price',

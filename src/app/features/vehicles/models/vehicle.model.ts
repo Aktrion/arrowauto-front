@@ -25,7 +25,6 @@ export interface Vehicle extends MongoEntity {
   nextEntryDate?: string;
   // clientId?: string;
   // client?: Client;
-  jobNumber?: string;
 }
 
 export interface VehicleInstance extends MongoEntity {
@@ -44,7 +43,6 @@ export interface VehicleInstance extends MongoEntity {
   checkOutDate?: Date;
   inspectionValues?: InspectionValue[];
   inspectionValueIds?: string[];
-  // repairs: Repair[];
   // operations: Operation[];
   // customerCommunications: CustomerCommunication[];
   // movements: Movement[];
@@ -53,6 +51,7 @@ export interface VehicleInstance extends MongoEntity {
   distanceUnit: 'miles' | 'km';
   services?: string[];
   operations?: string[];
+  movements?: string[];
 }
 
 // Legacy alias during migration

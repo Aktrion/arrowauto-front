@@ -35,9 +35,7 @@
       <button
         (click)="save()"
         class="btn btn-primary flex items-center gap-2 group px-4 sm:px-8 flex-1 sm:flex-none"
-        [disabled]="
-          !product().vehicle?.licensePlate || !product().vehicle?.make || !product().vehicle?.model
-        "
+        [disabled]="!canSave()"
       >
         <lucide-icon
           [name]="icons.CircleCheckBig"
@@ -58,27 +56,27 @@
       <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
         <!-- Avatar & Identity -->
         <div class="flex items-center gap-5 flex-1 min-w-0">
-          <div
-            class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-primary-content font-bold text-2xl shrink-0"
-          >
-            {{ product().vehicle?.make?.charAt(0) }}
-          </div>
+          <app-brand-logo
+            [make]="formModel().vehicle.make"
+            containerClass="w-16 h-16 rounded-2xl bg-base-200"
+            fallbackClass="text-2xl"
+          />
           <div class="min-w-0">
             <h2 class="text-xl font-bold text-base-content truncate">
-              {{ product().vehicle?.licensePlate }}
+              {{ formModel().vehicle.licensePlate }}
             </h2>
             <p class="text-base-content/60 font-medium text-sm">
-              {{ product().vehicle?.make }} {{ product().vehicle?.model }}
-              @if (product().vehicle?.year) {
-                <span class="text-base-content/40">&bull; {{ product().vehicle?.year }}</span>
+              {{ formModel().vehicle.make }} {{ formModel().vehicle.model }}
+              @if (formModel().vehicle.year) {
+                <span class="text-base-content/40">&bull; {{ formModel().vehicle.year }}</span>
               }
             </p>
             <div class="mt-1.5">
               <span
                 class="status-badge px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
-                [class]="getStatusBadgeClass(product().status)"
+                [class]="getStatusBadgeClass(formModel().status)"
               >
-                {{ formatStatus(product().status) }}
+                {{ formatStatus(formModel().status) }}
               </span>
             </div>
           </div>
@@ -93,7 +91,7 @@
               {{ 'VEHICLE.DETAIL.JOB_NUMBER' | translate }}
             </p>
             <p class="font-mono text-sm font-bold text-primary mt-0.5 truncate">
-              {{ product().vehicle?.jobNumber || 'N/A' }}
+              {{ product().code || 'N/A' }}
             </p>
           </div>
           <div
@@ -113,7 +111,9 @@
               {{ 'VEHICLE.DETAIL.SPECS.MILEAGE' | translate }}
             </p>
             <p class="text-sm font-bold text-base-content mt-0.5">
-              {{ product().vehicle?.mileage ? (product().vehicle?.mileage | number) + ' mi' : '-' }}
+              {{
+                formModel().vehicle.mileage ? (formModel().vehicle.mileage | number) + ' mi' : '-'
+              }}
             </p>
           </div>
           <div class="px-4 py-2 bg-base-200/50 rounded-xl border border-base-200 min-w-[180px]">
@@ -122,7 +122,7 @@
             </p>
             <app-select
               [options]="statusSelectOptions"
-              [selectedValue]="product().status"
+              [selectedValue]="formModel().status"
               (selectionChange)="onStatusChange($event)"
               [placeholder]="'Select status'"
               [clearable]="false"
@@ -199,21 +199,19 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             <div class="flex gap-2 items-end lg:col-span-1">
-              @if (product().vehicle) {
-                <div class="flex-1">
-                  <label
-                    class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                    >{{ 'VEHICLE.DETAIL.IDENTIFICATION.PLATE' | translate }}</label
-                  >
-                  <input
-                    type="text"
-                    placeholder="e.g. AB12 CDE"
-                    class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
-                    [(ngModel)]="product().vehicle!.licensePlate"
-                    (input)="onFieldLookup('licensePlate', $any($event.target).value)"
-                  />
-                </div>
-              }
+              <div class="flex-1">
+                <label
+                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                  >{{ 'VEHICLE.DETAIL.IDENTIFICATION.PLATE' | translate }}</label
+                >
+                <input
+                  type="text"
+                  placeholder="e.g. AB12 CDE"
+                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 uppercase"
+                  [formField]="detailForm.vehicle.licensePlate"
+                  (input)="onFieldLookup('licensePlate', $any($event.target).value)"
+                />
+              </div>
               <button
                 (click)="performHPICheck()"
                 class="btn btn-secondary btn-sm h-11 px-4 rounded-lg flex items-center gap-2"
@@ -311,33 +309,31 @@
                 </div>
               </div>
             }
-            @if (product().vehicle) {
-              <div class="space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.IDENTIFICATION.MAKE' | translate }}</label
-                >
-                <input
-                  type="text"
-                  placeholder="e.g. BMW"
-                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  [(ngModel)]="product().vehicle!.make"
-                />
-              </div>
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.IDENTIFICATION.MAKE' | translate }}</label
+              >
+              <input
+                type="text"
+                placeholder="e.g. BMW"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.make"
+              />
+            </div>
 
-              <div class="space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.IDENTIFICATION.MODEL' | translate }}</label
-                >
-                <input
-                  type="text"
-                  placeholder="e.g. 320d M Sport"
-                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  [(ngModel)]="product().vehicle!.model"
-                />
-              </div>
-            }
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.IDENTIFICATION.MODEL' | translate }}</label
+              >
+              <input
+                type="text"
+                placeholder="e.g. 320d M Sport"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.model"
+              />
+            </div>
           </div>
         </section>
 
@@ -354,86 +350,84 @@
             </h3>
           </div>
 
-          @if (product().vehicle) {
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              <div class="space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.SPECS.YEAR' | translate }}</label
-                >
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.YEAR' | translate }}</label
+              >
+              <input
+                type="number"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.year"
+              />
+            </div>
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.COLOUR' | translate }}</label
+              >
+              <input
+                type="text"
+                placeholder="e.g. Black"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.colour"
+              />
+            </div>
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.MILEAGE' | translate }}</label
+              >
+              <div class="relative">
                 <input
                   type="number"
-                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  [(ngModel)]="product().vehicle!.year"
+                  class="input input-bordered w-full h-11 pr-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  [formField]="detailForm.vehicle.mileage"
                 />
-              </div>
-              <div class="space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.SPECS.COLOUR' | translate }}</label
+                <span
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-base-content/40"
+                  >MI</span
                 >
-                <input
-                  type="text"
-                  placeholder="e.g. Black"
-                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  [(ngModel)]="product().vehicle!.colour"
-                />
-              </div>
-              <div class="space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.SPECS.MILEAGE' | translate }}</label
-                >
-                <div class="relative">
-                  <input
-                    type="number"
-                    class="input input-bordered w-full h-11 pr-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    [(ngModel)]="product().vehicle!.mileage"
-                  />
-                  <span
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-base-content/40"
-                    >MI</span
-                  >
-                </div>
-              </div>
-              <div class="space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.SPECS.ENGINE' | translate }}</label
-                >
-                <input
-                  type="text"
-                  placeholder="e.g. 2.0L"
-                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  [(ngModel)]="product().vehicle!.engine"
-                />
-              </div>
-              <div class="lg:col-span-2 space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.SPECS.VIN' | translate }}</label
-                >
-                <input
-                  type="text"
-                  placeholder="Vehicle Identification Number"
-                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 font-mono"
-                  [(ngModel)]="product().vehicle!.vin"
-                  (input)="onFieldLookup('vin', $any($event.target).value)"
-                />
-              </div>
-              <div class="lg:col-span-2 space-y-2">
-                <label
-                  class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                  >{{ 'VEHICLE.DETAIL.SPECS.NEXT_MOT' | translate }}</label
-                >
-                <input
-                  type="date"
-                  class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  [(ngModel)]="product().vehicle!.nextEntryDate"
-                />
               </div>
             </div>
-          }
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.ENGINE' | translate }}</label
+              >
+              <input
+                type="text"
+                placeholder="e.g. 2.0L"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.engine"
+              />
+            </div>
+            <div class="lg:col-span-2 space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.VIN' | translate }}</label
+              >
+              <input
+                type="text"
+                placeholder="Vehicle Identification Number"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 font-mono"
+                [formField]="detailForm.vehicle.vin"
+                (input)="onFieldLookup('vin', $any($event.target).value)"
+              />
+            </div>
+            <div class="lg:col-span-2 space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.NEXT_MOT' | translate }}</label
+              >
+              <input
+                type="date"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.nextEntryDate"
+              />
+            </div>
+          </div>
         </section>
 
         <div class="divider"></div>
@@ -457,8 +451,8 @@
               >
               <app-select
                 [options]="clientSelectOptions()"
-                [selectedValue]="product().customerId"
-                (selectionChange)="product().customerId = $event"
+                [selectedValue]="formModel().customerId"
+                (selectionChange)="onCustomerChange($event)"
                 [placeholder]="'VEHICLE.DETAIL.ASSIGNMENT.SELECT_CLIENT' | translate"
               ></app-select>
             </div>
@@ -472,7 +466,7 @@
               <app-select
                 [options]="inspectionTemplateSelectOptions()"
                 [selectedValue]="product().inspectionTemplateId"
-                (selectionChange)="product().inspectionTemplateId = $event"
+                (selectionChange)="onInspectionTemplateChange($event)"
                 [placeholder]="'No template'"
               ></app-select>
             </div>

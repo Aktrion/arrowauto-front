@@ -154,7 +154,7 @@ export class BaseApiService {
     const message = this.extractErrorMessage(response);
 
     if (response.status !== 500 && !!message && !ignoreError) {
-      this.toast.error(message, 3000);
+      this.toast.error(message);
     }
 
     // if (response.status === 401 && !avoidLogout) {
