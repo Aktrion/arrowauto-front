@@ -1,6 +1,6 @@
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
-import { Component, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, HostListener, NgZone, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { FootbarComponent } from '@layout/components/footbar/footbar.component';
@@ -46,24 +46,36 @@ export class ShellComponent implements OnInit, OnDestroy {
     this.isSidebarCollapsed.set(this.isCollapsed);
   }
 
+  /** Breakpoint aligned with Tailwind lg (1024px): mobile when width < 1024px */
+  private static readonly MOBILE_BREAKPOINT = '(max-width: 1023.98px)';
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.applyBreakpointState(window.matchMedia(ShellComponent.MOBILE_BREAKPOINT).matches);
+  }
+
+  private applyBreakpointState(isMobile: boolean): void {
+    this.ngZone.run(() => {
+      if (isMobile) {
+        this.sidenavMode = 'over';
+        this.visibleDrawer = false;
+        this.isCollapsed = false;
+      } else {
+        this.sidenavMode = 'side';
+        this.visibleDrawer = true;
+        this.isCollapsed = false;
+      }
+      this.isSidebarCollapsed.set(this.isCollapsed);
+    });
+  }
+
   private handleResize(): void {
+    this.applyBreakpointState(window.matchMedia(ShellComponent.MOBILE_BREAKPOINT).matches);
+
     this.breakpointObserver
-      .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .observe([ShellComponent.MOBILE_BREAKPOINT])
       .pipe(takeUntil(this.destroy$))
-      .subscribe((result) => {
-        this.ngZone.run(() => {
-          if (result.matches) {
-            this.sidenavMode = 'over';
-            this.visibleDrawer = false;
-            this.isCollapsed = false;
-          } else {
-            this.sidenavMode = 'side';
-            this.visibleDrawer = true;
-            this.isCollapsed = false;
-          }
-          this.isSidebarCollapsed.set(this.isCollapsed);
-        });
-      });
+      .subscribe((result) => this.applyBreakpointState(result.matches));
   }
 
   ngOnDestroy(): void {

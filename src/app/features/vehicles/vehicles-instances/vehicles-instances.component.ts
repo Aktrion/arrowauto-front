@@ -4,7 +4,7 @@ import { BaseListDirective } from '@core/directives/base-list.directive';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 import { ClientService } from '@features/clients/services/client.service';
-import { Product } from '@features/vehicles/models/vehicle.model';
+import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { licensePlateBadge } from '@shared/utils/license-plate.utils';
@@ -25,7 +25,7 @@ import { licensePlateBadge } from '@shared/utils/license-plate.utils';
   `,
 })
 export class VehiclesInstancesComponent
-  extends BaseListDirective<Product, Partial<Product>, Partial<Product>>
+  extends BaseListDirective<VehicleInstance, Partial<VehicleInstance>, Partial<VehicleInstance>>
   implements OnInit
 {
   private instanceApi = inject(VehicleInstancesApiService);
@@ -115,7 +115,7 @@ export class VehiclesInstancesComponent
     this.router.navigate(['/vehicles-instances/new']);
   }
 
-  protected override onEdit(item: Product): void {
+  protected override onEdit(item: VehicleInstance): void {
     if (!item?._id) return;
     this.router.navigate(['/vehicles-instances', item._id]);
   }

@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
-import { Product } from '@features/vehicles/models/vehicle.model';
+import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 import {
   InspectionPoint,
   InspectionPointStatus,
@@ -43,8 +43,8 @@ export class InspectionComponent implements OnInit {
   saveError = signal<string | null>(null);
   saveSuccess = signal(false);
 
-  vehiclesForInspection = signal<Product[]>([]);
-  selectedVehicleData = signal<Product | undefined>(undefined);
+  vehiclesForInspection = signal<VehicleInstance[]>([]);
+  selectedVehicleData = signal<VehicleInstance | undefined>(undefined);
   selectedVehicle = computed(() => this.selectedVehicleData());
   inspectedCount = computed(
     () => this.countByStatus('ok') + this.countByStatus('warning') + this.countByStatus('defect'),
@@ -111,31 +111,40 @@ export class InspectionComponent implements OnInit {
       this.defaultInspectionPoints.set(points);
       this.activeInspectionPoints.set(points);
     });
-    const vehicleInstanceId =
-      this.route.snapshot.paramMap.get('vehicleInstanceId') ||
-      this.route.snapshot.paramMap.get('productId');
+    const vehicleInstanceId = this.route.snapshot.paramMap.get('vehicleInstanceId');
     if (vehicleInstanceId) {
-      this.selectInspectionByProductId(vehicleInstanceId);
+      this.selectInspectionByVehicleInstanceId(vehicleInstanceId);
       return;
     }
     this.router.navigate(['/inspection']);
   }
 
-  private selectInspectionByProductId(vehicleInstanceId: string): void {
+  private selectInspectionByVehicleInstanceId(vehicleInstanceId: string): void {
     this.instanceApi.findOne(vehicleInstanceId).subscribe((instance) => {
       if (!instance) {
         this.saveError.set('No se encontró la instancia de inspección.');
         this.toastService.error('No se encontró la instancia de inspección.');
         return;
       }
-      const vehicleId = instance.vehicleId || '';
-      const inspectionValueIds = (instance.inspectionValueIds || []).filter(Boolean);
+      const apiInstance = instance as VehicleInstance & {
+        vehicle?: { _id?: string };
+        inspectionTemplate?: { _id?: string };
+      };
+      const vehicleId =
+        instance.vehicleId ??
+        apiInstance.vehicle?._id ??
+        '';
+      const inspectionTemplateId =
+        instance.inspectionTemplateId ??
+        apiInstance.inspectionTemplate?._id ??
+        '';
+      const inspectionValueIds = (instance.inspectionValueIds ?? []).filter(Boolean);
 
       this.selectVehicle(
         vehicleId,
         vehicleInstanceId,
         inspectionValueIds,
-        instance.inspectionTemplateId,
+        inspectionTemplateId || undefined,
       );
     });
   }
@@ -166,18 +175,18 @@ export class InspectionComponent implements OnInit {
 
   selectVehicle(
     vehicleId: string,
-    explicitProductId?: string,
+    explicitVehicleInstanceId?: string,
     explicitInspectionValueIds: string[] = [],
     explicitTemplateId?: string,
   ): void {
     this.selectedVehicleId.set(vehicleId);
-    this.selectedVehicleInstanceId.set(explicitProductId || null);
+    this.selectedVehicleInstanceId.set(explicitVehicleInstanceId || null);
     this.saveError.set(null);
     this.saveSuccess.set(false);
     this.inspectionResults.set(new Map());
     this.activeCategory.set('all');
 
-    const resolveInstanceAndLoad = (instance: Product | null, productId: string | undefined) => {
+    const resolveInstanceAndLoad = (instance: VehicleInstance | null, vehicleInstanceId: string | undefined) => {
       if (instance) {
         this.selectedVehicleData.set(instance);
         if (instance._id) this.selectedVehicleInstanceId.set(instance._id);
@@ -188,8 +197,8 @@ export class InspectionComponent implements OnInit {
         : of(this.defaultInspectionPoints());
       const values$ = explicitInspectionValueIds.length
         ? this.inspectionService.getInspectionValuesByIds(explicitInspectionValueIds)
-        : productId
-          ? this.inspectionService.getInspectionValuesByProduct(productId)
+        : vehicleInstanceId
+          ? this.inspectionService.getInspectionValuesByVehicleInstance(vehicleInstanceId)
           : of([]);
 
       forkJoin({ points: points$, values: values$ }).subscribe(({ points, values }) => {
@@ -204,10 +213,10 @@ export class InspectionComponent implements OnInit {
       });
     };
 
-    if (explicitProductId) {
-      this.instanceApi.findOne(explicitProductId).subscribe({
-        next: (instance) => resolveInstanceAndLoad(instance, explicitProductId),
-        error: () => resolveInstanceAndLoad(null, explicitProductId),
+    if (explicitVehicleInstanceId) {
+      this.instanceApi.findOne(explicitVehicleInstanceId).subscribe({
+        next: (instance) => resolveInstanceAndLoad(instance, explicitVehicleInstanceId),
+        error: () => resolveInstanceAndLoad(null, explicitVehicleInstanceId),
       });
     } else {
       this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe({
@@ -217,8 +226,8 @@ export class InspectionComponent implements OnInit {
     }
   }
 
-  private loadInspectionValuesForProduct(productId: string, vehicleId: string): void {
-    this.inspectionService.getInspectionValuesByProduct(productId).subscribe((values) => {
+  private loadInspectionValuesForVehicleInstance(vehicleInstanceId: string, vehicleId: string): void {
+    this.inspectionService.getInspectionValuesByVehicleInstance(vehicleInstanceId).subscribe((values) => {
       this.applyInspectionValuesToResults(
         values as any[],
         vehicleId,
@@ -330,37 +339,36 @@ export class InspectionComponent implements OnInit {
     const vehicleId = this.selectedVehicleId();
     if (!vehicleId) return;
 
-    const productId = this.selectedVehicleInstanceId();
-    if (!productId) {
+    const vehicleInstanceId = this.selectedVehicleInstanceId();
+    if (!vehicleInstanceId) {
       this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe({
         next: (instance) => {
           if (instance?._id) {
             this.selectedVehicleInstanceId.set(instance._id);
             this.doSubmitInspection(vehicleId, instance._id);
           } else {
-            this.saveError.set('No product linked to this vehicle.');
-            this.toastService.error('No product linked to this vehicle.');
+            this.saveError.set('No vehicle instance linked to this vehicle.');
+            this.toastService.error('No vehicle instance linked to this vehicle.');
           }
         },
         error: () => {
-          this.saveError.set('No product linked to this vehicle.');
-          this.toastService.error('No product linked to this vehicle.');
+          this.saveError.set('No vehicle instance linked to this vehicle.');
+          this.toastService.error('No vehicle instance linked to this vehicle.');
         },
       });
       return;
     }
-    this.doSubmitInspection(vehicleId, productId);
+    this.doSubmitInspection(vehicleId, vehicleInstanceId);
   }
 
-  private doSubmitInspection(vehicleId: string, productId: string): void {
+  private doSubmitInspection(vehicleId: string, vehicleInstanceId: string): void {
     const pointsById = new Map(this.activeInspectionPoints().map((point) => [point.id, point]));
     const requests = Array.from(this.inspectionResults().entries()).map(([pointId, result]) => {
       const point = pointsById.get(pointId);
       if (!point) return of(null);
 
       const payload = {
-        vehicleInstanceId: productId,
-        productId,
+        vehicleInstanceId,
         inspectionPointId: pointId,
         type: point.type || 'standard',
         value: this.inspectionService.mapStatusToValue(result.status),
@@ -390,12 +398,10 @@ export class InspectionComponent implements OnInit {
     forkJoin(requests)
       .pipe(
         switchMap(() =>
-          this.instanceApi.findOne(productId).pipe(
+          this.instanceApi.findOne(vehicleInstanceId).pipe(
             switchMap((instance) => {
-              if (instance?.status === 'inspection') {
-                return this.instanceApi.update(productId, {
-                  status: 'awaiting_approval',
-                } as any);
+              if (instance?.status === 'pending_inspection') {
+                return this.instanceApi.completeInspection(vehicleInstanceId);
               }
               return of(null);
             }),
@@ -418,14 +424,14 @@ export class InspectionComponent implements OnInit {
   }
 
   private refreshCurrentVehicleResults(vehicleId: string): void {
-    const productId = this.selectedVehicleInstanceId();
-    if (productId) {
-      this.loadInspectionValuesForProduct(productId, vehicleId);
+    const vehicleInstanceId = this.selectedVehicleInstanceId();
+    if (vehicleInstanceId) {
+      this.loadInspectionValuesForVehicleInstance(vehicleInstanceId, vehicleId);
       return;
     }
     this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe((instance) => {
       if (instance?._id) {
-        this.loadInspectionValuesForProduct(instance._id, vehicleId);
+        this.loadInspectionValuesForVehicleInstance(instance._id, vehicleId);
       }
     });
   }

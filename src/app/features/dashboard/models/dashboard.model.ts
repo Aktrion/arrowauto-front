@@ -1,4 +1,4 @@
-import { Product } from '@features/vehicles/models/vehicle.model';
+import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 
 export interface DashboardStats {
   activeVehicles: number;
@@ -11,5 +11,5 @@ export interface DashboardStats {
 
 export interface DashboardData {
   stats: DashboardStats;
-  vehicles: Product[];
+  vehicles: VehicleInstance[];
 }

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { BaseListDirective } from '@core/directives/base-list.directive';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
-import { Product } from '@features/vehicles/models/vehicle.model';
+import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { licensePlateBadge } from '@shared/utils/license-plate.utils';
@@ -22,9 +22,9 @@ import { licensePlateBadge } from '@shared/utils/license-plate.utils';
   `,
 })
 export class InspectionListComponent extends BaseListDirective<
-  Product,
-  Partial<Product>,
-  Partial<Product>
+  VehicleInstance,
+  Partial<VehicleInstance>,
+  Partial<VehicleInstance>
 > {
   private readonly router = inject(Router);
 
@@ -39,7 +39,10 @@ export class InspectionListComponent extends BaseListDirective<
       selectable: false,
       storageKey: 'inspection_queue_grid',
     };
-    this.searchRequest.addFilter('statusId', { value: ['inspection', 'in_progress'], operator: 'in' });
+    this.searchRequest.addFilter('status', {
+      value: 'pending_inspection',
+      operator: 'equals',
+    });
   }
 
   protected getTitle(): string {
@@ -93,7 +96,7 @@ export class InspectionListComponent extends BaseListDirective<
     ];
   }
 
-  protected override onEdit(item: Product): void {
+  protected override onEdit(item: VehicleInstance): void {
     if (!item?._id) return;
     this.router.navigate(['/inspection', item._id]);
   }

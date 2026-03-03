@@ -18,7 +18,11 @@
       >
         {{ formatWeekRange() }}
       </button>
-      <button class="join-item btn btn-ghost btn-sm px-3" (click)="nextWeek()" [title]="'SCHEDULING.NEXT_WEEK' | translate">
+      <button
+        class="join-item btn btn-ghost btn-sm px-3"
+        (click)="nextWeek()"
+        [title]="'SCHEDULING.NEXT_WEEK' | translate"
+      >
         <lucide-icon [name]="icons.ChevronRight" class="h-5 w-5"></lucide-icon>
       </button>
       <button
@@ -84,10 +88,12 @@
               <h2 class="card-title text-xl">
                 {{ selectedDay() | date: 'fullDate' }}
               </h2>
-              <p class="text-sm text-base-content/60 mt-1">{{ 'SCHEDULING.DAILY_OVERVIEW' | translate }}</p>
+              <p class="text-sm text-base-content/60 mt-1">
+                {{ 'SCHEDULING.DAILY_OVERVIEW' | translate }}
+              </p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="badge badge-neutral gap-1 pl-1.5 py-3">
+              <span class="badge badge-neutral text-black gap-1 pl-1.5 py-3">
                 <lucide-icon [name]="icons.User" class="h-4 w-4 text-base-content/70"></lucide-icon>
                 {{ operators().length }} {{ 'SCHEDULING.OPERATORS' | translate }}
               </span>
@@ -179,7 +185,9 @@
           <div
             class="flex flex-wrap items-center gap-6 mt-6 px-4 py-2 border border-base-200 rounded-lg bg-base-100/50"
           >
-            <span class="text-xs font-bold uppercase text-base-content/40 mr-2">{{ 'SCHEDULING.STATUS_KEY' | translate }}</span>
+            <span class="text-xs font-bold uppercase text-base-content/40 mr-2">{{
+              'SCHEDULING.STATUS_KEY' | translate
+            }}</span>
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-primary shadow-sm shadow-primary/40"></div>
               <span class="text-sm font-medium">{{ 'SCHEDULING.SCHEDULED' | translate }}</span>
@@ -194,7 +202,9 @@
             </div>
             <div class="flex items-center gap-2">
               <div class="w-3 h-3 rounded-full bg-base-200 border border-base-300"></div>
-              <span class="text-sm font-medium text-base-content/60">{{ 'SCHEDULING.AVAILABLE_SLOT' | translate }}</span>
+              <span class="text-sm font-medium text-base-content/60">{{
+                'SCHEDULING.AVAILABLE_SLOT' | translate
+              }}</span>
             </div>
           </div>
         </div>
@@ -245,7 +255,9 @@
                 >
                   <lucide-icon [name]="icons.Check" class="h-6 w-6"></lucide-icon>
                 </div>
-                <p class="text-sm font-medium opacity-60">{{ 'SCHEDULING.NO_PENDING' | translate }}</p>
+                <p class="text-sm font-medium opacity-60">
+                  {{ 'SCHEDULING.NO_PENDING' | translate }}
+                </p>
                 <p class="text-xs opacity-40 mt-1">{{ 'SCHEDULING.ALL_SCHEDULED' | translate }}</p>
               </div>
             }
@@ -274,7 +286,9 @@
             <lucide-icon [name]="icons.User" class="h-6 w-6"></lucide-icon>
           </div>
           <div>
-            <p class="text-xs uppercase tracking-wide opacity-60 font-bold">{{ 'SCHEDULING.OPERATOR' | translate }}</p>
+            <p class="text-xs uppercase tracking-wide opacity-60 font-bold">
+              {{ 'SCHEDULING.OPERATOR' | translate }}
+            </p>
             <p class="font-bold text-lg leading-tight">{{ selectedOperatorName() }}</p>
             <p class="text-sm opacity-70 mt-0.5">
               {{ selectedSlotTime() }} - {{ selectedDay() | date: 'mediumDate' }}
@@ -284,7 +298,9 @@
 
         <div class="form-control">
           <label class="label">
-            <span class="label-text font-medium">{{ 'SCHEDULING.SELECT_PENDING' | translate }}</span>
+            <span class="label-text font-medium">{{
+              'SCHEDULING.SELECT_PENDING' | translate
+            }}</span>
             <span class="label-text-alt text-base-content/50"
               >{{ pendingOperations().length }} {{ 'SCHEDULING.AVAILABLE_COUNT' | translate }}</span
             >

@@ -1,4 +1,5 @@
 import { MongoEntity } from '@shared/models/mongo-entity.model';
+import { User } from '@shared/models/user.model';
 
 /** Catalogo maestro de operaciones (tipos de trabajo) - API /operations */
 export interface OperationMaster extends MongoEntity {
@@ -9,19 +10,45 @@ export interface OperationMaster extends MongoEntity {
   defaultRatePerHour: number;
 }
 
-export interface StatusStep {
-  _id?: string;
-  id?: string;
+export type OperationCategory =
+  | 'inspection'
+  | 'cleaning'
+  | 'repair'
+  | 'maintenance'
+  | 'other';
+
+export interface Operation {
+  id: string;
+  code: string;
   name: string;
   description?: string;
-  order?: number;
+  estimatedDuration: number;
+  defaultPrice: number;
+  category: OperationCategory;
 }
 
-export interface ProductReference {
-  _id?: string;
-  id?: string;
-  vehicleId?: string;
-  services?: string[];
-  operations?: string[];
-  statusId?: string;
+export type OperationStatus =
+  | 'pending'
+  | 'scheduled'
+  | 'in_progress'
+  | 'completed'
+  | 'invoiced'
+  | 'cancelled';
+
+export interface VehicleOperation {
+  id: string;
+  vehicleId: string;
+  vehicleInstanceId?: string;
+  operationId: string;
+  operation?: Operation;
+  assignedUserId?: string;
+  assignedUser?: User;
+  scheduledDate?: Date;
+  scheduledTime?: string;
+  status: OperationStatus;
+  actualDuration?: number;
+  actualPrice?: number;
+  hourlyRate?: number;
+  notes?: string;
+  completedAt?: Date;
 }

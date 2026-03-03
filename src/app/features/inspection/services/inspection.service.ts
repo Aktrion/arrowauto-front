@@ -20,7 +20,7 @@ export class InspectionService {
     return this.pointsApi.getWithBlocks();
   }
 
-  getInspectionValuesByProduct(vehicleInstanceId: string): Observable<InspectionValue[]> {
+  getInspectionValuesByVehicleInstance(vehicleInstanceId: string): Observable<InspectionValue[]> {
     return this.valuesApi.searchByVehicleInstance(vehicleInstanceId);
   }
 

@@ -5,7 +5,7 @@ import { SearchRequestResponse } from '@core/models/request.model';
 import {
   VehicleInstance,
   VehicleInstanceActivityResponse,
-  ProductActivityEvent,
+  VehicleInstanceActivityEvent,
   VehicleInstanceActivityEventType,
 } from '@features/vehicles/models/vehicle.model';
 
@@ -23,6 +23,10 @@ export class VehicleInstancesApiService extends BaseCrudService<
 
   getActivity(id: string): Observable<VehicleInstanceActivityResponse> {
     return this.get<VehicleInstanceActivityResponse>(`/${id}/activity`);
+  }
+
+  completeInspection(id: string): Observable<VehicleInstance> {
+    return this.post<VehicleInstance>(`/${id}/complete-inspection`, {});
   }
 
   findInstanceByVehicleId(vehicleId: string): Observable<VehicleInstance | null> {
@@ -50,11 +54,11 @@ export class VehicleInstancesApiService extends BaseCrudService<
     );
   }
 
-  getActivityTimeline(id: string): Observable<ProductActivityEvent[]> {
+  getActivityTimeline(id: string): Observable<VehicleInstanceActivityEvent[]> {
     return this.getActivity(id).pipe(
       map((res) =>
-        (res.data || []).map((e): ProductActivityEvent => ({
-          type: (e.type as VehicleInstanceActivityEventType) ?? 'product_created',
+        (res.data || []).map((e): VehicleInstanceActivityEvent => ({
+          type: (e.type as VehicleInstanceActivityEventType) ?? 'vehicle_instance_created',
           occurredAt: e.occurredAt ? new Date(e.occurredAt) : new Date(),
           actorName: e.actorName,
           message: e.message ?? '',

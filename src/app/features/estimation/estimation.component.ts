@@ -16,7 +16,7 @@ import { OperationInstancesApiService } from '@shared/services/api/operation-ins
 
 interface EstimationRow extends MongoEntity {
   id: string;
-  productId?: string;
+  vehicleInstanceId?: string;
   vehicleId?: string;
   vehicleName: string;
   licensePlate: string;
@@ -183,14 +183,14 @@ export class EstimationComponent extends BaseListDirective<
           const total = rows.reduce((sum, item) => sum + this.getEstimatedCost(item), 0);
           this.instanceApi.findInstanceByVehicleId(row.vehicleId!).subscribe({
             next: (instance) => {
-              const productId = instance?._id || row.productId;
-              if (!productId) {
+              const vehicleInstanceId = instance?._id || row.vehicleInstanceId;
+              if (!vehicleInstanceId) {
                 this.toastService.error('Cannot find vehicle instance for this vehicle.');
                 this.sendingVehicle.set(null);
                 return;
               }
               const payload = {
-                productId,
+                vehicleInstanceId,
                 type: 'estimation',
                 content: JSON.stringify({
                   vehicleName: row.vehicleName,
@@ -204,7 +204,7 @@ export class EstimationComponent extends BaseListDirective<
               };
               this.communicationsApi.create(payload as Record<string, unknown>).subscribe({
                 next: () => {
-                  this.instanceApi.update(productId, { status: 'awaiting_approval' } as any).subscribe({
+                  this.instanceApi.update(vehicleInstanceId, { status: 'awaiting_approval' } as any).subscribe({
                     next: () => {
                       this.toastService.success(`Estimation sent to client for ${row.vehicleName}.`);
                       this.sendingVehicle.set(null);

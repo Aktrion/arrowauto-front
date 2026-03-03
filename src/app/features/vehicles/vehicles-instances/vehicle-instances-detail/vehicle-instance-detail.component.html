@@ -25,29 +25,27 @@
         </p>
       </div>
     </div>
-    <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-      <button
-        routerLink="/vehicles-instances"
-        class="btn btn-ghost border-base-300 px-4 sm:px-6 font-semibold flex-1 sm:flex-none"
-      >
-        {{ 'VEHICLE.DETAIL.CANCEL' | translate }}
-      </button>
-      <button
-        (click)="save()"
-        class="btn btn-primary flex items-center gap-2 group px-4 sm:px-8 flex-1 sm:flex-none"
-        [disabled]="!canSave()"
-      >
-        <lucide-icon
-          [name]="icons.CircleCheckBig"
-          class="h-5 w-5 group-hover:scale-110 transition-transform"
-        ></lucide-icon>
-        {{
-          isNew()
-            ? ('VEHICLE.DETAIL.CREATE' | translate)
-            : ('VEHICLE.DETAIL.SAVE_CHANGES' | translate)
-        }}
-      </button>
-    </div>
+    @if (isNew()) {
+      <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        <button
+          routerLink="/vehicles-instances"
+          class="btn btn-ghost border-base-300 px-4 sm:px-6 font-semibold flex-1 sm:flex-none"
+        >
+          {{ 'VEHICLE.DETAIL.CANCEL' | translate }}
+        </button>
+        <button
+          (click)="save()"
+          class="btn btn-primary flex items-center gap-2 group px-4 sm:px-8 flex-1 sm:flex-none"
+          [disabled]="!canSave()"
+        >
+          <lucide-icon
+            [name]="icons.CircleCheckBig"
+            class="h-5 w-5 group-hover:scale-110 transition-transform"
+          ></lucide-icon>
+          {{ 'VEHICLE.DETAIL.CREATE' | translate }}
+        </button>
+      </div>
+    }
   </div>
 
   @if (!isNew()) {
@@ -91,7 +89,7 @@
               {{ 'VEHICLE.DETAIL.JOB_NUMBER' | translate }}
             </p>
             <p class="font-mono text-sm font-bold text-primary mt-0.5 truncate">
-              {{ product().code || 'N/A' }}
+              {{ vehicleInstance().code || 'N/A' }}
             </p>
           </div>
           <div
@@ -101,7 +99,7 @@
               {{ 'VEHICLE.DETAIL.ENTRY_DATE' | translate }}
             </p>
             <p class="text-sm font-bold text-base-content mt-0.5">
-              {{ (product().vehicle?.createdAt | date: 'shortDate') || '-' }}
+              {{ (vehicleInstance().vehicle?.createdAt | date: 'shortDate') || '-' }}
             </p>
           </div>
           <div
@@ -465,13 +463,36 @@
               </label>
               <app-select
                 [options]="inspectionTemplateSelectOptions()"
-                [selectedValue]="product().inspectionTemplateId"
+                [selectedValue]="formModel().inspectionTemplateId"
                 (selectionChange)="onInspectionTemplateChange($event)"
                 [placeholder]="'No template'"
               ></app-select>
             </div>
           </div>
         </section>
+
+        @if (!isNew()) {
+          <div class="divider"></div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              (click)="cancelGeneralInfo()"
+              class="btn btn-ghost border-base-300 px-4 sm:px-6 font-semibold"
+            >
+              {{ 'VEHICLE.DETAIL.CANCEL' | translate }}
+            </button>
+            <button
+              (click)="saveGeneralInfo()"
+              class="btn btn-primary flex items-center gap-2 group px-4 sm:px-8"
+              [disabled]="!canSave()"
+            >
+              <lucide-icon
+                [name]="icons.CircleCheckBig"
+                class="h-5 w-5 group-hover:scale-110 transition-transform"
+              ></lucide-icon>
+              {{ 'VEHICLE.DETAIL.SAVE_CHANGES' | translate }}
+            </button>
+          </div>
+        }
       </div>
     </div>
   }
@@ -491,17 +512,41 @@
           </div>
           <div class="rounded-xl border border-base-200 bg-base-100 px-4 py-2">
             <p class="text-xs font-semibold text-base-content/60">
-              {{ getOperationsStats(product()._id!).completed }} /
-              {{ getOperationsStats(product()._id!).total }}
+              {{ getOperationsStats(operationsVehicleIdOrInstanceId()).completed }} /
+              {{ getOperationsStats(operationsVehicleIdOrInstanceId()).total }}
               completed
             </p>
             <progress
               class="progress progress-primary h-2 w-40"
-              [value]="getOperationsStats(product()._id!).progress"
+              [value]="getOperationsStats(operationsVehicleIdOrInstanceId()).progress"
               max="100"
             ></progress>
           </div>
         </div>
+
+        @if (
+          formModel().status === 'pending_estimation' &&
+          getVehicleOperations(operationsVehicleIdOrInstanceId()).length >
+            0
+        ) {
+          <div class="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-xl">
+            <button
+              (click)="submitToCustomer()"
+              class="btn btn-warning gap-2 font-bold"
+              [disabled]="isSubmittingToCustomer()"
+            >
+              @if (isSubmittingToCustomer()) {
+                <span class="loading loading-spinner loading-sm"></span>
+              } @else {
+                <lucide-icon [name]="icons.Send" class="h-4 w-4"></lucide-icon>
+              }
+              Submit to Customer
+            </button>
+            <p class="text-sm text-base-content/60 mt-2">
+              Send estimation to customer for approval. Vehicle status will change to Pending Approval.
+            </p>
+          </div>
+        }
 
         <!-- Add Operation Selector -->
         <div
@@ -526,7 +571,7 @@
 
         <div class="space-y-3.5">
           @for (
-            op of getVehicleOperations(product().vehicleId || product()._id || '');
+            op of getVehicleOperations(operationsVehicleIdOrInstanceId());
             track op.id
           ) {
             <div
@@ -566,6 +611,32 @@
                 </div>
               </div>
               <div class="flex items-center justify-between sm:justify-end gap-3">
+                @if (
+                  op.status === 'pending' ||
+                  op.status === 'scheduled' ||
+                  op.status === 'in_progress'
+                ) {
+                  <div class="flex gap-1">
+                    @if (op.status !== 'in_progress') {
+                      <button
+                        (click)="updateOperationStatus(op, 'in_progress')"
+                        class="btn btn-ghost btn-sm btn-square text-success/70 hover:text-success hover:bg-success/10"
+                        title="Start"
+                        [disabled]="isOperationSaving(op.id)"
+                      >
+                        <lucide-icon [name]="icons.Play" class="h-4 w-4"></lucide-icon>
+                      </button>
+                    }
+                    <button
+                      (click)="updateOperationStatus(op, 'completed')"
+                      class="btn btn-ghost btn-sm btn-square text-primary hover:bg-primary/10"
+                      title="Complete"
+                      [disabled]="isOperationSaving(op.id)"
+                    >
+                      <lucide-icon [name]="icons.CircleCheckBig" class="h-4 w-4"></lucide-icon>
+                    </button>
+                  </div>
+                }
                 <app-select
                   [options]="operationStatusSelectOptions"
                   [selectedValue]="op.status"

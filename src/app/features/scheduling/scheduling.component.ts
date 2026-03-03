@@ -8,7 +8,7 @@ import { OperationService } from '@shared/services/operation.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
-import { Product } from '@features/vehicles/models/vehicle.model';
+import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 
 interface DaySlot {
@@ -37,7 +37,7 @@ export class SchedulingComponent implements OnInit {
   private instanceApi = inject(VehicleInstancesApiService);
   private operationService = inject(OperationService);
 
-  vehicles = signal<Product[]>([]);
+  vehicles = signal<VehicleInstance[]>([]);
   vehicleOperations = signal<any[]>([]);
   users = signal<any[]>([]);
   operators = computed(() => this.userService.getOperators(this.users()));

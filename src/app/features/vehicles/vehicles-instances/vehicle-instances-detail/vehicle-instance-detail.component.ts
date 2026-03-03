@@ -1,29 +1,42 @@
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { form, FormField, required } from '@angular/forms/signals';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
 import { forkJoin, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import { ICONS } from '@shared/icons';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { VehiclesApiService } from '@features/vehicles/services/api/vehicles-api.service';
 import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
+import { Client } from '@features/clients/models/client.model';
 import { ClientService } from '@features/clients/services/client.service';
 import { OperationService } from '@shared/services/operation.service';
 import { OperationMaster } from '@shared/models/operation.model';
-import { OperationStatus, VehicleOperation } from '@shared/models/service.model';
+import { OperationStatus, VehicleOperation } from '@shared/models/operation.model';
 import {
-  Product,
-  ProductActivityEvent,
   Vehicle,
   VehicleInstance,
+  VehicleInstanceActivityEvent,
+  VehicleInstanceApiResponse,
   VehicleStatus,
 } from '@features/vehicles/models/vehicle.model';
 import { ToastService } from '@core/services/toast.service';
+import { InspectionTemplate } from '@features/settings/inspection-templates/models/inspection-template.model';
 import { InspectionTemplatesService } from '@features/settings/inspection-templates/services/inspection-templates.service';
 import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 import { BrandLogoComponent } from '@shared/components/brand-logo/brand-logo.component';
@@ -44,16 +57,20 @@ import { BrandLogoComponent } from '@shared/components/brand-logo/brand-logo.com
   ],
   templateUrl: './vehicle-instance-detail.component.html',
 })
-export class VehicleInstanceDetailComponent implements OnInit {
+export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
   icons = ICONS;
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private instanceApi = inject(VehicleInstancesApiService);
+  private ngZone = inject(NgZone);
+  private platformId = inject(PLATFORM_ID);
+  private visibilityHandler = () => this.refetchWhenVisible();
   private vehiclesApi = inject(VehiclesApiService);
   private clientService = inject(ClientService);
   private operationService = inject(OperationService);
   private notificationService = inject(ToastService);
   private inspectionTemplatesService = inject(InspectionTemplatesService);
+  private translateService = inject(TranslateService);
 
   masterOperations = signal<OperationMaster[]>([]);
   vehicleOperations = signal<any[]>([]);
@@ -61,7 +78,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
 
   isNew = signal(false);
 
-  /** Form model for editable fields - synced with product */
+  /** Form model for editable fields - synced with vehicle instance */
   formModel = signal<{
     vehicle: {
       licensePlate: string;
@@ -91,7 +108,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
       year: 0,
       nextEntryDate: '',
     },
-    status: 'pending',
+    status: 'checked_in',
     customerId: '',
     inspectionTemplateId: '',
   });
@@ -104,12 +121,12 @@ export class VehicleInstanceDetailComponent implements OnInit {
     required(s.inspectionTemplateId);
   });
 
-  /** Product metadata from API (_id, code, vehicleId, etc.) */
-  product = signal<Partial<Product>>({
+  /** Vehicle instance metadata from API (_id, code, vehicleId, etc.) */
+  vehicleInstance = signal<Partial<VehicleInstance>>({
     vehicle: {} as Vehicle,
-    status: 'pending',
+    status: 'checked_in',
   });
-  clients = signal<any[]>([]);
+  clients = signal<Client[]>([]);
   inspectionTemplates = computed(() =>
     this.inspectionTemplatesService
       .templates()
@@ -117,24 +134,25 @@ export class VehicleInstanceDetailComponent implements OnInit {
       .sort((a, b) => a.name.localeCompare(b.name)),
   );
   activeTab = signal('details');
-  activityTimeline = signal<ProductActivityEvent[]>([]);
+  activityTimeline = signal<VehicleInstanceActivityEvent[]>([]);
   activityLoading = signal(false);
   operationSaving = signal<Record<string, boolean>>({});
+  submittingToCustomer = signal(false);
   hpiResult = signal(false);
   foundVehicle = signal<Vehicle | null>(null);
   existingVehicleId = signal<string | null>(null);
   lookupLoading = signal(false);
   private lookupSubject$ = new Subject<{ field: 'vin' | 'licensePlate'; value: string }>();
   private routeId = signal<string>('');
-  private initialStatus = signal<VehicleStatus>('pending');
+  private initialStatus = signal<VehicleStatus>('checked_in');
   readonly statusOptions: VehicleStatus[] = [
-    'pending',
-    'inspection',
-    'in_progress',
-    'awaiting_approval',
-    'approved',
-    'completed',
-    'invoiced',
+    'checked_in',
+    'pending_inspection',
+    'pending_estimation',
+    'pending_approval',
+    'pending_operations',
+    'ready_for_pickup',
+    'checked_out',
   ];
   readonly operationStatusOptions: OperationStatus[] = [
     'pending',
@@ -155,6 +173,18 @@ export class VehicleInstanceDetailComponent implements OnInit {
     );
   });
 
+  /** Resolves vehicleId or vehicleInstanceId for operations lookup (handles API transform) */
+  operationsVehicleIdOrInstanceId = computed(() => {
+    const p = this.vehicleInstance();
+    const api = p as VehicleInstanceApiResponse;
+    return (
+      p.vehicleId ??
+      api.vehicle?._id ??
+      p._id ??
+      ''
+    );
+  });
+
   statusSelectOptions: SelectOption[] = this.statusOptions.map((s) => ({
     label: VehicleStatusUtils.formatStatus(s),
     value: s,
@@ -166,16 +196,16 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }));
 
   clientSelectOptions = computed<SelectOption[]>(() =>
-    this.clients().map((c: any) => ({
+    this.clients().map((c: Client) => ({
       label: `${c.name} - ${c.company || 'Private'}`,
       value: c.id,
     })),
   );
 
   inspectionTemplateSelectOptions = computed<SelectOption[]>(() =>
-    this.inspectionTemplates().map((t: any) => ({
+    this.inspectionTemplates().map((t: InspectionTemplate) => ({
       label: t.name,
-      value: t._id,
+      value: t._id ?? '',
     })),
   );
 
@@ -190,18 +220,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
     effect(() => {
       const id = this.routeId();
       if (!id || id === 'new') return;
-
-      this.instanceApi.findOne(id).subscribe({
-        next: (found) => {
-          const normalized = this.normalizeProductFromApi(found);
-          this.product.set(normalized);
-          this.syncFormModelFromProduct(normalized);
-          this.isNew.set(false);
-          this.initialStatus.set(normalized.status ?? 'pending');
-          this.loadActivityTimeline(id);
-        },
-        error: () => this.router.navigate(['/vehicles-instances']),
-      });
+      this.refetchVehicleInstance(id);
     });
 
     // Debounced lookup for duplicate detection
@@ -238,15 +257,46 @@ export class VehicleInstanceDetailComponent implements OnInit {
       const id = params['id'];
       if (id === 'new') {
         this.isNew.set(true);
-        this.resetProduct();
+        this.resetVehicleInstance();
       } else {
         this.routeId.set(id);
         this.loadActivityTimeline(id);
       }
     });
+
+    if (isPlatformBrowser(this.platformId)) {
+      document.addEventListener('visibilitychange', this.visibilityHandler);
+    }
   }
 
-  resetProduct() {
+  ngOnDestroy() {
+    if (isPlatformBrowser(this.platformId)) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+    }
+  }
+
+  private refetchWhenVisible() {
+    if (document.visibilityState !== 'visible') return;
+    const id = this.routeId();
+    if (!id || id === 'new' || this.isNew()) return;
+    this.ngZone.run(() => this.refetchVehicleInstance(id));
+  }
+
+  private refetchVehicleInstance(id: string) {
+    this.instanceApi.findOne(id).subscribe({
+      next: (found) => {
+        const normalized = this.normalizeVehicleInstanceFromApi(found);
+        this.vehicleInstance.set(normalized);
+        this.syncFormModelFromVehicleInstance(normalized);
+        this.isNew.set(false);
+        this.initialStatus.set((normalized.status ?? 'checked_in') as VehicleStatus);
+        this.loadActivityTimeline(id);
+      },
+      error: () => this.router.navigate(['/vehicles-instances']),
+    });
+  }
+
+  resetVehicleInstance() {
     this.formModel.set({
       vehicle: {
         licensePlate: '',
@@ -260,17 +310,24 @@ export class VehicleInstanceDetailComponent implements OnInit {
         year: new Date().getFullYear(),
         nextEntryDate: '',
       },
-      status: 'pending',
+      status: 'checked_in',
       customerId: '',
       inspectionTemplateId: '',
     });
-    this.product.set({ status: 'pending', vehicle: {} as Vehicle });
-    this.initialStatus.set('pending');
+    this.vehicleInstance.set({ status: 'checked_in', vehicle: {} as Vehicle });
+    this.initialStatus.set('checked_in');
   }
 
-  private syncFormModelFromProduct(p: Partial<Product>) {
+  private syncFormModelFromVehicleInstance(p: Partial<VehicleInstanceApiResponse>) {
     const v = p.vehicle;
-    const nextEntry = (v as any)?.nextEntryDate;
+    const customerId =
+      p.customerId ??
+      p.customer?._id ??
+      p.customer?.id ??
+      '';
+    const inspectionTemplateId =
+      p.inspectionTemplateId ?? p.inspectionTemplate?._id ?? '';
+    const nextEntry = v?.nextEntryDate;
     const nextEntryStr =
       nextEntry instanceof Date
         ? nextEntry.toISOString().slice(0, 10)
@@ -281,18 +338,18 @@ export class VehicleInstanceDetailComponent implements OnInit {
       vehicle: {
         licensePlate: v?.licensePlate ?? '',
         make: v?.make ?? '',
-        model: v?.model ?? (v as any)?.vehicleModel ?? '',
+        model: v?.model ?? v?.vehicleModel ?? '',
         colour: v?.colour ?? '',
         vin: v?.vin ?? '',
-        mileage: v?.mileage ?? 0,
+        mileage: v?.mileage ?? v?.odometer ?? p.odometer ?? 0,
         engine: v?.engine ?? '',
         description: v?.description ?? '',
         year: v?.year ?? 0,
         nextEntryDate: nextEntryStr,
       },
-      status: p.status ?? 'pending',
-      customerId: p.customerId ?? '',
-      inspectionTemplateId: p.inspectionTemplateId ?? '',
+      status: (typeof p.status === 'string' ? p.status : p.status?.name) ?? 'checked_in',
+      customerId,
+      inspectionTemplateId,
     });
   }
 
@@ -303,7 +360,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
   private autoFillVehicleFromLookup(vehicle: Vehicle) {
     const normalized = {
       ...vehicle,
-      model: vehicle.model ?? (vehicle as any).vehicleModel ?? '',
+      model: vehicle.model ?? vehicle.vehicleModel ?? '',
     };
     this.formModel.update((m) => ({
       ...m,
@@ -349,7 +406,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
 
   save() {
     const m = this.formModel();
-    const p = this.product();
+    const p = this.vehicleInstance();
     if (!this.canSave()) return;
 
     const vehiclePayload = {
@@ -379,7 +436,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
           .create({
             ...vehiclePayload,
             vin: vehiclePayload.vin || 'TBD',
-          } as any)
+          })
           .subscribe({
           next: (created) => {
             const vehicleId = created?._id;
@@ -418,51 +475,109 @@ export class VehicleInstanceDetailComponent implements OnInit {
 
   private buildInstanceCreatePayload(
     m: ReturnType<typeof this.formModel>,
-    p: Partial<Product>,
+    p: Partial<VehicleInstance>,
     vehicleId: string,
-  ): any {
+  ): Partial<VehicleInstance> {
     const raw = p as Record<string, unknown>;
     return {
       vehicleId,
-      status: m.status,
+      status: m.status as VehicleStatus,
       customerId: m.customerId,
       inspectionTemplateId: m.inspectionTemplateId,
-      checkInDate: p.checkInDate,
-      inspectionDate: p.inspectionDate,
-      partsEstimatedDate: p.partsEstimatedDate,
-      labourEstimatedDate: p.labourEstimatedDate,
-      taskAuthDate: p.taskAuthDate,
-      checkOutDate: p.checkOutDate,
       odometer: p.odometer,
-      distanceUnit: (p as any).distanceUnit ?? 'km',
-      services: p.services,
-      operations: p.operations,
-      movements: raw['movements'],
+      distanceUnit: p.distanceUnit ?? 'km',
+      movements: raw['movements'] as string[] | undefined,
     };
   }
 
   private buildInstanceUpdatePayload(
     m: ReturnType<typeof this.formModel>,
-    p: Partial<Product>,
-  ): any {
+    p: Partial<VehicleInstance>,
+  ): Partial<VehicleInstance> {
     const raw = p as Record<string, unknown>;
     return {
       vehicleId: p.vehicleId,
-      status: m.status,
+      status: m.status as VehicleStatus,
       customerId: m.customerId,
       inspectionTemplateId: m.inspectionTemplateId,
-      checkInDate: p.checkInDate,
-      inspectionDate: p.inspectionDate,
-      partsEstimatedDate: p.partsEstimatedDate,
-      labourEstimatedDate: p.labourEstimatedDate,
-      taskAuthDate: p.taskAuthDate,
-      checkOutDate: p.checkOutDate,
       odometer: p.odometer,
       distanceUnit: p.distanceUnit,
-      services: p.services,
-      operations: p.operations,
-      movements: raw['movements'],
+      movements: raw['movements'] as string[] | undefined,
     };
+  }
+
+  private buildInstancePayloadWithOnlyChangedFields(
+    m: ReturnType<typeof this.formModel>,
+    p: Partial<VehicleInstanceApiResponse>,
+  ): Record<string, unknown> {
+    const savedCustomerId =
+      p.customerId ??
+      p.customer?._id ??
+      p.customer?.id ??
+      '';
+    const savedInspectionTemplateId =
+      p.inspectionTemplateId ?? p.inspectionTemplate?._id ?? '';
+    const savedStatus = typeof p.status === 'string' ? p.status : p.status?.name ?? '';
+    const savedOdometer =
+      p.odometer ?? p.vehicle?.mileage ?? p.vehicle?.odometer ?? 0;
+
+    const payload: Record<string, unknown> = {};
+    if (m.status !== savedStatus) payload['status'] = m.status;
+    if (m.customerId !== savedCustomerId) payload['customerId'] = m.customerId || undefined;
+    if (m.inspectionTemplateId !== savedInspectionTemplateId)
+      payload['inspectionTemplateId'] = m.inspectionTemplateId || undefined;
+    if (Number(m.vehicle.mileage) !== Number(savedOdometer))
+      payload['odometer'] = m.vehicle.mileage;
+    return payload;
+  }
+
+  private buildVehiclePayloadWithOnlyChangedFields(
+    m: ReturnType<typeof this.formModel>,
+    v: Partial<Vehicle> | undefined,
+  ): Record<string, unknown> | null {
+    if (!v) return null;
+    const payload: Record<string, unknown> = {};
+    const fields: (keyof typeof m.vehicle)[] = [
+      'licensePlate',
+      'make',
+      'model',
+      'colour',
+      'vin',
+      'mileage',
+      'engine',
+      'description',
+      'year',
+      'nextEntryDate',
+    ];
+    let hasChanges = false;
+    for (const key of fields) {
+      const formVal = m.vehicle[key];
+      let savedVal: unknown;
+      if (key === 'mileage') {
+        savedVal = v.mileage ?? v.odometer ?? 0;
+      } else if (key === 'nextEntryDate') {
+        const ne = v.nextEntryDate;
+        savedVal =
+          typeof ne === 'string'
+            ? ne.slice(0, 10)
+            : ne instanceof Date
+              ? ne.toISOString().slice(0, 10)
+              : '';
+      } else {
+        savedVal = (v as Record<string, unknown>)[key];
+      }
+      const formNormalized =
+        typeof formVal === 'number' ? formVal : String(formVal ?? '').trim();
+      const savedNormalized =
+        typeof savedVal === 'number'
+          ? savedVal
+          : String(savedVal ?? '').trim();
+      if (formNormalized !== savedNormalized) {
+        payload[key] = formVal;
+        hasChanges = true;
+      }
+    }
+    return hasChanges ? payload : null;
   }
 
   getVehicleOperations(vehicleId: string) {
@@ -474,13 +589,13 @@ export class VehicleInstanceDetailComponent implements OnInit {
 
   addOperationFromMaster() {
     const id = this.selectedOperationId();
-    const vehicleId = this.product().vehicleId;
+    const vehicleId = this.vehicleInstance().vehicleId ?? (this.vehicleInstance() as VehicleInstanceApiResponse).vehicle?._id;
     if (!id || !vehicleId) return;
 
     const master = this.masterOperations().find((o) => o.id === id);
     if (!master) return;
 
-    const currentOps = this.getVehicleOperations(vehicleId);
+    const currentOps = this.getVehicleOperations(this.operationsVehicleIdOrInstanceId());
     this.operationService.addVehicleOperationFromMaster(vehicleId, master, currentOps).subscribe({
       next: () => {
         this.selectedOperationId.set('');
@@ -494,10 +609,10 @@ export class VehicleInstanceDetailComponent implements OnInit {
   }
 
   removeOperation(op: VehicleOperation) {
-    const vehicleId = this.product().vehicleId;
+    const vehicleId = this.vehicleInstance().vehicleId ?? (this.vehicleInstance() as VehicleInstanceApiResponse).vehicle?._id;
     if (!vehicleId || !op.id) return;
 
-    const currentOps = this.getVehicleOperations(vehicleId);
+    const currentOps = this.getVehicleOperations(this.operationsVehicleIdOrInstanceId());
     this.operationService.removeVehicleOperation(vehicleId, op.id, currentOps).subscribe({
       next: () => {
         this.notificationService.success('Operation removed.');
@@ -509,8 +624,10 @@ export class VehicleInstanceDetailComponent implements OnInit {
     });
   }
 
-  getOperationsStats(vehicleId: string) {
-    const operations = this.getVehicleOperations(vehicleId || this.product().vehicleId || '');
+  getOperationsStats(vehicleIdOrInstanceId: string) {
+    const operations = this.getVehicleOperations(
+      vehicleIdOrInstanceId || this.operationsVehicleIdOrInstanceId(),
+    );
     const completed = operations.filter(
       (operation) => operation.status === 'completed' || operation.status === 'invoiced',
     ).length;
@@ -545,10 +662,35 @@ export class VehicleInstanceDetailComponent implements OnInit {
     return Boolean(this.operationSaving()[operationId]);
   }
 
+  isSubmittingToCustomer() {
+    return this.submittingToCustomer();
+  }
+
+  submitToCustomer() {
+    const p = this.vehicleInstance();
+    if (!p._id || this.submittingToCustomer()) return;
+    this.submittingToCustomer.set(true);
+    this.instanceApi
+      .update(p._id, { status: 'pending_approval' })
+      .subscribe({
+        next: (updated) => {
+          this.submittingToCustomer.set(false);
+          const normalized = this.normalizeVehicleInstanceFromApi(updated);
+          this.vehicleInstance.set(normalized);
+          this.syncFormModelFromVehicleInstance(normalized);
+          this.notificationService.success('Estimation submitted to customer.');
+        },
+        error: () => {
+          this.submittingToCustomer.set(false);
+          this.notificationService.error('Failed to submit to customer.');
+        },
+      });
+  }
+
   setActiveTab(tab: 'details' | 'operations' | 'history') {
     this.activeTab.set(tab);
     if (tab === 'history') {
-      const vehicleId = this.product()._id || this.routeId();
+      const vehicleId = this.vehicleInstance()._id || this.routeId();
       if (vehicleId) {
         this.loadActivityTimeline(vehicleId);
       }
@@ -625,7 +767,7 @@ export class VehicleInstanceDetailComponent implements OnInit {
   private loadActivityTimeline(instanceId: string) {
     this.activityLoading.set(true);
     this.instanceApi.getActivityTimeline(instanceId).subscribe({
-      next: (events: ProductActivityEvent[]) => {
+      next: (events: VehicleInstanceActivityEvent[]) => {
         this.activityTimeline.set(events);
         this.activityLoading.set(false);
       },
@@ -636,31 +778,86 @@ export class VehicleInstanceDetailComponent implements OnInit {
     });
   }
 
-  private normalizeProductFromApi(p: Partial<Product>): Partial<Product> {
-    const out = { ...p };
+  private normalizeVehicleInstanceFromApi(
+    p: Partial<VehicleInstanceApiResponse>,
+  ): Partial<VehicleInstance> {
+    const out = { ...p } as Partial<VehicleInstance>;
+    const api = p as VehicleInstanceApiResponse;
+    if (api.customer?._id) out.customerId = api.customer._id;
+    if (api.inspectionTemplate?._id)
+      out.inspectionTemplateId = api.inspectionTemplate._id;
     if (out.vehicle) {
       out.vehicle = {
         ...out.vehicle,
-        model: out.vehicle.model ?? (out.vehicle as any).vehicleModel ?? '',
+        model: out.vehicle.model ?? out.vehicle.vehicleModel ?? '',
       };
     }
-    const rawStatus = (out as any).status;
+    const rawStatus = api.status;
     if (typeof rawStatus === 'object' && rawStatus?.name) {
-      const slugMap: Record<string, string> = {
-        'Checked In': 'pending',
-        Inspection: 'inspection',
-        'Waiting Approval': 'awaiting_approval',
-        'In Repair': 'in_progress',
-        'Ready for Pickup': 'completed',
+      const legacyMap: Record<string, VehicleStatus> = {
+        'Checked In': 'checked_in',
+        Inspection: 'pending_inspection',
+        'Waiting Approval': 'pending_approval',
+        'In Repair': 'pending_operations',
+        'Ready for Pickup': 'ready_for_pickup',
+        Pending: 'checked_in',
+        Completed: 'ready_for_pickup',
+        Invoiced: 'ready_for_pickup',
       };
-      out.status = (slugMap[rawStatus.name] as VehicleStatus) ?? 'pending';
+      out.status = legacyMap[rawStatus.name] ?? 'checked_in';
+    } else if (typeof rawStatus !== 'string') {
+      out.status = 'checked_in';
     }
     return out;
   }
 
   goToInspection() {
-    const instanceId = this.product()._id || this.routeId();
+    const instanceId = this.vehicleInstance()._id || this.routeId();
     if (!instanceId) return;
     this.router.navigate(['/inspection', instanceId]);
+  }
+
+  cancelGeneralInfo() {
+    this.syncFormModelFromVehicleInstance(this.vehicleInstance());
+  }
+
+  saveGeneralInfo() {
+    const m = this.formModel();
+    const p = this.vehicleInstance();
+    if (!this.canSave()) return;
+
+    const instancePayload = this.buildInstancePayloadWithOnlyChangedFields(m, p);
+    const vehiclePayload = this.buildVehiclePayloadWithOnlyChangedFields(
+      m,
+      p.vehicle,
+    );
+
+    const ops: Observable<unknown>[] = [];
+    if (Object.keys(instancePayload).length > 0) {
+      ops.push(this.instanceApi.update(p._id!, instancePayload));
+    }
+    if (p.vehicleId && vehiclePayload) {
+      ops.push(this.vehiclesApi.update(p.vehicleId, vehiclePayload));
+    }
+    if (ops.length === 0) return;
+
+    forkJoin(ops).subscribe({
+      next: () => {
+        this.instanceApi.findOne(p._id!).subscribe({
+          next: (updated) => {
+            const normalized = this.normalizeVehicleInstanceFromApi(updated);
+            this.vehicleInstance.set(normalized);
+            this.syncFormModelFromVehicleInstance(normalized);
+            this.notificationService.success(
+              this.translateService.instant('VEHICLE.DETAIL.GENERAL_INFO_UPDATED'),
+            );
+          },
+        });
+      },
+      error: () =>
+        this.notificationService.error(
+          this.translateService.instant('VEHICLE.DETAIL.GENERAL_INFO_UPDATE_FAILED'),
+        ),
+    });
   }
 }

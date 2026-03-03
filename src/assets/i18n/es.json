@@ -346,7 +346,9 @@
       "HISTORY": {
         "TITLE": "Línea de Tiempo de Actividad",
         "DESC": "Los registros de movimiento y transiciones de fase se mostrarán aquí automáticamente."
-      }
+      },
+      "GENERAL_INFO_UPDATED": "Información general actualizada correctamente.",
+      "GENERAL_INFO_UPDATE_FAILED": "Error al actualizar la información general."
     }
   },
   "PROFILE": {

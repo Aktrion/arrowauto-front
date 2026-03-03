@@ -6,7 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { ToastService } from '@core/services/toast.service';
-import { Product } from '@features/vehicles/models/vehicle.model';
+import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 
 @Component({
   selector: 'app-customer-approvals',
@@ -84,12 +84,10 @@ export class CustomerApprovalsComponent implements OnInit {
   private router = inject(Router);
   icons = ICONS;
 
-  vehicles = signal<Product[]>([]);
+  vehicles = signal<VehicleInstance[]>([]);
 
   pendingVehicles = computed(() =>
-    this.vehicles().filter(
-      (v) => (v.status as string) === 'pending_approval' || v.status === 'awaiting_approval',
-    ),
+    this.vehicles().filter((v) => (v.status as string) === 'pending_approval'),
   );
 
   ngOnInit(): void {

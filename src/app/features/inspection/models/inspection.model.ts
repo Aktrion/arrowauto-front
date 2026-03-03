@@ -22,7 +22,6 @@ export interface InspectionBlockEntity {
 export interface InspectionValue extends MongoEntity {
   id?: string;
   vehicleInstanceId?: string;
-  productId?: string;
   inspectionPointId?: string;
   inspectionPoint?: { _id?: string; id?: string };
   type: 'standard' | 'tyre';

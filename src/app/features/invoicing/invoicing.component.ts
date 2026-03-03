@@ -18,7 +18,7 @@ import { SelectComponent, SelectOption } from '@shared/components/select/select.
 
 interface InvoicingRow extends MongoEntity {
   id: string;
-  productId?: string;
+  vehicleInstanceId?: string;
   customerId?: string;
   vehicleId?: string;
   job: string;
@@ -99,7 +99,7 @@ export class InvoicingComponent extends BaseListDirective<
 
     const byVehicle = new Map<string, InvoicingRow[]>();
     selected.forEach((row) => {
-      const key = row.vehicleId || row.productId || row.id;
+      const key = row.vehicleId || row.vehicleInstanceId || row.id;
       const list = byVehicle.get(key) || [];
       list.push(row);
       byVehicle.set(key, list);
@@ -299,8 +299,8 @@ export class InvoicingComponent extends BaseListDirective<
     if (!row.id) return;
     this.operationInstancesApi.update(row.id, { status: 'invoiced' }).subscribe({
       next: () => {
-        if (row.productId) {
-          this.instanceApi.update(row.productId, { status: 'invoiced' } as any).subscribe();
+        if (row.vehicleInstanceId) {
+          this.instanceApi.update(row.vehicleInstanceId, { status: 'invoiced' } as any).subscribe();
         }
         this.loadItems();
       },
@@ -313,8 +313,8 @@ export class InvoicingComponent extends BaseListDirective<
     rows.forEach((row) => {
       if (!row.id) return;
       this.operationInstancesApi.update(row.id, { status: 'invoiced' }).subscribe();
-      if (row.productId) {
-        this.instanceApi.update(row.productId, { status: 'invoiced' } as any).subscribe();
+      if (row.vehicleInstanceId) {
+        this.instanceApi.update(row.vehicleInstanceId, { status: 'invoiced' } as any).subscribe();
       }
     });
     this.selectedRows.set([]);

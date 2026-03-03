@@ -18,6 +18,13 @@ export class VehicleStatusUtils {
   static getStatusBadgeClass(status?: string): string {
     if (!status) return 'status-pending';
     const classes: Record<string, string> = {
+      checked_in: 'status-pending',
+      pending_inspection: 'status-inspection',
+      pending_estimation: 'status-in-progress',
+      pending_approval: 'status-awaiting',
+      pending_operations: 'status-in-progress',
+      ready_for_pickup: 'status-completed',
+      checked_out: 'status-completed',
       pending: 'status-pending',
       scheduled: 'status-in-progress',
       in_progress: 'status-in-progress',
@@ -43,6 +50,13 @@ export class VehicleStatusUtils {
 
   static getProgressStep(status?: string): number {
     const progress: Record<string, number> = {
+      checked_in: 1,
+      pending_inspection: 2,
+      pending_estimation: 2,
+      pending_approval: 3,
+      pending_operations: 3,
+      ready_for_pickup: 4,
+      checked_out: 5,
       pending: 1,
       inspection: 2,
       awaiting_approval: 2,
@@ -55,6 +69,7 @@ export class VehicleStatusUtils {
   }
 
   static getProgressPercent(status?: string): number {
-    return VehicleStatusUtils.getProgressStep(status) * 25;
+    const step = VehicleStatusUtils.getProgressStep(status);
+    return step > 0 ? Math.min(100, step * 20) : 0;
   }
 }

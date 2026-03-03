@@ -1,64 +1,58 @@
-import { Client } from '@features/clients/models/client.model';
+import { Customer } from '@features/clients/models/client.model';
 import { InspectionValue } from '@features/inspection/models/inspection.model';
+import { InspectionTemplate } from '@features/settings/inspection-templates/models/inspection-template.model';
 import { MongoEntity } from '@shared/models/mongo-entity.model';
 
 export type VehicleStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'inspection'
-  | 'awaiting_approval'
-  | 'approved'
-  | 'completed'
-  | 'invoiced';
+  | 'checked_in'
+  | 'pending_inspection'
+  | 'pending_estimation'
+  | 'pending_approval'
+  | 'pending_operations'
+  | 'ready_for_pickup'
+  | 'checked_out';
 
 export interface Vehicle extends MongoEntity {
   licensePlate: string;
   make: string;
   model: string;
+  /** Alias used by some API responses */
+  vehicleModel?: string;
   description?: string;
   year?: number;
   colour: string;
   vin?: string;
   mileage?: number;
+  odometer?: number;
   registrationDate?: string;
   engine?: string;
-  nextEntryDate?: string;
-  // clientId?: string;
-  // client?: Client;
+  nextEntryDate?: Date | string;
+}
+
+/** API response when customer/inspectionTemplate refs are populated */
+export interface VehicleInstanceApiResponse extends Omit<VehicleInstance, 'status'> {
+  customer?: Customer;
+  inspectionTemplate?: InspectionTemplate;
+  /** Status may come as object with name in legacy API */
+  status?: VehicleStatus | { name?: string };
 }
 
 export interface VehicleInstance extends MongoEntity {
-  code?: string; // autogen, unique
+  code?: string;
   vehicleId?: string;
   vehicle?: Vehicle;
-  statusId?: string;
   customerId?: string;
   inspectionTemplateId?: string;
   status: VehicleStatus;
-  checkInDate?: Date;
-  inspectionDate?: Date;
-  partsEstimatedDate?: Date;
-  labourEstimatedDate?: Date;
-  taskAuthDate?: Date;
-  checkOutDate?: Date;
   inspectionValues?: InspectionValue[];
   inspectionValueIds?: string[];
-  // operations: Operation[];
-  // customerCommunications: CustomerCommunication[];
-  // movements: Movement[];
-
   odometer?: number;
   distanceUnit: 'miles' | 'km';
-  services?: string[];
-  operations?: string[];
   movements?: string[];
 }
 
-// Legacy alias during migration
-export type Product = VehicleInstance;
-
 export type VehicleInstanceActivityEventType =
-  | 'product_created'
+  | 'vehicle_instance_created'
   | 'status_changed'
   | 'services_updated'
   | 'operations_updated'
@@ -72,12 +66,6 @@ export interface VehicleInstanceActivityEvent {
   metadata?: Record<string, unknown>;
 }
 
-// Legacy alias during migration
-export type ProductActivityEvent = VehicleInstanceActivityEvent;
-
-// SearchRequestResponse unified into core type
-// StatusStep moved to shared/models/operation.model.ts
-
 export interface VehicleInstanceActivityEventPayload {
   type?: string;
   occurredAt?: string;
@@ -88,8 +76,6 @@ export interface VehicleInstanceActivityEventPayload {
 
 export interface VehicleInstanceActivityResponse {
   vehicleInstanceId?: string;
-  // Legacy compatibility field
-  productId?: string;
   total?: number;
   data?: VehicleInstanceActivityEventPayload[];
 }

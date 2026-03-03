@@ -346,7 +346,9 @@
       "HISTORY": {
         "TITLE": "Activity Timeline",
         "DESC": "Movement logs and phase transitions will be displayed here automatically as they occur."
-      }
+      },
+      "GENERAL_INFO_UPDATED": "General information updated successfully.",
+      "GENERAL_INFO_UPDATE_FAILED": "Failed to update general information."
     }
   },
   "PROFILE": {

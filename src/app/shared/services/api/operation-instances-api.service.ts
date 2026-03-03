@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseCrudService } from '@core/services/base-crud.service';
 import { Observable, catchError, map, of } from 'rxjs';
 import { SearchRequestResponse } from '@core/models/request.model';
-import { Operation, VehicleOperation } from '@shared/models/service.model';
+import { Operation, VehicleOperation } from '@shared/models/operation.model';
 
 interface WorkflowDataResponse {
   operations: Operation[];

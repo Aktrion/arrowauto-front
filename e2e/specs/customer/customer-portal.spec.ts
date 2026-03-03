@@ -31,9 +31,9 @@ test.describe('E2E Front/Customer Portal', () => {
       },
     });
     const valuesJson = (await valuesResponse.json()) as {
-      data?: Array<{ product?: { vehicleId?: string } }>;
+      data?: Array<{ vehicleInstanceId?: { vehicleId?: string } }>;
     };
-    const vehicleId = valuesJson.data?.[0]?.product?.vehicleId;
+    const vehicleId = valuesJson.data?.[0]?.vehicleInstanceId?.vehicleId;
 
     await page.goto(vehicleId ? `/customer-portal?vehicleId=${vehicleId}` : '/customer-portal');
 

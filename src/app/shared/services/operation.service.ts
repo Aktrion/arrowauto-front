@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, of, switchMap, catchError } from 'rxjs';
-import { Operation, OperationStatus, VehicleOperation } from '@shared/models/service.model';
+import { Operation, OperationStatus, VehicleOperation } from '@shared/models/operation.model';
 import { OperationMaster } from '@shared/models/operation.model';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { OperationsApiService } from '@shared/services/api/operations-api.service';
@@ -44,9 +44,14 @@ export class OperationService {
 
   getVehicleOperationsByVehicleId(
     vehicleOperations: VehicleOperation[],
-    vehicleId: string,
+    vehicleIdOrInstanceId: string,
   ): VehicleOperation[] {
-    return vehicleOperations.filter((vo) => vo.vehicleId === vehicleId);
+    if (!vehicleIdOrInstanceId) return [];
+    return vehicleOperations.filter(
+      (vo) =>
+        vo.vehicleId === vehicleIdOrInstanceId ||
+        vo.vehicleInstanceId === vehicleIdOrInstanceId,
+    );
   }
 
   addVehicleOperationFromMaster(
@@ -177,29 +182,15 @@ export class OperationService {
     );
   }
 
+  /**
+   * Operations are stored in OperationInstance. This method is kept for API compatibility
+   * but no longer persists to VehicleInstance (services/operations removed).
+   */
   private persistVehicleOperations(
-    vehicleId: string,
-    operations: VehicleOperation[],
+    _vehicleId: string,
+    _operations: VehicleOperation[],
   ): Observable<unknown> {
-    return this.instanceApi.findInstanceByVehicleId(vehicleId).pipe(
-      switchMap((instance) => {
-        const productId = instance?._id;
-        if (!productId) return of(null);
-
-        const serializedServices = operations.map((op) =>
-          JSON.stringify(this.normalizeOperationForStore(op)),
-        );
-        const payload = {
-          services: serializedServices,
-          operations: serializedServices,
-        };
-
-        return this.instanceApi.update(productId, payload).pipe(
-          map(() => null),
-          catchError(() => of(null)),
-        );
-      }),
-    );
+    return of(null);
   }
 
   private normalizeOperationForStore(operation: VehicleOperation): VehicleOperation {
