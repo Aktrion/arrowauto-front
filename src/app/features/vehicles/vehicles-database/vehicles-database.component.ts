@@ -85,13 +85,6 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
         sortable: true,
         filterable: true,
       },
-      {
-        field: 'mileage',
-        headerName: 'VEHICLES.DATABASE.MILEAGE',
-        type: 'number',
-        sortable: true,
-        filterable: true,
-      },
     ];
   }
 

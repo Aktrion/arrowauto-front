@@ -98,6 +98,15 @@ export class VehiclesInstancesComponent
         cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
       },
       {
+        field: 'mileage',
+        headerName: 'VEHICLE.DETAIL.SPECS.MILEAGE',
+        type: 'number',
+        sortable: true,
+        filterable: true,
+        cellRenderer: ({ value }) =>
+          typeof value === 'number' ? value.toLocaleString('en-GB') : '-',
+      },
+      {
         field: 'updatedAt',
         headerName: 'VEHICLES.TABLE.CREATED',
         type: 'date',

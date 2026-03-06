@@ -95,6 +95,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
     status: string;
     customerId: string;
     inspectionTemplateId: string;
+    distanceUnit: 'miles' | 'km';
   }>({
     vehicle: {
       licensePlate: '',
@@ -111,6 +112,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
     status: 'checked_in',
     customerId: '',
     inspectionTemplateId: '',
+    distanceUnit: 'km',
   });
 
   /** Signal Forms - main form with validation */
@@ -194,6 +196,10 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
     label: VehicleStatusUtils.formatStatus(s),
     value: s,
   }));
+  distanceUnitSelectOptions: SelectOption[] = [
+    { label: 'Kilometers (km)', value: 'km' },
+    { label: 'Miles (mi)', value: 'miles' },
+  ];
 
   clientSelectOptions = computed<SelectOption[]>(() =>
     this.clients().map((c: Client) => ({
@@ -313,6 +319,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
       status: 'checked_in',
       customerId: '',
       inspectionTemplateId: '',
+      distanceUnit: 'km',
     });
     this.vehicleInstance.set({ status: 'checked_in', vehicle: {} as Vehicle });
     this.initialStatus.set('checked_in');
@@ -341,7 +348,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
         model: v?.model ?? v?.vehicleModel ?? '',
         colour: v?.colour ?? '',
         vin: v?.vin ?? '',
-        mileage: v?.mileage ?? v?.odometer ?? p.odometer ?? 0,
+        mileage: p.mileage ?? (p as any).odometer ?? 0,
         engine: v?.engine ?? '',
         description: v?.description ?? '',
         year: v?.year ?? 0,
@@ -350,6 +357,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
       status: (typeof p.status === 'string' ? p.status : p.status?.name) ?? 'checked_in',
       customerId,
       inspectionTemplateId,
+      distanceUnit: p.distanceUnit ?? 'km',
     });
   }
 
@@ -371,7 +379,6 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
         model: normalized.model ?? m.vehicle.model,
         colour: normalized.colour ?? m.vehicle.colour,
         vin: normalized.vin ?? m.vehicle.vin,
-        mileage: normalized.mileage ?? m.vehicle.mileage,
         engine: normalized.engine ?? m.vehicle.engine,
       },
     }));
@@ -415,7 +422,6 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
       model: m.vehicle.model,
       colour: m.vehicle.colour,
       vin: m.vehicle.vin,
-      mileage: m.vehicle.mileage,
       engine: m.vehicle.engine,
       description: m.vehicle.description,
     };
@@ -484,8 +490,8 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
       status: m.status as VehicleStatus,
       customerId: m.customerId,
       inspectionTemplateId: m.inspectionTemplateId,
-      odometer: p.odometer,
-      distanceUnit: p.distanceUnit ?? 'km',
+      mileage: m.vehicle.mileage,
+      distanceUnit: m.distanceUnit ?? 'km',
       movements: raw['movements'] as string[] | undefined,
     };
   }
@@ -500,8 +506,8 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
       status: m.status as VehicleStatus,
       customerId: m.customerId,
       inspectionTemplateId: m.inspectionTemplateId,
-      odometer: p.odometer,
-      distanceUnit: p.distanceUnit,
+      mileage: m.vehicle.mileage,
+      distanceUnit: m.distanceUnit ?? 'km',
       movements: raw['movements'] as string[] | undefined,
     };
   }
@@ -518,16 +524,17 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
     const savedInspectionTemplateId =
       p.inspectionTemplateId ?? p.inspectionTemplate?._id ?? '';
     const savedStatus = typeof p.status === 'string' ? p.status : p.status?.name ?? '';
-    const savedOdometer =
-      p.odometer ?? p.vehicle?.mileage ?? p.vehicle?.odometer ?? 0;
+    const savedMileage = p.mileage ?? (p as any).odometer ?? 0;
+    const savedDistanceUnit = p.distanceUnit ?? 'km';
 
     const payload: Record<string, unknown> = {};
     if (m.status !== savedStatus) payload['status'] = m.status;
     if (m.customerId !== savedCustomerId) payload['customerId'] = m.customerId || undefined;
     if (m.inspectionTemplateId !== savedInspectionTemplateId)
       payload['inspectionTemplateId'] = m.inspectionTemplateId || undefined;
-    if (Number(m.vehicle.mileage) !== Number(savedOdometer))
-      payload['odometer'] = m.vehicle.mileage;
+    if (Number(m.vehicle.mileage) !== Number(savedMileage))
+      payload['mileage'] = m.vehicle.mileage;
+    if (m.distanceUnit !== savedDistanceUnit) payload['distanceUnit'] = m.distanceUnit;
     return payload;
   }
 
@@ -543,7 +550,6 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
       'model',
       'colour',
       'vin',
-      'mileage',
       'engine',
       'description',
       'year',
@@ -553,9 +559,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
     for (const key of fields) {
       const formVal = m.vehicle[key];
       let savedVal: unknown;
-      if (key === 'mileage') {
-        savedVal = v.mileage ?? v.odometer ?? 0;
-      } else if (key === 'nextEntryDate') {
+      if (key === 'nextEntryDate') {
         const ne = v.nextEntryDate;
         savedVal =
           typeof ne === 'string'
@@ -711,6 +715,15 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
 
   onStatusChange(status: VehicleStatus) {
     this.formModel.update((m) => ({ ...m, status }));
+  }
+
+  onDistanceUnitChange(distanceUnit: string) {
+    const normalized = distanceUnit === 'miles' ? 'miles' : 'km';
+    this.formModel.update((m) => ({ ...m, distanceUnit: normalized }));
+  }
+
+  getDistanceUnitLabel(distanceUnit: 'miles' | 'km' | undefined) {
+    return distanceUnit === 'miles' ? 'mi' : 'km';
   }
 
   updateOperationStatus(operation: VehicleOperation, status: OperationStatus) {

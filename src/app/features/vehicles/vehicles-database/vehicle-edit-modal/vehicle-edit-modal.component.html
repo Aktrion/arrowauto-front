@@ -78,29 +78,16 @@
           class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
         />
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-base-content mb-1">{{
-            'VEHICLES.DATABASE.ENGINE' | translate
-          }}</label>
-          <input
-            type="text"
-            [(ngModel)]="editForm.engine"
-            placeholder="e.g. 2.0 TDI"
-            class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-base-content mb-1">{{
-            'VEHICLES.DATABASE.MILEAGE' | translate
-          }}</label>
-          <input
-            type="number"
-            [(ngModel)]="editForm.mileage"
-            placeholder="e.g. 45000"
-            class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
-          />
-        </div>
+      <div>
+        <label class="block text-sm font-medium text-base-content mb-1">{{
+          'VEHICLES.DATABASE.ENGINE' | translate
+        }}</label>
+        <input
+          type="text"
+          [(ngModel)]="editForm.engine"
+          placeholder="e.g. 2.0 TDI"
+          class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100"
+        />
       </div>
     </div>
 

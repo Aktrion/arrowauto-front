@@ -22,8 +22,6 @@ export interface Vehicle extends MongoEntity {
   year?: number;
   colour: string;
   vin?: string;
-  mileage?: number;
-  odometer?: number;
   registrationDate?: string;
   engine?: string;
   nextEntryDate?: Date | string;
@@ -46,7 +44,7 @@ export interface VehicleInstance extends MongoEntity {
   status: VehicleStatus;
   inspectionValues?: InspectionValue[];
   inspectionValueIds?: string[];
-  odometer?: number;
+  mileage?: number;
   distanceUnit: 'miles' | 'km';
   movements?: string[];
 }

@@ -39,7 +39,6 @@ export class VehicleEditModalComponent {
       vin: item.vin,
       colour: item.colour,
       engine: item.engine,
-      mileage: item.mileage,
     };
     this.modalRef?.nativeElement?.showModal();
   }
@@ -66,7 +65,6 @@ export class VehicleEditModalComponent {
         vin: this.editForm.vin,
         colour: this.editForm.colour,
         engine: this.editForm.engine,
-        mileage: this.editForm.mileage,
       })
       .subscribe({
         next: () => {
