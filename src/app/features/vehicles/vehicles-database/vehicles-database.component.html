@@ -6,10 +6,106 @@
     (create)="handleCreate()"
     (edit)="handleEdit($event)"
     (delete)="handleDelete($event)"
-  />
+  >
+    <!-- Expanded Row Content -->
+    <ng-template #expandedTemplate let-vehicle>
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+        <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <lucide-icon [name]="icons.History" class="h-4 w-4"></lucide-icon>
+            {{ 'VEHICLES.DATABASE.INSTANCES_HISTORY' | translate }}
+          </h4>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table table-sm w-full">
+            <thead>
+              <tr class="bg-gray-50/50">
+                <th class="text-gray-500 font-medium">
+                  {{ 'VEHICLES.DATABASE.INSTANCE_JOB_NUMBER' | translate }}
+                </th>
+                <th class="text-gray-500 font-medium">
+                  {{ 'VEHICLES.DATABASE.INSTANCE_CUSTOMER' | translate }}
+                </th>
+                <th class="text-gray-500 font-medium">
+                  {{ 'VEHICLES.DATABASE.INSTANCE_MILEAGE' | translate }}
+                </th>
+                <th class="text-gray-500 font-medium">
+                  {{ 'VEHICLES.DATABASE.INSTANCE_STATUS' | translate }}
+                </th>
+                <th class="text-gray-500 font-medium">
+                  {{ 'VEHICLES.DATABASE.INSTANCE_CHECK_IN' | translate }}
+                </th>
+                <th class="text-gray-500 font-medium">
+                  {{ 'VEHICLES.DATABASE.INSTANCE_CHECK_OUT' | translate }}
+                </th>
+                <th class="text-center text-gray-500 font-medium">
+                  {{ 'COMMON.ACTIONS' | translate }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (instance of vehicle.vehicle_instances; track instance.id) {
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="whitespace-nowrap font-medium text-primary">
+                    {{ instance.jobNumber || '-' }}
+                  </td>
+                  <td class="whitespace-nowrap">
+                    {{ instance.customerName || instance.customer?.name || '-' }}
+                  </td>
+                  <td>{{ instance.mileage | number }} {{ instance.distanceUnit }}</td>
+                  <td>
+                    <span
+                      class="badge badge-sm"
+                      [ngClass]="{
+                        'badge-info': instance.status === 'pending_inspection',
+                        'badge-success':
+                          instance.status === 'completed' || instance.status === 'checked_out',
+                        'badge-warning':
+                          instance.status === 'ready_for_pickup' ||
+                          instance.status === 'pending_approval',
+                        'badge-ghost':
+                          instance.status !== 'pending_inspection' &&
+                          instance.status !== 'completed' &&
+                          instance.status !== 'checked_out' &&
+                          instance.status !== 'ready_for_pickup' &&
+                          instance.status !== 'pending_approval',
+                      }"
+                    >
+                      {{ 'VEHICLES.STATUS.' + instance.status.toUpperCase() | translate }}
+                    </span>
+                  </td>
+                  <td class="text-gray-500 whitespace-nowrap">
+                    {{ instance.checkInDate | date: 'dd/MM/yyyy HH:mm' }}
+                  </td>
+                  <td class="text-gray-500 whitespace-nowrap">
+                    {{
+                      instance.checkOutDate
+                        ? (instance.checkOutDate | date: 'dd/MM/yyyy HH:mm')
+                        : '-'
+                    }}
+                  </td>
+                  <td class="text-center">
+                    <button
+                      class="btn btn-ghost btn-xs text-primary"
+                      [attr.title]="'COMMON.VIEW' | translate"
+                    >
+                      <lucide-icon [name]="icons.Eye" class="h-4 w-4"></lucide-icon>
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="text-center py-4 text-gray-400 italic">
+                    {{ 'VEHICLES.DATABASE.NO_INSTANCES' | translate }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </ng-template>
+  </app-data-grid>
 
-  <app-vehicle-edit-modal
-    #editModal
-    (saved)="loadItems()"
-  />
+  <app-vehicle-edit-modal #editModal (saved)="loadItems()" />
 </div>

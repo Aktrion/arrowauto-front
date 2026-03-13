@@ -106,6 +106,10 @@
                 />
               </th>
               <th
+                *ngIf="config.expandable"
+                class="w-10 sticky left-0 z-10 border-b border-gray-200"
+              ></th>
+              <th
                 *ngFor="let col of config.columnDefs"
                 [class.cursor-pointer]="col.sortable && !config.loading"
                 (click)="!config.loading && col.sortable && onSort(col.field)"
@@ -169,66 +173,119 @@
 
             <!-- Data Rows -->
             <ng-container *ngIf="!config.loading">
-              <tr *ngFor="let row of displayedRows" class="hover:bg-gray-50">
-                <td *ngIf="config.selectable !== false" class="sticky left-0 z-10 bg-inherit">
-                  <input
-                    type="checkbox"
-                    class="checkbox checkbox-sm"
-                    [checked]="isSelected(row)"
-                    (change)="toggleSelect(row)"
-                  />
-                </td>
-                <td *ngFor="let col of config.columnDefs" class="whitespace-nowrap">
-                  <ng-container *ngIf="!col.hide">
-                    <ng-container *ngIf="col.cellRenderer; else plainCell">
-                      <div
-                        [innerHTML]="
-                          col.cellRenderer({ value: getNestedValue(row, col.field), data: row })
-                        "
-                      ></div>
+              <ng-container *ngFor="let row of displayedRows">
+                <tr
+                  class="hover:bg-gray-50 border-b border-gray-100 transition-colors"
+                  [class.cursor-pointer]="config.expandable"
+                  (click)="config.expandable && toggleRow(row)"
+                >
+                  <td
+                    *ngIf="config.selectable !== false"
+                    class="sticky left-0 z-10 bg-inherit"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <input
+                      type="checkbox"
+                      class="checkbox checkbox-sm"
+                      [checked]="isSelected(row)"
+                      (change)="toggleSelect(row)"
+                    />
+                  </td>
+                  <td *ngIf="config.expandable" class="sticky left-0 z-10 bg-inherit">
+                    <button
+                      class="btn btn-ghost btn-xs btn-square"
+                      (click)="toggleRow(row)"
+                      [attr.title]="
+                        (isRowExpanded(row) ? 'COMMON.COLLAPSE' : 'COMMON.EXPAND') | translate
+                      "
+                    >
+                      <lucide-icon
+                        [name]="icons.ChevronDown"
+                        class="h-4 w-4 chevron-rotate"
+                        [class.chevron-rotated]="isRowExpanded(row)"
+                      ></lucide-icon>
+                    </button>
+                  </td>
+                  <td *ngFor="let col of config.columnDefs" class="whitespace-nowrap">
+                    <ng-container *ngIf="!col.hide">
+                      <ng-container *ngIf="col.cellRenderer; else plainCell">
+                        <div
+                          [innerHTML]="
+                            col.cellRenderer({ value: getNestedValue(row, col.field), data: row })
+                          "
+                        ></div>
+                      </ng-container>
+                      <ng-template #plainCell>{{ formatValue(row, col) }}</ng-template>
                     </ng-container>
-                    <ng-template #plainCell>{{ formatValue(row, col) }}</ng-template>
-                  </ng-container>
-                </td>
-                <td class="sticky right-0 bg-inherit border-l !bg-base-100 border-gray-200">
-                  <div class="flex justify-center items-center gap-0.5 px-1">
-                    <button
-                      *ngIf="config.showEditButton"
-                      class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
-                      [attr.title]="'COMMON.EDIT' | translate"
-                      (click)="onEdit(row)"
-                    >
-                      <lucide-icon
-                        [name]="icons.Pencil"
-                        class="h-5 w-5 text-green-600"
-                      ></lucide-icon>
-                    </button>
-                    <button
-                      *ngFor="let action of config.customActions || []"
-                      class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
-                      [attr.title]="action.tooltip || action.iconLabel || ''"
-                      [hidden]="action.visible && !action.visible(row)"
-                      (click)="onCustomAction(action, row)"
-                    >
-                      <lucide-icon
-                        *ngIf="getActionIcon(action)"
-                        [name]="$any(getActionIcon(action))"
-                        class="h-4 w-4"
-                        [ngClass]="action.iconClass"
-                      ></lucide-icon>
-                      <span *ngIf="!getActionIcon(action)">{{ action.iconLabel || 'Action' }}</span>
-                    </button>
-                    <button
-                      *ngIf="config.showDeleteButton"
-                      class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
-                      [attr.title]="'COMMON.DELETE' | translate"
-                      (click)="onDelete(row)"
-                    >
-                      <lucide-icon [name]="icons.Trash2" class="h-5 w-5 text-error"></lucide-icon>
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                  <td
+                    class="sticky right-0 bg-inherit border-l !bg-base-100 border-gray-200"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <div class="flex justify-center items-center gap-0.5 px-1">
+                      <button
+                        *ngIf="config.showEditButton"
+                        class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
+                        [attr.title]="'COMMON.EDIT' | translate"
+                        (click)="onEdit(row)"
+                      >
+                        <lucide-icon
+                          [name]="icons.Pencil"
+                          class="h-5 w-5 text-green-600"
+                        ></lucide-icon>
+                      </button>
+                      <button
+                        *ngFor="let action of config.customActions || []"
+                        class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
+                        [attr.title]="action.tooltip || action.iconLabel || ''"
+                        [hidden]="action.visible && !action.visible(row)"
+                        (click)="onCustomAction(action, row)"
+                      >
+                        <lucide-icon
+                          *ngIf="getActionIcon(action)"
+                          [name]="$any(getActionIcon(action))"
+                          class="h-4 w-4"
+                          [ngClass]="action.iconClass"
+                        ></lucide-icon>
+                        <span *ngIf="!getActionIcon(action)">{{
+                          action.iconLabel || 'Action'
+                        }}</span>
+                      </button>
+                      <button
+                        *ngIf="config.showDeleteButton"
+                        class="btn btn-ghost bg-base-100 shadow-sm btn-xs px-1"
+                        [attr.title]="'COMMON.DELETE' | translate"
+                        (click)="onDelete(row)"
+                      >
+                        <lucide-icon [name]="icons.Trash2" class="h-5 w-5 text-error"></lucide-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Expanded Row Content -->
+                <tr *ngIf="config.expandable" class="bg-base-200/10">
+                  <td
+                    [attr.colspan]="
+                      config.columnDefs.length +
+                      (config.selectable !== false ? 1 : 0) +
+                      (config.expandable ? 1 : 0) +
+                      1
+                    "
+                    class="p-0 border-b border-gray-100"
+                  >
+                    <div class="expand-grid" [class.expand-expanded]="isRowExpanded(row)">
+                      <div class="expand-content">
+                        <div class="p-4">
+                          <ng-container
+                            *ngTemplateOutlet="expandedTemplate; context: { $implicit: row }"
+                          ></ng-container>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
 
               <tr *ngIf="displayedRows.length === 0">
                 <td

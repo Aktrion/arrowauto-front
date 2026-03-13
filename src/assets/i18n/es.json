@@ -38,7 +38,9 @@
     "PER_PAGE": "{{count}} por página",
     "CLEAR_FILTERS": "Limpiar filtros",
     "FILTER_BY": "Filtrar por {{field}}",
-    "NO_RECORDS": "No se encontraron registros"
+    "NO_RECORDS": "No se encontraron registros",
+    "COLLAPSE": "Contraer",
+    "EXPAND": "Expandir"
   },
   "SHELL": {
     "LOGO": {
@@ -256,6 +258,13 @@
       "PROGRESS": "Progreso",
       "CREATED": "Creado"
     },
+    "STATUS": {
+      "PENDING_INSPECTION": "Pendiente de Inspección",
+      "READY_FOR_PICKUP": "Listo para Recogida",
+      "IN_REPAIR": "En Reparación",
+      "AWAITING_APPROVAL": "Esperando Aprobación",
+      "COMPLETED": "Completado"
+    },
     "EMPTY": {
       "TITLE": "No se encontraron vehículos",
       "DESCRIPTION": "Intenta ajustar tu búsqueda o filtros para encontrar lo que buscas.",
@@ -280,7 +289,17 @@
       "VIN": "VIN",
       "COLOR": "Color",
       "ENGINE": "Motor",
-      "MILEAGE": "Kilometraje"
+      "MILEAGE": "Kilometraje",
+      "INSTANCES_HISTORY": "Historial de Instancias del Vehículo",
+      "INSTANCE_CODE": "Código de Instancia",
+      "INSTANCE_JOB_NUMBER": "Nº Trabajo",
+      "INSTANCE_CUSTOMER": "Cliente",
+      "INSTANCE_MILEAGE": "Kilometraje",
+      "INSTANCE_STATUS": "Estado",
+      "INSTANCE_CHECK_IN": "Fecha de Entrada",
+      "INSTANCE_CHECK_OUT": "Fecha de Salida",
+      "INSTANCE_DATE": "Fecha de Registro",
+      "NO_INSTANCES": "No se encontraron instancias para este vehículo"
     },
     "MODAL": {
       "EDIT_TITLE": "Editar Vehículo"

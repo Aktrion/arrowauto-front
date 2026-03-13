@@ -9,6 +9,8 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  TemplateRef,
+  ContentChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -39,9 +41,11 @@ export class DataGridComponent implements OnInit, OnChanges, OnDestroy {
   @Output() create = new EventEmitter<void>();
   @Output() edit = new EventEmitter<any>();
   @Output() delete = new EventEmitter<any>();
+  @ContentChild('expandedTemplate') expandedTemplate?: TemplateRef<any>;
 
   icons = ICONS;
   selectedItems: any[] = [];
+  expandedRows = new Set<string>();
   allSelected = false;
   showFilterSidebar = false;
 
@@ -190,6 +194,21 @@ export class DataGridComponent implements OnInit, OnChanges, OnDestroy {
   isSelected(row: any): boolean {
     const rowId = row?._id || row?.id;
     return this.selectedItems.some((item) => (item?._id || item?.id) === rowId);
+  }
+
+  toggleRow(row: any): void {
+    const rowId = row?._id || row?.id;
+    if (!rowId) return;
+    if (this.expandedRows.has(rowId)) {
+      this.expandedRows.delete(rowId);
+    } else {
+      this.expandedRows.add(rowId);
+    }
+  }
+
+  isRowExpanded(row: any): boolean {
+    const rowId = row?._id || row?.id;
+    return !!rowId && this.expandedRows.has(rowId);
   }
 
   onCreate(): void {

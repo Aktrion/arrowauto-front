@@ -25,6 +25,7 @@ export interface Vehicle extends MongoEntity {
   registrationDate?: string;
   engine?: string;
   nextEntryDate?: Date | string;
+  vehicle_instances?: VehicleInstance[];
 }
 
 /** API response when customer/inspectionTemplate refs are populated */

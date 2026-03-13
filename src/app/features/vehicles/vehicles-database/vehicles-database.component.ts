@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { BaseListDirective } from '@core/directives/base-list.directive';
 import { VehiclesApiService } from '@features/vehicles/services/api/vehicles-api.service';
 import { Vehicle } from '@features/vehicles/models/vehicle.model';
+import { map, Observable } from 'rxjs';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { licensePlateBadge } from '@shared/utils/license-plate.utils';
@@ -11,10 +12,18 @@ import { ToastService } from '@core/services/toast.service';
 import { VehicleEditModalComponent } from './vehicle-edit-modal/vehicle-edit-modal.component';
 import { ICONS } from '@shared/icons';
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-vehicles-database',
   standalone: true,
-  imports: [DataGridComponent, LucideAngularModule, TranslateModule, VehicleEditModalComponent],
+  imports: [
+    CommonModule,
+    DataGridComponent,
+    LucideAngularModule,
+    TranslateModule,
+    VehicleEditModalComponent,
+  ],
   templateUrl: './vehicles-database.component.html',
 })
 export class VehiclesDatabaseComponent extends BaseListDirective<
@@ -29,7 +38,45 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
   @ViewChild('editModal') editModal!: VehicleEditModalComponent;
 
   constructor() {
-    super(inject(VehiclesApiService));
+    const vehiclesApiService = inject(VehiclesApiService);
+    super(vehiclesApiService, (params) =>
+      vehiclesApiService.findByPagination(params).pipe(
+        map((res: any) => ({
+          ...res,
+          data: res.data.map((v: Vehicle) => ({
+            ...v,
+            vehicle_instances: v.vehicle_instances?.length
+              ? v.vehicle_instances
+              : [
+                  {
+                    id: 'mock-1',
+                    code: 'INST-001',
+                    jobNumber: 'J-2024-001',
+                    customerName: 'Enterprise Holdings',
+                    status: 'pending_inspection',
+                    mileage: 12500,
+                    distanceUnit: 'km',
+                    checkInDate: new Date(2024, 2, 10, 9, 30).toISOString(),
+                    checkOutDate: null,
+                    createdAt: new Date(2024, 2, 10, 9, 30).toISOString(),
+                  },
+                  {
+                    id: 'mock-2',
+                    code: 'INST-002',
+                    jobNumber: 'J-2023-854',
+                    customerName: 'Hertz Rent-a-Car',
+                    status: 'completed',
+                    mileage: 48000,
+                    distanceUnit: 'km',
+                    checkInDate: new Date(2023, 11, 5, 10, 15).toISOString(),
+                    checkOutDate: new Date(2023, 11, 8, 16, 45).toISOString(),
+                    createdAt: new Date(2023, 11, 5, 10, 15).toISOString(),
+                  },
+                ],
+          })),
+        })),
+      ),
+    );
     this.gridConfig = {
       ...this.gridConfig,
       titleIcon: 'Database',
@@ -38,6 +85,7 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
       showDeleteButton: true,
       selectable: false,
       storageKey: 'vehicles_database_grid',
+      expandable: true,
     };
   }
 

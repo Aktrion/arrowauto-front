@@ -224,3 +224,32 @@ textarea {
   background-color: var(--color-error);
   color: var(--color-error-content);
 }
+/* === Expansion Animations === */
+.expand-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.expand-grid.expand-expanded {
+  grid-template-rows: 1fr;
+}
+
+.expand-content {
+  min-height: 0;
+  visibility: hidden;
+  transition: visibility 0.3s;
+}
+
+.expand-expanded .expand-content {
+  visibility: visible;
+}
+
+.chevron-rotate {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chevron-rotated {
+  transform: rotate(180deg);
+}

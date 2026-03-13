@@ -38,7 +38,9 @@
     "PER_PAGE": "{{count}} per page",
     "CLEAR_FILTERS": "Clear All Filters",
     "FILTER_BY": "Filter by {{field}}",
-    "NO_RECORDS": "No records found"
+    "NO_RECORDS": "No records found",
+    "COLLAPSE": "Collapse",
+    "EXPAND": "Expand"
   },
   "SHELL": {
     "LOGO": {
@@ -271,6 +273,13 @@
       "MANAGE": "Manage",
       "OPEN": "Open details"
     },
+    "STATUS": {
+      "PENDING_INSPECTION": "Pending Inspection",
+      "READY_FOR_PICKUP": "Ready for Pickup",
+      "IN_REPAIR": "In Repair",
+      "AWAITING_APPROVAL": "Awaiting Approval",
+      "COMPLETED": "Completed"
+    },
     "DATABASE_TITLE": "Vehicles Database",
     "DATABASE_SUBTITLE": "Master records of all vehicles in the system",
     "SEARCH_DATABASE_PLACEHOLDER": "Search by VIN, Plate, Make...",
@@ -280,7 +289,17 @@
       "VIN": "VIN",
       "COLOR": "Color",
       "ENGINE": "Engine",
-      "MILEAGE": "Mileage"
+      "MILEAGE": "Mileage",
+      "INSTANCES_HISTORY": "Vehicle Instances History",
+      "INSTANCE_CODE": "Instance Code",
+      "INSTANCE_JOB_NUMBER": "Job #",
+      "INSTANCE_CUSTOMER": "Customer",
+      "INSTANCE_MILEAGE": "Mileage",
+      "INSTANCE_STATUS": "Status",
+      "INSTANCE_CHECK_IN": "Check-in Date",
+      "INSTANCE_CHECK_OUT": "Check-out Date",
+      "INSTANCE_DATE": "Registration Date",
+      "NO_INSTANCES": "No instances found for this vehicle"
     },
     "MODAL": {
       "EDIT_TITLE": "Edit Vehicle"
