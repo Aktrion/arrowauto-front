@@ -8,8 +8,8 @@ import { ICONS } from '@shared/icons';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { VehicleStatusUtils } from '@shared/utils/vehicle-status.utils';
 import { ClientService } from '@features/clients/services/client.service';
-import { Product } from '@features/vehicles/models/vehicle.model';
-import { SearchRequest } from '@shared/utils/search-request.class';
+import { map, startWith, switchMap } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-vehicles-instances',
@@ -17,79 +17,84 @@ import { SearchRequest } from '@shared/utils/search-request.class';
   imports: [RouterLink, FormsModule, DatePipe, LucideAngularModule, TranslateModule],
   templateUrl: './vehicles-instances.component.html',
 })
-export class VehiclesInstancesComponent implements OnInit {
+export class VehiclesInstancesComponent {
   icons = ICONS;
+
   private instanceApi = inject(VehicleInstancesApiService);
   private clientService = inject(ClientService);
   private router = inject(Router);
 
-  // SearchRequest manages state, pagination and fetching
-  searchRequest = new SearchRequest((params) => this.instanceApi.findByPagination(params));
-
-  vehicles = signal<Product[]>([]);
-  clients = signal<any[]>([]);
-  isLoading = this.searchRequest.isLoading$;
-  totalItems = signal(0);
-  totalPages = signal(1);
+  searchQuery = signal('');
+  searchField = signal<'all' | 'plate' | 'make' | 'model' | 'client' | 'job'>('all');
+  statusFilter = signal('');
+  page = signal(1);
   isTableView = signal(true);
 
-  // Search and Filter state (now mapped to SearchRequest)
-  searchField: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job' = 'all';
-  statusFilter = signal('');
+  params = computed(() => ({
+    page: this.page(),
+    search: this.searchQuery(),
+    searchField: this.searchField(),
+    filters: this.statusFilter()
+      ? [{ field: 'statusId', value: this.statusFilter(), operator: 'equals' }]
+      : [],
+  }));
 
-  constructor() {}
+  private vehiclesInstances = toSignal(
+    toObservable(this.params).pipe(
+      switchMap((params) =>
+        this.instanceApi.findByPagination(params).pipe(
+          map((data) => ({
+            loading: false,
+            data,
+          })),
+          startWith({
+            loading: true,
+            data: undefined,
+          }),
+        ),
+      ),
+    ),
+    { requireSync: false },
+  );
+  vehicles = computed(() => this.vehiclesInstances()?.data?.data ?? []);
+  totalItems = computed(() => this.vehiclesInstances()?.data?.total ?? 0);
+  totalPages = computed(() => this.vehiclesInstances()?.data?.totalPages ?? 1);
+  isLoading = computed(() => this.vehiclesInstances()?.loading ?? true);
 
-  ngOnInit() {
-    this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
-    // SearchRequest handles its own reload/fetch cycle
-    this.searchRequest.loadData().subscribe((response) => {
-      this.vehicles.set(response.data ?? []);
-      this.totalItems.set(response.total);
-      this.totalPages.set(response.totalPages);
-    });
-  }
+  clients = toSignal(this.clientService.fetchClients(), { initialValue: [] });
 
-  toggleView(isTable: boolean): void {
+  toggleView(isTable: boolean) {
     this.isTableView.set(isTable);
   }
 
-  setStatusFilter(status: string): void {
+  setStatusFilter(status: string) {
     this.statusFilter.set(status);
-    if (status) {
-      this.searchRequest.addFilter('statusId', { value: status, operator: 'equals' });
-    } else {
-      this.searchRequest.removeFilter('statusId');
-    }
-    this.searchRequest.setPage(1);
-    this.searchRequest.reload();
+    this.page.set(1);
   }
 
   onSearch(query: string) {
-    this.searchRequest.search = query;
-    this.searchRequest.setPage(1);
-    this.searchRequest.reload();
+    this.searchQuery.set(query);
+    this.page.set(1);
   }
 
   setSearchField(field: 'all' | 'plate' | 'make' | 'model' | 'client' | 'job') {
-    this.searchField = field;
-    // In a real paginated API, we might need to adjust the backend filters
-    // For now, we use the general search property of SearchRequest
-    this.searchRequest.reload();
+    this.searchField.set(field);
+    this.page.set(1);
   }
 
   nextPage() {
-    if (this.searchRequest.page >= this.totalPages()) return;
-    this.searchRequest.setPage(this.searchRequest.page + 1);
-    this.searchRequest.reload();
+    if (this.page() < this.totalPages()) {
+      this.page.update((p) => p + 1);
+    }
   }
 
   prevPage() {
-    if (this.searchRequest.page <= 1) return;
-    this.searchRequest.setPage(this.searchRequest.page - 1);
-    this.searchRequest.reload();
+    if (this.page() > 1) {
+      this.page.update((p) => p - 1);
+    }
   }
 
-  openNewVehicleModal(): void {
+  openNewVehicleModal() {
     this.router.navigate(['/vehicles-instances/new']);
   }
 
