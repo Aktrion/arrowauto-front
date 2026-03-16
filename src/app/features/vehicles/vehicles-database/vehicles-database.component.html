@@ -44,13 +44,14 @@
               </tr>
             </thead>
             <tbody>
-              @for (instance of vehicle.vehicle_instances; track instance.id) {
+              @for (instance of vehicle.vehicleInstances; track instance.id) {
                 <tr class="hover:bg-gray-50 transition-colors">
                   <td class="whitespace-nowrap font-medium text-primary">
-                    {{ instance.jobNumber || '-' }}
+                    {{ instance.code || '-' }}
                   </td>
                   <td class="whitespace-nowrap">
-                    {{ instance.customerName || instance.customer?.name || '-' }}
+                    {{ instance.customer?.firstName || '-' }}
+                    {{ instance.customer?.lastName || '-' }}
                   </td>
                   <td>{{ instance.mileage | number }} {{ instance.distanceUnit }}</td>
                   <td>
@@ -62,20 +63,22 @@
                           instance.status === 'completed' || instance.status === 'checked_out',
                         'badge-warning':
                           instance.status === 'ready_for_pickup' ||
-                          instance.status === 'pending_approval',
+                          instance.status === 'pending_approval' ||
+                          instance.status === 'pending_estimation',
                         'badge-ghost':
                           instance.status !== 'pending_inspection' &&
                           instance.status !== 'completed' &&
                           instance.status !== 'checked_out' &&
                           instance.status !== 'ready_for_pickup' &&
-                          instance.status !== 'pending_approval',
+                          instance.status !== 'pending_approval' &&
+                          instance.status !== 'pending_estimation',
                       }"
                     >
                       {{ 'VEHICLES.STATUS.' + instance.status.toUpperCase() | translate }}
                     </span>
                   </td>
                   <td class="text-gray-500 whitespace-nowrap">
-                    {{ instance.checkInDate | date: 'dd/MM/yyyy HH:mm' }}
+                    {{ instance.createdAt | date: 'dd/MM/yyyy HH:mm' }}
                   </td>
                   <td class="text-gray-500 whitespace-nowrap">
                     {{

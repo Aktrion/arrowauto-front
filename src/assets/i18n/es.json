@@ -262,6 +262,10 @@
       "PENDING_INSPECTION": "Pendiente de Inspección",
       "READY_FOR_PICKUP": "Listo para Recogida",
       "IN_REPAIR": "En Reparación",
+      "CHECKED_OUT": "Entregado",
+      "CHECKED_IN": "Recibido",
+      "PENDING_OPERATIONS": "Pendiente de Operaciones",
+      "PENDING_ESTIMATION": "Pendiente de Estimación",
       "AWAITING_APPROVAL": "Esperando Aprobación",
       "COMPLETED": "Completado"
     },

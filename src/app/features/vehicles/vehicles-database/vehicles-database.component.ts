@@ -45,34 +45,7 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
           ...res,
           data: res.data.map((v: Vehicle) => ({
             ...v,
-            vehicle_instances: v.vehicle_instances?.length
-              ? v.vehicle_instances
-              : [
-                  {
-                    id: 'mock-1',
-                    code: 'INST-001',
-                    jobNumber: 'J-2024-001',
-                    customerName: 'Enterprise Holdings',
-                    status: 'pending_inspection',
-                    mileage: 12500,
-                    distanceUnit: 'km',
-                    checkInDate: new Date(2024, 2, 10, 9, 30).toISOString(),
-                    checkOutDate: null,
-                    createdAt: new Date(2024, 2, 10, 9, 30).toISOString(),
-                  },
-                  {
-                    id: 'mock-2',
-                    code: 'INST-002',
-                    jobNumber: 'J-2023-854',
-                    customerName: 'Hertz Rent-a-Car',
-                    status: 'completed',
-                    mileage: 48000,
-                    distanceUnit: 'km',
-                    checkInDate: new Date(2023, 11, 5, 10, 15).toISOString(),
-                    checkOutDate: new Date(2023, 11, 8, 16, 45).toISOString(),
-                    createdAt: new Date(2023, 11, 5, 10, 15).toISOString(),
-                  },
-                ],
+            vehicleInstances: v.vehicleInstances?.length ? v.vehicleInstances : [],
           })),
         })),
       ),

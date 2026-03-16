@@ -275,6 +275,11 @@
     },
     "STATUS": {
       "PENDING_INSPECTION": "Pending Inspection",
+      "PENDING_APPROVAL": "Pending Approval",
+      "PENDING_ESTIMATION": "Pending Estimation",
+      "CHECKED_OUT": "Checked Out",
+      "CHECKED_IN": "Checked In",
+      "PENDING_OPERATIONS": "Pending Operations",
       "READY_FOR_PICKUP": "Ready for Pickup",
       "IN_REPAIR": "In Repair",
       "AWAITING_APPROVAL": "Awaiting Approval",
