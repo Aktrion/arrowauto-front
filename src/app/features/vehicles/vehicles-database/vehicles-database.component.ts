@@ -1,4 +1,5 @@
 import { Component, inject, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { BaseListDirective } from '@core/directives/base-list.directive';
@@ -34,6 +35,7 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
   icons = ICONS;
   private vehiclesApi = inject(VehiclesApiService);
   private toastService = inject(ToastService);
+  private router = inject(Router);
 
   @ViewChild('editModal') editModal!: VehicleEditModalComponent;
 
@@ -133,5 +135,11 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
   private getDeleteConfirmMessage(make?: string, model?: string, plate?: string): string {
     const desc = [make, model].filter(Boolean).join(' ') || plate || 'this vehicle';
     return `Delete ${desc}? This cannot be undone.`;
+  }
+
+  protected viewInstance(instance: any): void {
+    const id = instance?._id || instance?.id;
+    if (!id) return;
+    this.router.navigate(['/vehicles-instances', id]);
   }
 }
