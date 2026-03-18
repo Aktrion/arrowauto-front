@@ -352,7 +352,9 @@
         "MILEAGE": "Mileage",
         "ENGINE": "Engine",
         "VIN": "VIN Number",
-        "NEXT_MOT": "Next MOT / Entry"
+        "NEXT_MOT": "Next MOT / Entry",
+        "RECEPTION_DETAILS": "Reception Details",
+        "DISTANCE_UNIT": "Distance Unit"
       },
       "ASSIGNMENT": {
         "TITLE": "Customer & Assignment",

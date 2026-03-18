@@ -351,7 +351,9 @@
         "MILEAGE": "Millaje",
         "ENGINE": "Motor",
         "VIN": "Número VIN",
-        "NEXT_MOT": "Próxima ITV / Entrada"
+        "NEXT_MOT": "Próxima ITV / Entrada",
+        "RECEPTION_DETAILS": "Detalles de Recepción",
+        "DISTANCE_UNIT": "Unidad de Distancia"
       },
       "ASSIGNMENT": {
         "TITLE": "Cliente y Asignación",
