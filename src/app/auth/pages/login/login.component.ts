@@ -38,6 +38,10 @@ export class LoginComponent {
   public isLoading = false;
   public showPassword = false;
 
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
   login() {
     if (this.form.invalid) return;
     const { userName, password } = this.form.value;
