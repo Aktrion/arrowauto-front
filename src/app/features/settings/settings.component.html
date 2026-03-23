@@ -204,7 +204,11 @@
         <app-tyre-configurations></app-tyre-configurations>
       }
 
-      <!-- Save Button -->
+      <!-- Items Configurations -->
+      @if (activeSection() === 'items-configuration') {
+        <app-items-configuration></app-items-configuration>
+      }
+
       <!-- Save Button -->
       @if (
         activeSection() !== 'inspection-templates' && activeSection() !== 'tyre-configurations'

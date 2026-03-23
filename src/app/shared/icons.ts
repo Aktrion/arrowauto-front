@@ -69,6 +69,7 @@ import {
   Database,
   Play,
   History,
+  Hammer,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -142,4 +143,5 @@ export const ICONS = {
   Database,
   Play,
   History,
+  Hammer,
 };

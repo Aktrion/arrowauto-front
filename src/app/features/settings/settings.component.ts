@@ -6,6 +6,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '@shared/icons';
 import { InspectionTemplatesListComponent } from '@features/settings/inspection-templates/inspection-templates-list/inspection-templates-list.component';
 import { TyreConfigurationsComponent } from '@features/settings/tyre-configurations/tyre-configurations.component';
+import { ItemsConfiguration } from './items-configuration/items-configuration';
 
 @Component({
   selector: 'app-settings',
@@ -15,6 +16,7 @@ import { TyreConfigurationsComponent } from '@features/settings/tyre-configurati
     LucideAngularModule,
     InspectionTemplatesListComponent,
     TyreConfigurationsComponent,
+    ItemsConfiguration,
   ],
   templateUrl: './settings.component.html',
 })
@@ -56,6 +58,11 @@ export class SettingsComponent implements OnInit {
       id: 'tyre-configurations',
       name: 'Tyre Configurations',
       icon: this.icons.Disc,
+    },
+    {
+      id: 'items-configuration',
+      name: 'Items',
+      icon: this.icons.Hammer,
     },
   ];
 
@@ -99,7 +106,9 @@ export class SettingsComponent implements OnInit {
           this.savingOperation.set(false);
           this.showOperationForm.set(false);
           this.editingOperationId.set(null);
-          this.operationService.fetchOperationMasters().subscribe((ops) => this.operations.set(ops));
+          this.operationService
+            .fetchOperationMasters()
+            .subscribe((ops) => this.operations.set(ops));
         },
         error: () => {
           this.savingOperation.set(false);
@@ -110,7 +119,9 @@ export class SettingsComponent implements OnInit {
         next: () => {
           this.savingOperation.set(false);
           this.showOperationForm.set(false);
-          this.operationService.fetchOperationMasters().subscribe((ops) => this.operations.set(ops));
+          this.operationService
+            .fetchOperationMasters()
+            .subscribe((ops) => this.operations.set(ops));
         },
         error: () => {
           this.savingOperation.set(false);
