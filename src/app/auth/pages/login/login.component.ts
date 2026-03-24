@@ -43,18 +43,17 @@ export class LoginComponent {
     if (this.form.invalid) return;
     const { userName, password, remember } = this.form.value;
     this.isLoading = true;
-    this.authStore
-      .login(userName as string, password as string, !!remember)
-      .subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.toastService.success('Login successful');
-        },
-        error: (err) => {
-          this.isLoading = false;
-          this.toastService.error(err.error?.message ?? 'Login failed');
-          console.error('Login failed', err);
-        },
-      });
+    this.authStore.login(userName as string, password as string, !!remember).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.toastService.success('Login successful');
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.toastService.error(err.error?.message ?? 'Login failed');
+        console.error('Login failed', err);
+      },
+    });
   }
 }
