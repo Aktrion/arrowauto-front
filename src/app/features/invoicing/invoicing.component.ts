@@ -1,8 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
 import { ClientService } from '@features/clients/services/client.service';
 import { UserService } from '@core/services/user.service';
@@ -15,6 +15,7 @@ import { MongoEntity } from '@shared/models/mongo-entity.model';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { OperationInstancesApiService } from '@shared/services/api/operation-instances-api.service';
 import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
+import { concatMap, forkJoin, of } from 'rxjs';
 
 interface InvoicingRow extends MongoEntity {
   id: string;
@@ -48,6 +49,7 @@ export class InvoicingComponent extends BaseListDirective<
   private operationInstancesApi = inject(OperationInstancesApiService);
   private userService = inject(UserService);
   private clientService = inject(ClientService);
+  private translateService = inject(TranslateService);
 
   activeTab = signal<'pending' | 'completed' | 'invoiced'>('pending');
   selectedRows = signal<InvoicingRow[]>([]);
@@ -61,26 +63,28 @@ export class InvoicingComponent extends BaseListDirective<
     })),
   );
 
-  pendingCount = computed(() => this.tabCounts().pending);
-  readyToInvoiceCount = computed(() => this.tabCounts().completed);
+  /** All rows (unfiltered) used for computing summary counts */
+  allRows = signal<InvoicingRow[]>([]);
+
+  pendingCount = computed(() =>
+    this.allRows().filter((r) => ['pending', 'scheduled', 'in_progress'].includes(r.status)).length,
+  );
+  readyToInvoiceCount = computed(() =>
+    this.allRows().filter((r) => r.status === 'completed').length,
+  );
   invoicedTodayCount = computed(() => {
     const today = new Date().toDateString();
-    return this.gridConfig.rowData.filter((row) => {
-      if (row.status !== 'invoiced') return false;
-      if (!row.completedAt) return false;
-      return new Date(row.completedAt).toDateString() === today;
-    }).length;
+    return this.allRows().filter(
+      (r) => r.status === 'invoiced' && r.completedAt && new Date(r.completedAt).toDateString() === today,
+    ).length;
   });
   totalRevenueToday = computed(() => {
     const today = new Date().toDateString();
-    return this.gridConfig.rowData
+    return this.allRows()
       .filter(
-        (row) =>
-          row.status === 'invoiced' &&
-          row.completedAt &&
-          new Date(row.completedAt).toDateString() === today,
+        (r) => r.status === 'invoiced' && r.completedAt && new Date(r.completedAt).toDateString() === today,
       )
-      .reduce((sum, row) => sum + Number(row.total || 0), 0);
+      .reduce((sum, r) => sum + Number(r.total || 0), 0);
   });
 
   selectedItem = signal<InvoicingRow | null>(null);
@@ -154,8 +158,22 @@ export class InvoicingComponent extends BaseListDirective<
       ],
     };
 
+    // Apply initial tab filter
+    this.applyTabFilter(this.activeTab());
+
     this.userService.fetchUsers().subscribe((u) => this.users.set(u));
     this.clientService.fetchClients().subscribe((c) => this.clients.set(c));
+  }
+
+  override ngOnInit(): void {
+    super.ngOnInit();
+    this.refreshCounts();
+  }
+
+  private refreshCounts(): void {
+    this.operationInstancesApi
+      .searchInvoicing({ page: 1, limit: 5000 })
+      .subscribe((res) => this.allRows.set((res?.data || []) as InvoicingRow[]));
   }
 
   protected getTitle(): string {
@@ -243,7 +261,7 @@ export class InvoicingComponent extends BaseListDirective<
     const tab = this.activeTab();
     state.filters = state.filters || {};
     if (tab === 'pending') {
-      state.filters.status = { value: ['pending', 'scheduled', 'in_progress'], operator: 'in' };
+      state.filters.status = { value: ['pending', 'scheduled', 'in_progress', 'pending_estimation', 'pending_approval'], operator: 'in' };
     } else if (tab === 'completed') {
       state.filters.status = { value: 'completed', operator: 'equals' };
     } else {
@@ -256,7 +274,19 @@ export class InvoicingComponent extends BaseListDirective<
     this.activeTab.set(tab);
     this.selectedRows.set([]);
     this.searchRequest.page = 1;
+    this.applyTabFilter(tab);
     this.loadItems();
+  }
+
+  private applyTabFilter(tab: 'pending' | 'completed' | 'invoiced'): void {
+    this.searchRequest.clearFilters();
+    if (tab === 'pending') {
+      this.searchRequest.addFilter('status', { value: ['pending', 'scheduled', 'in_progress', 'pending_estimation', 'pending_approval'], operator: 'in' });
+    } else if (tab === 'completed') {
+      this.searchRequest.addFilter('status', { value: 'completed', operator: 'equals' });
+    } else {
+      this.searchRequest.addFilter('status', { value: 'invoiced', operator: 'equals' });
+    }
   }
 
   openCompleteModal(row: InvoicingRow): void {
@@ -291,35 +321,51 @@ export class InvoicingComponent extends BaseListDirective<
         next: () => {
           (document.getElementById('complete_modal') as HTMLDialogElement)?.close();
           this.loadItems();
+          this.refreshCounts();
         },
       });
   }
 
   markAsInvoiced(row: InvoicingRow): void {
     if (!row.id) return;
-    this.operationInstancesApi.update(row.id, { status: 'invoiced' }).subscribe({
-      next: () => {
-        if (row.vehicleInstanceId) {
-          this.instanceApi.update(row.vehicleInstanceId, { status: 'invoiced' } as any).subscribe();
-        }
-        this.loadItems();
-      },
-    });
+    this.operationInstancesApi
+      .update(row.id, { status: 'invoiced' })
+      .pipe(
+        concatMap(() =>
+          row.vehicleInstanceId
+            ? this.instanceApi.update(row.vehicleInstanceId, { status: 'invoiced' } as any)
+            : of(null),
+        ),
+      )
+      .subscribe({
+        next: () => {
+          this.loadItems();
+          this.refreshCounts();
+        },
+      });
   }
 
   invoiceSelection(): void {
     const rows = this.selectedRows();
     if (!rows.length) return;
-    rows.forEach((row) => {
-      if (!row.id) return;
-      this.operationInstancesApi.update(row.id, { status: 'invoiced' }).subscribe();
-      if (row.vehicleInstanceId) {
-        this.instanceApi.update(row.vehicleInstanceId, { status: 'invoiced' } as any).subscribe();
-      }
+
+    const opUpdates = rows
+      .filter((row) => !!row.id)
+      .map((row) => this.operationInstancesApi.update(row.id, { status: 'invoiced' }));
+
+    const instanceIds = [...new Set(rows.filter((r) => !!r.vehicleInstanceId).map((r) => r.vehicleInstanceId!))];
+    const instanceUpdates = instanceIds.map((id) =>
+      this.instanceApi.update(id, { status: 'invoiced' } as any),
+    );
+
+    forkJoin([...opUpdates, ...instanceUpdates]).subscribe({
+      next: () => {
+        this.selectedRows.set([]);
+        this.selectedItems = [];
+        this.loadItems();
+        this.refreshCounts();
+      },
     });
-    this.selectedRows.set([]);
-    this.selectedItems = [];
-    this.loadItems();
   }
 
   clearSelection(): void {
@@ -328,16 +374,9 @@ export class InvoicingComponent extends BaseListDirective<
   }
 
   getClientName(clientId?: string): string {
-    if (!clientId) return 'Walk-in Client';
-    return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Walk-in Client';
+    const walkIn = this.translateService.instant('INVOICING.WALK_IN');
+    if (!clientId) return walkIn;
+    return this.clientService.getClientById(this.clients(), clientId)?.name ?? walkIn;
   }
 
-  private tabCounts() {
-    const rows = this.gridConfig.rowData || [];
-    return {
-      pending: rows.filter((r) => ['pending', 'scheduled', 'in_progress'].includes(r.status))
-        .length,
-      completed: rows.filter((r) => r.status === 'completed').length,
-    };
-  }
 }

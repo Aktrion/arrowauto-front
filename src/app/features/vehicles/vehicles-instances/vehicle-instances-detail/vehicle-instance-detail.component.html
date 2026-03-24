@@ -517,190 +517,286 @@
 
   <!-- Tab Content: Operations (Full Width) -->
   @if (activeTab() === 'operations') {
-    <div>
-      <div class="card bg-base-100 shadow-xl rounded-2xl border border-base-200 p-4 sm:p-8">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-7">
+    <div class="space-y-4">
+
+      <!-- Top bar: progress + submit -->
+      <div class="card bg-base-100 shadow-sm rounded-2xl border border-base-200 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex-1">
+          <h3 class="font-bold text-lg text-base-content">
+            {{ 'VEHICLE.DETAIL.OPERATIONS.TITLE' | translate }}
+          </h3>
+          <p class="text-xs text-base-content/50">
+            {{ 'VEHICLE.DETAIL.OPERATIONS.SUBTITLE' | translate }}
+          </p>
+        </div>
+        <div class="flex items-center gap-4">
           <div>
-            <h3 class="font-bold text-xl text-base-content">
-              {{ 'VEHICLE.DETAIL.OPERATIONS.TITLE' | translate }}
-            </h3>
-            <p class="text-sm text-base-content/60">
-              {{ 'VEHICLE.DETAIL.OPERATIONS.SUBTITLE' | translate }}
-            </p>
-          </div>
-          <div class="rounded-xl border border-base-200 bg-base-100 px-4 py-2">
-            <p class="text-xs font-semibold text-base-content/60">
+            <p class="text-xs font-semibold text-base-content/60 mb-1">
               {{ getOperationsStats(operationsVehicleIdOrInstanceId()).completed }} /
-              {{ getOperationsStats(operationsVehicleIdOrInstanceId()).total }}
-              completed
+              {{ getOperationsStats(operationsVehicleIdOrInstanceId()).total }} completed
             </p>
             <progress
-              class="progress progress-primary h-2 w-40"
+              class="progress progress-primary h-2 w-36"
               [value]="getOperationsStats(operationsVehicleIdOrInstanceId()).progress"
               max="100"
             ></progress>
           </div>
-        </div>
-
-        @if (
-          formModel().status === 'pending_estimation' &&
-          getVehicleOperations(operationsVehicleIdOrInstanceId()).length >
-            0
-        ) {
-          <div class="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-xl">
-            <button
-              (click)="submitToCustomer()"
-              class="btn btn-warning gap-2 font-bold"
-              [disabled]="isSubmittingToCustomer()"
-            >
-              @if (isSubmittingToCustomer()) {
-                <span class="loading loading-spinner loading-sm"></span>
-              } @else {
-                <lucide-icon [name]="icons.Send" class="h-4 w-4"></lucide-icon>
-              }
+          @if (formModel().status === 'pending_estimation' && getVehicleOperations(operationsVehicleIdOrInstanceId()).length > 0) {
+            <button (click)="submitToCustomer()" class="btn btn-warning btn-sm gap-2 font-bold" [disabled]="isSubmittingToCustomer()">
+              @if (isSubmittingToCustomer()) { <span class="loading loading-spinner loading-xs"></span> }
+              @else { <lucide-icon [name]="icons.Send" class="h-4 w-4"></lucide-icon> }
               Submit to Customer
             </button>
-            <p class="text-sm text-base-content/60 mt-2">
-              Send estimation to customer for approval. Vehicle status will change to Pending Approval.
-            </p>
-          </div>
-        }
-
-        <!-- Add Operation Selector -->
-        <div
-          class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6 p-4 bg-base-200/30 rounded-xl border border-base-200/50"
-        >
-          <app-select
-            [options]="masterOperationSelectOptions()"
-            [selectedValue]="selectedOperationId()"
-            (selectionChange)="selectedOperationId.set($event || '')"
-            [placeholder]="'Select an operation to add...'"
-            class="flex-1"
-          ></app-select>
-          <button
-            (click)="addOperationFromMaster()"
-            class="btn btn-primary btn-sm gap-2 font-bold"
-            [disabled]="!selectedOperationId()"
-          >
-            <lucide-icon [name]="icons.Plus" class="h-4 w-4"></lucide-icon>
-            Add
-          </button>
-        </div>
-
-        <div class="space-y-3.5">
-          @for (
-            op of getVehicleOperations(operationsVehicleIdOrInstanceId());
-            track op.id
-          ) {
-            <div
-              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-gradient-to-r from-base-100 to-base-200/60 border border-base-200 rounded-2xl hover:shadow-md hover:border-primary/20 transition-all group"
-            >
-              <div class="flex items-center gap-4 min-w-0">
-                <div
-                  class="w-12 h-12 rounded-xl bg-base-100 border border-base-300 shadow-sm flex items-center justify-center text-primary font-bold"
-                >
-                  {{ op.operation?.code }}
-                </div>
-                <div class="min-w-0">
-                  <p
-                    class="font-bold text-base-content group-hover:text-primary transition-colors truncate"
-                  >
-                    {{ op.operation?.name }}
-                  </p>
-                  <div class="flex items-center gap-2 mt-1">
-                    <input
-                      type="number"
-                      class="input input-xs input-bordered w-[72px]"
-                      title="Duration (min)"
-                      [ngModel]="op.actualDuration ?? op.operation?.estimatedDuration"
-                      (change)="updateOperationField(op, 'duration', $event)"
-                    />
-                    <span class="text-xs text-base-content/50 font-medium">min</span>
-                    <span class="text-base-content/30 text-xs">&bull;</span>
-                    <span class="text-xs text-base-content/50 font-medium tracking-tighter">£</span>
-                    <input
-                      type="number"
-                      class="input input-xs input-bordered w-[72px]"
-                      title="Rate (/hr)"
-                      [ngModel]="op.hourlyRate ?? op.operation?.defaultPrice"
-                      (change)="updateOperationField(op, 'rate', $event)"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center justify-between sm:justify-end gap-3">
-                @if (
-                  op.status === 'pending' ||
-                  op.status === 'scheduled' ||
-                  op.status === 'in_progress'
-                ) {
-                  <div class="flex gap-1">
-                    @if (op.status !== 'in_progress') {
-                      <button
-                        (click)="updateOperationStatus(op, 'in_progress')"
-                        class="btn btn-ghost btn-sm btn-square text-success/70 hover:text-success hover:bg-success/10"
-                        title="Start"
-                        [disabled]="isOperationSaving(op.id)"
-                      >
-                        <lucide-icon [name]="icons.Play" class="h-4 w-4"></lucide-icon>
-                      </button>
-                    }
-                    <button
-                      (click)="updateOperationStatus(op, 'completed')"
-                      class="btn btn-ghost btn-sm btn-square text-primary hover:bg-primary/10"
-                      title="Complete"
-                      [disabled]="isOperationSaving(op.id)"
-                    >
-                      <lucide-icon [name]="icons.CircleCheckBig" class="h-4 w-4"></lucide-icon>
-                    </button>
-                  </div>
-                }
-                <app-select
-                  [options]="operationStatusSelectOptions"
-                  [selectedValue]="op.status"
-                  (selectionChange)="updateOperationStatus(op, $event)"
-                  [disabled]="isOperationSaving(op.id)"
-                  [clearable]="false"
-                  [placeholder]="'Select status'"
-                ></app-select>
-                @if (isOperationSaving(op.id)) {
-                  <span class="loading loading-spinner loading-sm text-primary"></span>
-                } @else {
-                  <span
-                    class="status-badge px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider"
-                    [class]="getOperationStatusClass(op.status)"
-                  >
-                    {{ formatStatus(op.status) }}
-                  </span>
-                }
-                <button
-                  (click)="removeOperation(op)"
-                  class="btn btn-ghost btn-sm btn-square text-error/60 hover:text-error hover:bg-error/10"
-                  title="Remove operation"
-                >
-                  <lucide-icon [name]="icons.Trash2" class="h-4 w-4"></lucide-icon>
-                </button>
-              </div>
-            </div>
-          } @empty {
-            <div
-              class="text-center py-16 bg-base-200/20 rounded-3xl border-2 border-dashed border-base-200"
-            >
-              <div
-                class="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <lucide-icon
-                  [name]="icons.ClipboardList"
-                  class="h-8 w-8 text-base-content/20"
-                ></lucide-icon>
-              </div>
-              <p class="text-base-content/60 font-medium">
-                {{ 'VEHICLE.DETAIL.OPERATIONS.EMPTY.TITLE' | translate }}
-              </p>
-            </div>
           }
         </div>
       </div>
+
+      <!-- Add operation -->
+      <div class="flex items-center gap-3 px-1">
+        <app-select
+          [options]="masterOperationSelectOptions()"
+          [selectedValue]="selectedOperationId()"
+          (selectionChange)="selectedOperationId.set($event || '')"
+          [placeholder]="'Select an operation to add...'"
+          class="flex-1"
+        ></app-select>
+        <button (click)="addOperationFromMaster()" class="btn btn-primary btn-sm gap-2 font-bold" [disabled]="!selectedOperationId()">
+          <lucide-icon [name]="icons.Plus" class="h-4 w-4"></lucide-icon>
+          Add
+        </button>
+      </div>
+
+      <!-- Standard Items table -->
+      <div class="card bg-base-100 shadow-sm rounded-2xl border border-base-200 overflow-hidden">
+        <div class="ops-table-header flex items-center gap-2 px-4 py-2 bg-base-200/60 border-b border-base-300">
+          <lucide-icon [name]="icons.ClipboardList" class="h-4 w-4 text-base-content/50"></lucide-icon>
+          <span class="text-xs font-bold uppercase tracking-wider text-base-content/60">Standard Items</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+
+            <!-- Main header -->
+            <thead>
+              <tr class="bg-base-200/40 border-b border-base-200 text-base-content/60 font-semibold uppercase tracking-wide">
+                <th class="w-8 px-2 py-2"></th>
+                <th class="px-2 py-2 text-left w-10">Media</th>
+                <th class="px-2 py-2 text-left min-w-[160px]">Item Description</th>
+                <th class="px-2 py-2 text-right">T. Parts</th>
+                <th class="px-2 py-2 text-right">L. Time</th>
+                <th class="px-2 py-2 text-right">L. Rate</th>
+                <th class="px-2 py-2 text-right">L. Total</th>
+                <th class="px-2 py-2 text-right">Item Net</th>
+                <th class="px-2 py-2 text-right">Item VAT</th>
+                <th class="px-2 py-2 text-right">Item Total</th>
+                <th class="px-2 py-2 w-24"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (op of getVehicleOperations(operationsVehicleIdOrInstanceId()); track op.id) {
+
+                <!-- ── Main operation row ── -->
+                <tr class="border-b border-base-200 hover:bg-base-200/30 cursor-pointer transition-colors"
+                    (click)="toggleOpExpand(op.id)">
+                  <td class="px-2 py-2 text-center text-base-content/40">
+                    <lucide-icon [name]="isOpExpanded(op.id) ? icons.ChevronDown : icons.ChevronRight" class="h-3.5 w-3.5"></lucide-icon>
+                  </td>
+                  <td class="px-2 py-2">
+                    <div class="w-6 h-6 rounded bg-warning flex items-center justify-center">
+                      <lucide-icon [name]="icons.Wrench" class="h-3.5 w-3.5 text-warning-content"></lucide-icon>
+                    </div>
+                  </td>
+                  <td class="px-2 py-2">
+                    <p class="font-semibold text-base-content">{{ op.labourDescription || op.operation?.name || '—' }}</p>
+                    @if (op.labourDescription && op.operation?.name) {
+                      <p class="text-base-content/50">{{ op.operation?.name }}</p>
+                    }
+                  </td>
+                  <td class="px-2 py-2 text-right font-mono">{{ formatGbp(getPartsExcVat(op.id)) }}</td>
+                  <td class="px-2 py-2 text-right font-mono">{{ (op.timeAllowed || 0).toFixed(2) }}</td>
+                  <td class="px-2 py-2 text-right font-mono">{{ formatGbp(op.ratePerHour || 0) }}</td>
+                  <td class="px-2 py-2 text-right font-mono">{{ formatGbp(getLabourExcVat(op)) }}</td>
+                  <td class="px-2 py-2 text-right font-mono font-semibold">{{ formatGbp(getItemNet(op)) }}</td>
+                  <td class="px-2 py-2 text-right font-mono">{{ formatGbp(getItemVat(op)) }}</td>
+                  <td class="px-2 py-2 text-right font-mono font-bold text-base-content">{{ formatGbp(getItemTotal(op)) }}</td>
+                  <td class="px-2 py-2" (click)="$event.stopPropagation()">
+                    <div class="flex items-center gap-1 justify-end">
+                      <app-select
+                        [options]="operationStatusSelectOptions"
+                        [selectedValue]="op.status"
+                        (selectionChange)="updateOperationStatus(op, $event)"
+                        [disabled]="isOperationSaving(op.id)"
+                        [clearable]="false"
+                        [placeholder]="'Status'"
+                      ></app-select>
+                      <button (click)="removeOperation(op)" class="btn btn-ghost btn-xs btn-square text-error/60 hover:text-error" title="Remove">
+                        <lucide-icon [name]="icons.Trash2" class="h-3.5 w-3.5"></lucide-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- ── Expanded: parts + labour ── -->
+                @if (isOpExpanded(op.id)) {
+
+                  <!-- Labour sub-header -->
+                  <tr class="bg-base-200/20 border-b border-base-200/60">
+                    <td colspan="2"></td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Time (hrs)</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Rate £/hr</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Labour Code</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50" colspan="2">Labour Description</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50 text-right">Total Exc VAT</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50 text-right">VAT %</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50 text-right">Total Inc VAT</td>
+                    <td class="px-2 py-1.5"></td>
+                  </tr>
+
+                  <!-- Labour row -->
+                  <tr class="border-b border-base-300 bg-primary/5">
+                    <td colspan="2"></td>
+                    <td class="px-2 py-1.5">
+                      <input type="number" min="0" step="0.1" class="input input-bordered input-xs w-[64px] text-right"
+                        [ngModel]="op.timeAllowed || 0"
+                        (change)="updateLabourField(op, 'timeAllowed', +$any($event.target).value)" />
+                    </td>
+                    <td class="px-2 py-1.5">
+                      <input type="number" min="0" step="1" class="input input-bordered input-xs w-[70px] text-right"
+                        [ngModel]="op.ratePerHour || 0"
+                        (change)="updateLabourField(op, 'ratePerHour', +$any($event.target).value)" />
+                    </td>
+                    <td class="px-2 py-1.5">
+                      <input class="input input-bordered input-xs w-[80px]"
+                        [ngModel]="op.labourCode || ''"
+                        (change)="updateLabourField(op, 'labourCode', $any($event.target).value)"
+                        placeholder="LAB" />
+                    </td>
+                    <td class="px-2 py-1.5" colspan="2">
+                      <input class="input input-bordered input-xs w-full"
+                        [ngModel]="op.labourDescription || ''"
+                        (change)="updateLabourField(op, 'labourDescription', $any($event.target).value)"
+                        placeholder="Labour description…" />
+                    </td>
+                    <td class="px-2 py-1.5 text-right font-mono font-semibold">
+                      {{ formatGbp(getLabourExcVat(op)) }}
+                    </td>
+                    <td class="px-2 py-1.5">
+                      <select class="select select-bordered select-xs w-[64px]"
+                        [ngModel]="op.vat ?? 20"
+                        (ngModelChange)="updateLabourField(op, 'vat', $event)">
+                        @for (v of VAT_OPTIONS; track v) {
+                          <option [value]="v">{{ v }}</option>
+                        }
+                      </select>
+                    </td>
+                    <td class="px-2 py-1.5 text-right font-mono font-bold">
+                      {{ formatGbp(getLabourTotalIncVat(op)) }}
+                    </td>
+                    <td class="px-2 py-1.5"></td>
+                  </tr>
+
+                  <!-- Parts sub-header -->
+                  <tr class="bg-base-200/20 border-b border-base-200/60">
+                    <td colspan="2"></td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Part Category</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50" colspan="2">Part Description</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Part Number</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50 text-right">Price</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50 text-right">Qty</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50 text-right">P. Total</td>
+                    <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50 text-right">P. VAT %</td>
+                    <td class="px-2 py-1.5"></td>
+                  </tr>
+
+                  <!-- Part rows -->
+                  @for (part of getOpParts(op.id); track part._id) {
+                    <tr class="border-b border-base-200/40 bg-base-100 hover:bg-blue-50/20">
+                      <td colspan="2"></td>
+                      <td class="px-2 py-1.5">
+                        <select class="select select-bordered select-xs w-full min-w-[90px]"
+                          [ngModel]="part.partCategory"
+                          (ngModelChange)="updatePartField(part, 'partCategory', $event)">
+                          <option value="MISC">MISC</option>
+                          <option value="OIL">OIL</option>
+                          <option value="TYRE">TYRE</option>
+                          <option value="BRAKE">BRAKE</option>
+                          <option value="BODY">BODY</option>
+                          <option value="ELEC">ELEC</option>
+                          <option value="OTHER">OTHER</option>
+                        </select>
+                      </td>
+                      <td class="px-2 py-1.5" colspan="2">
+                        <input class="input input-bordered input-xs w-full min-w-[120px]"
+                          [ngModel]="part.partDescription"
+                          (change)="updatePartField(part, 'partDescription', $any($event.target).value)"
+                          placeholder="Description" />
+                      </td>
+                      <td class="px-2 py-1.5">
+                        <input class="input input-bordered input-xs w-full min-w-[80px]"
+                          [ngModel]="part.partNumber"
+                          (change)="updatePartField(part, 'partNumber', $any($event.target).value)"
+                          placeholder="Part No." />
+                      </td>
+                      <td class="px-2 py-1.5">
+                        <input type="number" min="0" step="0.01" class="input input-bordered input-xs w-[70px] text-right"
+                          [ngModel]="part.price"
+                          (change)="updatePartField(part, 'price', +$any($event.target).value)" />
+                      </td>
+                      <td class="px-2 py-1.5">
+                        <input type="number" min="0" step="1" class="input input-bordered input-xs w-[60px] text-right"
+                          [ngModel]="part.qty"
+                          (change)="updatePartField(part, 'qty', +$any($event.target).value)" />
+                      </td>
+                      <td class="px-2 py-1.5 text-right font-mono">
+                        {{ formatGbp((part.qty || 0) * (part.price || 0)) }}
+                      </td>
+                      <td class="px-2 py-1.5">
+                        <select class="select select-bordered select-xs w-[64px]"
+                          [ngModel]="part.vat"
+                          (ngModelChange)="updatePartField(part, 'vat', $event)">
+                          @for (v of VAT_OPTIONS; track v) {
+                            <option [value]="v">{{ v }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td class="px-2 py-1.5 text-center">
+                        <button class="btn btn-ghost btn-xs btn-square text-error/60 hover:text-error" (click)="deletePart(part)" title="Delete part">
+                          <lucide-icon [name]="icons.Trash2" class="h-3.5 w-3.5"></lucide-icon>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+
+                  <!-- Add part row -->
+                  <tr class="border-b border-base-200/40 bg-base-200/10">
+                    <td colspan="2"></td>
+                    <td colspan="9" class="px-2 py-1.5">
+                      <button class="btn btn-ghost btn-xs gap-1.5 text-primary" (click)="addPart(op.id); $event.stopPropagation()">
+                        <lucide-icon [name]="icons.Plus" class="h-3.5 w-3.5"></lucide-icon>
+                        Add Part
+                      </button>
+                    </td>
+                  </tr>
+
+                } <!-- end expanded -->
+
+              } @empty {
+                <tr>
+                  <td colspan="11">
+                    <div class="text-center py-16 text-base-content/50">
+                      <lucide-icon [name]="icons.ClipboardList" class="h-10 w-10 mx-auto mb-3 opacity-20"></lucide-icon>
+                      <p class="font-medium">{{ 'VEHICLE.DETAIL.OPERATIONS.EMPTY.TITLE' | translate }}</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+
     </div>
   }
 

@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, of, switchMap, catchError } from 'rxjs';
+import { Observable, forkJoin, map, of } from 'rxjs';
 import { Operation, OperationStatus, VehicleOperation } from '@shared/models/operation.model';
 import { OperationMaster } from '@shared/models/operation.model';
-import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
 import { OperationsApiService } from '@shared/services/api/operations-api.service';
 import { OperationInstancesApiService } from '@shared/services/api/operation-instances-api.service';
+import { ReplacementPartsApiService, ReplacementPart } from '@shared/services/api/replacement-parts-api.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +12,7 @@ import { OperationInstancesApiService } from '@shared/services/api/operation-ins
 export class OperationService {
   private readonly operationsApi = inject(OperationsApiService);
   private readonly operationInstancesApi = inject(OperationInstancesApiService);
-  private readonly instanceApi = inject(VehicleInstancesApiService);
+  private readonly replacementPartsApi = inject(ReplacementPartsApiService);
 
   // --- Operation Masters (catálogo, API /operations) ---
 
@@ -34,10 +34,6 @@ export class OperationService {
 
   // --- Vehicle Operations (workflow) ---
 
-  /**
-   * Fetch operations (status steps) and vehicle operations from backend.
-   * Returns fresh data; components store in local state.
-   */
   fetchData(): Observable<{ operations: Operation[]; vehicleOperations: VehicleOperation[] }> {
     return this.operationInstancesApi.getWorkflowData();
   }
@@ -54,8 +50,9 @@ export class OperationService {
     );
   }
 
+  /** Creates an OperationInstance in the backend and returns the raw API response. */
   addVehicleOperationFromMaster(
-    vehicleId: string,
+    vehicleInstanceId: string,
     master: {
       id: string;
       shortName: string;
@@ -63,38 +60,19 @@ export class OperationService {
       defaultDuration: number;
       defaultRatePerHour: number;
     },
-    currentVehicleOps: VehicleOperation[],
-  ): Observable<VehicleOperation | null> {
-    const operation: Operation = {
-      id: master.id,
-      code: master.shortName.slice(0, 6).toUpperCase(),
-      name: master.shortName,
-      description: master.description,
-      estimatedDuration: master.defaultDuration,
-      defaultPrice: master.defaultRatePerHour,
-      category: 'other',
-    };
-    const newOperation: VehicleOperation = {
-      id: `${vehicleId}-${master.id}-${Date.now()}`,
-      vehicleId,
+  ): Observable<any> {
+    return this.operationInstancesApi.create({
+      vehicleInstanceId,
       operationId: master.id,
-      operation,
       status: 'pending',
-      hourlyRate: master.defaultRatePerHour,
-    };
-
-    return this.persistVehicleOperations(vehicleId, [...currentVehicleOps, newOperation]).pipe(
-      map(() => newOperation),
-    );
+      timeAllowed: master.defaultDuration,
+      ratePerHour: master.defaultRatePerHour,
+    });
   }
 
-  removeVehicleOperation(
-    vehicleId: string,
-    operationInstanceId: string,
-    currentVehicleOps: VehicleOperation[],
-  ): Observable<unknown> {
-    const filtered = currentVehicleOps.filter((op) => op.id !== operationInstanceId);
-    return this.persistVehicleOperations(vehicleId, filtered);
+  /** Deletes an OperationInstance from the backend by its ID. */
+  removeVehicleOperation(operationInstanceId: string): Observable<unknown> {
+    return this.operationInstancesApi.deleteOne(operationInstanceId);
   }
 
   assignVehicleOperation(
@@ -112,93 +90,53 @@ export class OperationService {
   updateVehicleOperation(
     id: string,
     updates: Partial<VehicleOperation>,
-    vehicleOperations?: VehicleOperation[],
   ): Observable<VehicleOperation | null> {
-    const isMongoId = /^[a-f\d]{24}$/i.test(id);
-    if (isMongoId) {
-      const payload: Record<string, unknown> = {
-        status: updates.status,
-        price: updates.actualPrice,
-        assignedUser: updates.assignedUserId,
-        scheduledDate: updates.scheduledDate,
-      };
-      Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
+    const payload: Record<string, unknown> = {
+      status: updates.status,
+      assignedUser: updates.assignedUserId,
+      scheduledDate: updates.scheduledDate,
+      scheduledTime: updates.scheduledTime,
+      timeAllowed: updates.timeAllowed,
+      ratePerHour: updates.ratePerHour,
+      vat: updates.vat,
+      labourCode: updates.labourCode,
+      labourDescription: updates.labourDescription,
+    };
+    Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key]);
 
-      return this.operationInstancesApi.update(id, payload).pipe(
-        map(() => {
-          const updated: VehicleOperation = {
-            id,
-            vehicleId: '',
-            operationId: '',
-            operation: { id: '', code: '', name: '', category: 'other', estimatedDuration: 0, defaultPrice: 0 },
-            status: 'pending',
-            ...updates,
-          };
-          return updated;
-        }),
-      );
-    }
-
-    const current = vehicleOperations?.find((op) => op.id === id);
-    if (!current) return of(null);
-
-    const updated: VehicleOperation = { ...current, ...updates };
-    const vehicleOps = vehicleOperations!.map((item) => (item.id === id ? updated : item));
-    return this.persistVehicleOperations(current.vehicleId, vehicleOps).pipe(map(() => updated));
-  }
-
-  bulkMarkInvoiced(
-    ids: string[],
-    vehicleOperations: VehicleOperation[],
-  ): Observable<unknown> {
-    const byVehicle = new Map<string, VehicleOperation[]>();
-    vehicleOperations
-      .filter((op) => ids.includes(op.id))
-      .forEach((op) => {
-        const list = byVehicle.get(op.vehicleId) || [];
-        list.push(op);
-        byVehicle.set(op.vehicleId, list);
-      });
-
-    const updates = Array.from(byVehicle.entries()).map(([vehicleId, ops]) => {
-      const current = this.getVehicleOperationsByVehicleId(vehicleOperations, vehicleId);
-      const next = current.map((op) =>
-        ops.some((target) => target.id === op.id)
-          ? {
-              ...op,
-              status: 'invoiced' as OperationStatus,
-              completedAt: op.completedAt || new Date(),
-            }
-          : op,
-      );
-      return this.persistVehicleOperations(vehicleId, next);
-    });
-
-    if (updates.length === 0) return of(null);
-
-    return updates.reduce(
-      (acc, request) => acc.pipe(switchMap(() => request)),
-      of(null) as Observable<unknown>,
+    return this.operationInstancesApi.update(id, payload).pipe(
+      map(() => ({
+        id,
+        vehicleId: '',
+        vehicleInstanceId: '',
+        operationId: '',
+        operation: { id: '', code: '', name: '', category: 'other' as const, estimatedDuration: 0, defaultPrice: 0 },
+        status: 'pending' as OperationStatus,
+        ...updates,
+      })),
     );
   }
 
-  /**
-   * Operations are stored in OperationInstance. This method is kept for API compatibility
-   * but no longer persists to VehicleInstance (services/operations removed).
-   */
-  private persistVehicleOperations(
-    _vehicleId: string,
-    _operations: VehicleOperation[],
-  ): Observable<unknown> {
-    return of(null);
+  // --- Replacement Parts ---
+
+  getReplacementParts(operationInstanceId: string): Observable<ReplacementPart[]> {
+    return this.replacementPartsApi.findByOperationInstance(operationInstanceId);
   }
 
-  private normalizeOperationForStore(operation: VehicleOperation): VehicleOperation {
-    return {
-      ...operation,
-      scheduledDate: operation.scheduledDate ? new Date(operation.scheduledDate) : undefined,
-      completedAt: operation.completedAt ? new Date(operation.completedAt) : undefined,
-    };
+  createReplacementPart(data: Omit<ReplacementPart, '_id'>): Observable<ReplacementPart> {
+    return this.replacementPartsApi.create(data) as Observable<ReplacementPart>;
   }
 
+  updateReplacementPart(id: string, data: Partial<ReplacementPart>): Observable<ReplacementPart> {
+    return this.replacementPartsApi.update(id, data) as Observable<ReplacementPart>;
+  }
+
+  deleteReplacementPart(id: string): Observable<unknown> {
+    return this.replacementPartsApi.deleteOne(id);
+  }
+
+  bulkMarkInvoiced(ids: string[]): Observable<unknown> {
+    if (!ids.length) return of(null);
+    return forkJoin(ids.map((id) => this.operationInstancesApi.update(id, { status: 'invoiced' })));
+  }
 }

@@ -1,11 +1,10 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { ICONS } from '@shared/icons';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
-import { ToastService } from '@core/services/toast.service';
 import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 
 @Component({
@@ -25,7 +24,7 @@ import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
         @for (vehicle of pendingVehicles(); track vehicle._id) {
           <div
             class="card bg-base-100 shadow-xl rounded-2xl border border-warning/30 hover:border-warning/60 bg-warning/5 transition-all group overflow-hidden cursor-pointer"
-            (click)="openPortal(vehicle.vehicleId!)"
+            (click)="openPortal(vehicle._id!)"
           >
             <div class="p-6 relative">
               <lucide-icon
@@ -84,11 +83,7 @@ export class CustomerApprovalsComponent implements OnInit {
   private router = inject(Router);
   icons = ICONS;
 
-  vehicles = signal<VehicleInstance[]>([]);
-
-  pendingVehicles = computed(() =>
-    this.vehicles().filter((v) => (v.status as string) === 'pending_approval'),
-  );
+  pendingVehicles = signal<VehicleInstance[]>([]);
 
   ngOnInit(): void {
     this.instanceApi
@@ -97,12 +92,12 @@ export class CustomerApprovalsComponent implements OnInit {
         limit: 500,
         sortBy: 'createdAt',
         sortOrder: 'desc',
+        filters: { status: { value: 'pending_approval', operator: 'equals' as const } },
       })
-      .subscribe((res) => this.vehicles.set(res.data ?? []));
+      .subscribe((res) => this.pendingVehicles.set(res.data ?? []));
   }
 
-  openPortal(vehicleId: string) {
-    // Navigate to the public customer portal link with the vehicle ID parameter
-    this.router.navigate(['/customer-portal'], { queryParams: { vehicleId } });
+  openPortal(vehicleInstanceId: string) {
+    this.router.navigate(['/customer-portal'], { queryParams: { vehicleInstanceId } });
   }
 }

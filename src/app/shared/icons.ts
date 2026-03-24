@@ -68,6 +68,7 @@ import {
   Printer,
   Database,
   Play,
+  ImagePlus,
 } from 'lucide-angular';
 
 export const ICONS = {
@@ -140,4 +141,5 @@ export const ICONS = {
   Printer,
   Database,
   Play,
+  ImagePlus,
 };

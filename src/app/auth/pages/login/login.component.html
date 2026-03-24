@@ -93,7 +93,7 @@
               </div>
 
               <input
-                type="password"
+                [type]="showPassword ? 'text' : 'password'"
                 formControlName="password"
                 [placeholder]="'LOGIN.FORM.PASSWORD_PLACEHOLDER' | translate"
                 class="w-full pl-10 pr-12 py-3.5 rounded-xl bg-transparent outline-none text-base-content placeholder:text-base-content/40"
@@ -101,14 +101,15 @@
 
               <button
                 type="button"
+                (click)="togglePassword()"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-base-content/40 hover:text-primary transition"
               >
-                <lucide-icon [name]="icons.Eye" class="w-5 h-5"></lucide-icon>
+                <lucide-icon [name]="showPassword ? icons.EyeOff : icons.Eye" class="w-5 h-5"></lucide-icon>
               </button>
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center pt-1">
             <label class="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -119,10 +120,6 @@
                 'LOGIN.FORM.REMEMBER_ME' | translate
               }}</span>
             </label>
-
-            <a href="#" class="text-sm font-medium text-primary hover:text-primary/80 transition">
-              {{ 'LOGIN.FORM.FORGOT_PASSWORD' | translate }}
-            </a>
           </div>
 
           <button

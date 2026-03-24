@@ -1,16 +1,153 @@
-<div class="space-y-8">
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <h1 class="text-3xl font-black text-base-content tracking-tight">{{ 'ESTIMATION.TITLE' | translate }}</h1>
-      <p class="text-base-content/60 font-medium mt-1">
-        {{ 'ESTIMATION.SUBTITLE' | translate }}
-      </p>
+<div class="space-y-6">
+
+  <!-- ══════════════════════════════════════════════
+       VEHICLE LIST VIEW
+       ══════════════════════════════════════════════ -->
+  @if (!selectedVehicle()) {
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-black text-base-content tracking-tight">
+          {{ 'ESTIMATION.TITLE' | translate }}
+        </h1>
+        <p class="text-base-content/60 font-medium mt-1">
+          {{ 'ESTIMATION.SUBTITLE' | translate }}
+        </p>
+      </div>
+      <div class="flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-2xl px-6 py-3">
+        <lucide-icon [name]="icons.DollarSign" class="h-5 w-5 text-primary/60" />
+        <div>
+          <p class="text-xs font-bold text-primary/60 uppercase tracking-wider">{{ 'ESTIMATION.GRAND_TOTAL' | translate }}</p>
+          <p class="text-2xl font-black text-primary leading-none">£{{ grandTotal | number: '1.2-2' }}</p>
+        </div>
+      </div>
     </div>
-    <div class="stat bg-primary/10 rounded-xl px-6 py-3 border border-primary/20">
-      <div class="stat-title text-xs font-bold text-primary/60 uppercase tracking-wider">{{ 'ESTIMATION.GRAND_TOTAL' | translate }}</div>
-      <div class="stat-value text-xl font-black text-primary">£{{ grandTotal() | number: '1.2-2' }}</div>
+
+    <app-data-grid
+      [config]="gridConfig"
+      (stateChange)="handleGridStateChange($event)"
+    />
+  }
+
+  <!-- ══════════════════════════════════════════════
+       OPERATIONS DETAIL VIEW
+       ══════════════════════════════════════════════ -->
+  @if (selectedVehicle(); as sel) {
+
+    <!-- Top bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <button
+          class="inline-flex items-center gap-1.5 text-sm text-base-content/50 hover:text-primary mb-3 transition-colors"
+          (click)="closeDetail()"
+        >
+          <lucide-icon [name]="icons.ChevronLeft" class="h-4 w-4" />
+          Back to vehicles
+        </button>
+
+        <div class="flex items-center gap-3 flex-wrap">
+          <h1 class="text-3xl font-black text-base-content tracking-tight capitalize">
+            {{ sel.vehicleName }}
+          </h1>
+          <span [innerHTML]="licensePlateBadge(sel.licensePlate)"></span>
+        </div>
+
+        @if (sel.code) {
+          <p class="text-sm text-base-content/50 mt-1 font-mono">
+            <span class="text-base-content/30">Job #</span>{{ sel.code }}
+          </p>
+        }
+      </div>
+
+      <!-- Stats + action -->
+      <div class="flex items-stretch gap-3">
+        <!-- Operations total -->
+        <div class="flex items-center gap-2 bg-base-200 border border-base-300 rounded-2xl px-5 py-3">
+          <lucide-icon [name]="icons.ClipboardList" class="h-5 w-5 text-base-content/40" />
+          <div>
+            <p class="text-xs font-bold text-base-content/40 uppercase tracking-wider">This vehicle</p>
+            <p class="text-xl font-black text-base-content leading-none">£{{ selectedTotal | number: '1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Grand total -->
+        <div class="flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-2xl px-5 py-3">
+          <lucide-icon [name]="icons.DollarSign" class="h-5 w-5 text-primary/60" />
+          <div>
+            <p class="text-xs font-bold text-primary/60 uppercase tracking-wider">Grand total</p>
+            <p class="text-xl font-black text-primary leading-none">£{{ grandTotal | number: '1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Send button -->
+        <button
+          class="btn btn-primary gap-2 rounded-2xl h-auto px-6"
+          [disabled]="isSending(sel.vehicleInstanceId)"
+          (click)="sendVehicle(sel)"
+        >
+          @if (isSending(sel.vehicleInstanceId)) {
+            <span class="loading loading-spinner loading-sm"></span>
+            <span>Sending…</span>
+          } @else {
+            <lucide-icon [name]="icons.Send" class="h-4 w-4" />
+            <span>Send to Client</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <app-data-grid
+      [config]="detailGridConfig()"
+      (stateChange)="handleGridStateChange($event)"
+    />
+  }
+
+</div>
+
+<!-- ── Set Price Modal ── -->
+<dialog id="price_modal" class="modal">
+  <div class="modal-box max-w-sm">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="bg-primary/10 p-2 rounded-xl">
+        <lucide-icon [name]="icons.DollarSign" class="h-5 w-5 text-primary" />
+      </div>
+      <div>
+        <h3 class="font-bold text-lg leading-none">{{ 'ESTIMATION.MODAL.TITLE' | translate }}</h3>
+        @if (priceModalRow(); as row) {
+          <p class="text-sm text-base-content/50 mt-0.5">{{ row.operation }}</p>
+        }
+      </div>
+    </div>
+
+    <label class="form-control w-full">
+      <div class="label">
+        <span class="label-text font-medium">{{ 'ESTIMATION.MODAL.PRICE_LABEL' | translate }}</span>
+      </div>
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-base-content/40 font-bold">£</span>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          class="input input-bordered w-full pl-7"
+          [ngModel]="priceInputValue()"
+          (ngModelChange)="priceInputValue.set($event)"
+          (keydown.enter)="confirmPrice()"
+        />
+      </div>
+    </label>
+
+    <div class="modal-action mt-6">
+      <button class="btn btn-ghost" (click)="closePriceModal()">
+        {{ 'ESTIMATION.MODAL.CANCEL' | translate }}
+      </button>
+      <button class="btn btn-primary" (click)="confirmPrice()">
+        <lucide-icon [name]="icons.Check" class="h-4 w-4" />
+        {{ 'ESTIMATION.MODAL.SAVE' | translate }}
+      </button>
     </div>
   </div>
-
-  <app-data-grid [config]="gridConfig" (stateChange)="handleGridStateChange($event)" />
-</div>
+  <form method="dialog" class="modal-backdrop">
+    <button (click)="closePriceModal()">close</button>
+  </form>
+</dialog>

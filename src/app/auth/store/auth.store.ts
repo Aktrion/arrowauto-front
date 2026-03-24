@@ -13,18 +13,29 @@ export interface AuthStoreState {
 }
 
 const AUTH_STORAGE_KEY = 'auth';
+const AUTH_REMEMBER_KEY = 'auth_remember';
 
 const initialState: AuthStoreState = {
   token: null,
   user: null,
 };
 
-function persistAuthState(state: AuthStoreState): void {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state));
+function persistAuthState(state: AuthStoreState, remember: boolean): void {
+  const payload = JSON.stringify(state);
+  if (remember) {
+    localStorage.setItem(AUTH_STORAGE_KEY, payload);
+    localStorage.setItem(AUTH_REMEMBER_KEY, '1');
+  } else {
+    sessionStorage.setItem(AUTH_STORAGE_KEY, payload);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(AUTH_REMEMBER_KEY);
+  }
 }
 
 function clearPersistedAuthState(): void {
   localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(AUTH_REMEMBER_KEY);
+  sessionStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
 export const AuthStore = signalStore(
@@ -36,10 +47,10 @@ export const AuthStore = signalStore(
   withMethods((store, authService = inject(AuthService), router = inject(Router)) => ({
     hydrateFromStorage(): void {
       try {
-        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (!stored) {
-          return;
-        }
+        const stored =
+          localStorage.getItem(AUTH_STORAGE_KEY) ??
+          sessionStorage.getItem(AUTH_STORAGE_KEY);
+        if (!stored) return;
 
         const parsed = JSON.parse(stored) as Partial<AuthStoreState>;
         patchState(store, {
@@ -51,7 +62,13 @@ export const AuthStore = signalStore(
       }
     },
 
-    login(userName: string, password: string): Observable<LoginResponse> {
+    getSavedUserName(): string {
+      return localStorage.getItem(AUTH_REMEMBER_KEY)
+        ? (JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) ?? '{}') as any)?.user?.userName ?? ''
+        : '';
+    },
+
+    login(userName: string, password: string, remember = false): Observable<LoginResponse> {
       return authService.login(userName, password).pipe(
         tap((result) => {
           const nextState: AuthStoreState = {
@@ -59,7 +76,7 @@ export const AuthStore = signalStore(
             user: result.user as User,
           };
           patchState(store, nextState);
-          persistAuthState(nextState);
+          persistAuthState(nextState, remember);
           router.navigate(['/dashboard']);
         }),
       );
@@ -90,7 +107,8 @@ export const AuthStore = signalStore(
         },
       };
       patchState(store, nextState);
-      persistAuthState(nextState);
+      const wasRemembered = !!localStorage.getItem(AUTH_REMEMBER_KEY);
+      persistAuthState(nextState, wasRemembered);
     },
   })),
   withHooks({

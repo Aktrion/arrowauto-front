@@ -8,6 +8,7 @@ import { VehicleInstance } from '@features/vehicles/models/vehicle.model';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { licensePlateBadge } from '@shared/utils/license-plate.utils';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-vehicles-instances',
@@ -31,6 +32,7 @@ export class VehiclesInstancesComponent
   private instanceApi = inject(VehicleInstancesApiService);
   private clientService = inject(ClientService);
   private router = inject(Router);
+  private translateService = inject(TranslateService);
 
   clients = signal<any[]>([]);
   constructor() {
@@ -130,7 +132,8 @@ export class VehiclesInstancesComponent
   }
 
   getClientName(clientId?: string): string {
-    if (!clientId) return 'Unassigned';
-    return this.clientService.getClientById(this.clients(), clientId)?.name ?? 'Unknown';
+    if (!clientId) return this.translateService.instant('VEHICLES.TABLE.UNASSIGNED');
+    return this.clientService.getClientById(this.clients(), clientId)?.name
+      ?? this.translateService.instant('VEHICLES.TABLE.UNKNOWN_CLIENT');
   }
 }

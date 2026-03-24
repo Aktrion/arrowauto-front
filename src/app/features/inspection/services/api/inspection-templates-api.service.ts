@@ -36,6 +36,9 @@ export class InspectionTemplatesApiService extends BaseCrudService<
               type: point.type || 'standard',
               code: point.tyrePosition,
               predefinedComments: point.scriptedComments || [],
+              mandatory: point.mandatory ?? false,
+              mandatoryMedia: point.mandatoryMedia || 'optional',
+              mandatoryComment: point.mandatoryComment || 'optional',
             });
           });
         });

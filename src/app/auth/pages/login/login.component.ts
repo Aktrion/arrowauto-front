@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs/operators';
 import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '@shared/icons';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -29,25 +28,30 @@ export class LoginComponent {
   private formBuilder = inject(FormBuilder);
   private toastService = inject(ToastService);
   public form = this.formBuilder.group({
-    userName: ['', Validators.required],
+    userName: [this.authStore.getSavedUserName(), Validators.required],
     password: ['', Validators.required],
-    remember: [false],
-    recover: [''],
+    remember: [!!localStorage.getItem('auth_remember')],
   });
-  public recover = false;
   public isLoading = false;
   public showPassword = false;
 
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   login() {
     if (this.form.invalid) return;
-    const { userName, password } = this.form.value;
+    const { userName, password, remember } = this.form.value;
     this.isLoading = true;
     this.authStore
-      .login(userName as string, password as string)
-      .pipe(finalize(() => (this.isLoading = false)))
+      .login(userName as string, password as string, !!remember)
       .subscribe({
-        next: () => this.toastService.success('Login successful'),
+        next: () => {
+          this.isLoading = false;
+          this.toastService.success('Login successful');
+        },
         error: (err) => {
+          this.isLoading = false;
           this.toastService.error(err.error?.message ?? 'Login failed');
           console.error('Login failed', err);
         },

@@ -40,19 +40,35 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Repair Items List -->
       <div class="lg:col-span-2 space-y-6">
-        <div
-          class="card bg-base-100 shadow-xl border border-base-200 bg-gradient-to-br from-warning/5 to-transparent border-l-4 border-l-warning"
-        >
-          <div class="card-body p-6">
-            <h2 class="card-title flex items-center gap-3 text-lg">
-              <div class="p-2 bg-warning/10 rounded-full text-warning">
-                <lucide-icon [name]="icons.TriangleAlert" class="h-5 w-5"></lucide-icon>
-              </div>
-              {{ 'PORTAL.ATTENTION.TITLE' | translate }}
-            </h2>
-            <p class="text-base-content/70 pl-12">{{ 'PORTAL.ATTENTION.DESC' | translate }}</p>
+        @if (repairItems.length > 0) {
+          <div
+            class="card bg-base-100 shadow-xl border border-base-200 bg-gradient-to-br from-warning/5 to-transparent border-l-4 border-l-warning"
+          >
+            <div class="card-body p-6">
+              <h2 class="card-title flex items-center gap-3 text-lg">
+                <div class="p-2 bg-warning/10 rounded-full text-warning">
+                  <lucide-icon [name]="icons.TriangleAlert" class="h-5 w-5"></lucide-icon>
+                </div>
+                {{ 'PORTAL.ATTENTION.TITLE' | translate }}
+              </h2>
+              <p class="text-base-content/70 pl-12">{{ 'PORTAL.ATTENTION.DESC' | translate }}</p>
+            </div>
           </div>
-        </div>
+        } @else {
+          <div
+            class="card bg-base-100 shadow-xl border border-base-200 bg-gradient-to-br from-success/5 to-transparent border-l-4 border-l-success"
+          >
+            <div class="card-body p-6">
+              <h2 class="card-title flex items-center gap-3 text-lg">
+                <div class="p-2 bg-success/10 rounded-full text-success">
+                  <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5"></lucide-icon>
+                </div>
+                {{ 'PORTAL.ALL_CLEAR.TITLE' | translate }}
+              </h2>
+              <p class="text-base-content/70 pl-12">{{ 'PORTAL.ALL_CLEAR.DESC' | translate }}</p>
+            </div>
+          </div>
+        }
 
         @for (item of repairItems; track item.id) {
           <div
@@ -120,7 +136,7 @@
                       <p class="text-sm leading-relaxed">{{ item.comment }}</p>
                     </div>
 
-                    <!-- Photos placeholder -->
+                    <!-- Evidence Photos -->
                     @if (item.photos.length > 0) {
                       <div class="mt-4">
                         <p
@@ -130,14 +146,15 @@
                         </p>
                         <div class="flex flex-wrap gap-3">
                           @for (photo of item.photos; track photo) {
-                            <div
-                              class="w-20 h-20 bg-base-300 rounded-xl flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ring-1 ring-base-content/5 shadow-sm"
-                            >
-                              <lucide-icon
-                                [name]="icons.Image"
-                                class="h-8 w-8 text-base-content/20"
-                              ></lucide-icon>
-                            </div>
+                            <a [href]="photo" target="_blank" rel="noopener">
+                              <img
+                                [src]="photo"
+                                alt="Evidence photo"
+                                class="w-20 h-20 rounded-xl object-cover cursor-pointer hover:opacity-80 transition-opacity ring-1 ring-base-content/5 shadow-sm bg-base-300"
+                                loading="lazy"
+                                (error)="$any($event.target).style.display='none'"
+                              />
+                            </a>
                           }
                         </div>
                       </div>
@@ -386,7 +403,10 @@
           [disabled]="isSubmittingApproval()"
           (click)="submitApproval()"
         >
-          {{ 'PORTAL.MODAL.YES_APPROVE' | translate }}
+          @if (isSubmittingApproval()) {
+            <span class="loading loading-spinner loading-sm"></span>
+          }
+          {{ (isSubmittingApproval() ? 'PORTAL.MODAL.SUBMITTING' : 'PORTAL.MODAL.YES_APPROVE') | translate }}
         </button>
       </div>
     </div>

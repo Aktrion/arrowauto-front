@@ -1,297 +1,242 @@
-<div class="space-y-6">
-  <section
-    class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4 sm:p-6 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4"
-  >
-    <div>
-      <p class="text-[11px] uppercase tracking-[0.14em] font-bold text-base-content/50 mb-1">
-        {{ 'INSPECTION.SUBTITLE' | translate }}
-      </p>
-      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
-        {{ 'INSPECTION.COMMAND_CENTER' | translate }}
-      </h1>
-      <p class="text-sm text-base-content/65 mt-2 max-w-2xl">
-        {{ 'INSPECTION.DESC' | translate }}
-      </p>
-      <button class="btn btn-ghost btn-sm mt-3" (click)="backToInspectionList()">
+<div class="insp-root">
+
+  <!-- ═══════════════════════════════════════════ HEADER ═══ -->
+  <header class="insp-header">
+    <div class="insp-header-left">
+      <button class="insp-back-btn" (click)="backToInspectionList()">
         <lucide-icon [name]="icons.ChevronLeft" class="h-4 w-4"></lucide-icon>
-        {{ 'INSPECTION.BACK_TO_QUEUE' | translate }}
+        <span>{{ 'INSPECTION.BACK_TO_QUEUE' | translate }}</span>
       </button>
+      <div class="insp-header-title-block">
+        <p class="insp-eyebrow">{{ 'INSPECTION.SUBTITLE' | translate }}</p>
+        <h1 class="insp-title">{{ 'INSPECTION.COMMAND_CENTER' | translate }}</h1>
+        <p class="insp-desc">{{ 'INSPECTION.DESC' | translate }}</p>
+      </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-2 w-full lg:w-auto lg:min-w-[340px]">
-      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
-        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">{{ 'INSPECTION.VEHICLE' | translate }}</p>
-        <p class="text-sm sm:text-base font-extrabold truncate">
-          {{ selectedVehicle()?.vehicle?.licensePlate || 'N/A' }}
-        </p>
+    <div class="insp-kpi-strip">
+      <div class="insp-kpi">
+        <span class="insp-kpi-label">{{ 'INSPECTION.VEHICLE' | translate }}</span>
+        <span class="insp-kpi-value mono">{{ selectedVehicle()?.vehicle?.licensePlate || '—' }}</span>
       </div>
-      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
-        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">{{ 'INSPECTION.CHECKED' | translate }}</p>
-        <p class="text-sm sm:text-base font-extrabold">{{ inspectedCount() }}</p>
-      </div>
-      <div class="rounded-xl border border-base-300/80 bg-base-200/70 px-3 py-2">
-        <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/50">{{ 'INSPECTION.ESTIMATED' | translate }}</p>
-        <p class="text-sm sm:text-base font-extrabold">&pound;{{ totalCost().toFixed(0) }}</p>
+      <div class="insp-kpi-divider"></div>
+      <div class="insp-kpi">
+        <span class="insp-kpi-label">{{ 'INSPECTION.CHECKED' | translate }}</span>
+        <span class="insp-kpi-value">{{ inspectedCount() }}<span class="insp-kpi-of"> / {{ activeInspectionPoints().length }}</span></span>
       </div>
     </div>
-  </section>
+  </header>
 
   @if (selectedVehicleId()) {
-    <section class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-        <h2 class="text-base sm:text-lg font-bold">
-          {{ selectedVehicle()?.vehicle?.make }} {{ selectedVehicle()?.vehicle?.model }}
-        </h2>
-        <span class="badge badge-neutral">{{ selectedVehicle()?.status?.replace('_', ' ') }}</span>
-      </div>
 
-      <div class="grid grid-cols-3 gap-2">
-        <article class="rounded-xl border border-success/30 bg-success/10 text-center py-2">
-          <p class="text-xl font-extrabold leading-none">{{ countByStatus('ok') }}</p>
-          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">{{ 'INSPECTION.OK' | translate }}</p>
-        </article>
-        <article class="rounded-xl border border-warning/30 bg-warning/10 text-center py-2">
-          <p class="text-xl font-extrabold leading-none">{{ countByStatus('warning') }}</p>
-          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">{{ 'INSPECTION.WARN' | translate }}</p>
-        </article>
-        <article class="rounded-xl border border-error/30 bg-error/10 text-center py-2">
-          <p class="text-xl font-extrabold leading-none">{{ countByStatus('defect') }}</p>
-          <p class="text-[10px] uppercase tracking-[0.1em] font-bold">{{ 'INSPECTION.DEFECT' | translate }}</p>
-        </article>
-      </div>
-
-      <div class="mt-3 mb-1 flex items-center justify-between text-xs text-base-content/70">
-        <span>{{ 'INSPECTION.PROGRESS' | translate }}</span>
-        <span class="font-bold"
-          >{{ inspectedCount() }} / {{ activeInspectionPoints().length }}</span
-        >
-      </div>
-      <progress
-        class="progress progress-primary w-full h-2.5"
-        [value]="inspectedCount()"
-        [max]="activeInspectionPoints().length"
-      ></progress>
-
-      @if (totalCost() > 0) {
-        <div class="mt-3 rounded-xl border border-base-300/80 bg-base-200/70 p-3 text-center">
-          <p class="text-[10px] uppercase tracking-[0.1em] text-base-content/60">
-            {{ 'INSPECTION.EST_REPAIR_COST' | translate }}
-          </p>
-          <p class="text-2xl font-black text-primary">&pound;{{ totalCost().toFixed(2) }}</p>
+    <!-- ════════════════════════════════════ SUMMARY PANEL ═══ -->
+    <section class="insp-summary-panel">
+      <div class="insp-summary-left">
+        <div class="insp-vehicle-identity">
+          <div class="insp-vehicle-icon">
+            <lucide-icon [name]="icons.Car" class="h-6 w-6"></lucide-icon>
+          </div>
+          <div>
+            <h2 class="insp-vehicle-name">
+              {{ selectedVehicle()?.vehicle?.make }} {{ selectedVehicle()?.vehicle?.model }}
+            </h2>
+            <span class="insp-status-badge">{{ selectedVehicle()?.status?.replace('_', ' ') | uppercase }}</span>
+          </div>
         </div>
-      }
 
-      <button
-        class="btn btn-primary w-full mt-4"
-        [disabled]="!hasInspectionResults()"
-        (click)="submitInspection()"
-      >
-        <lucide-icon [name]="icons.Send" class="h-4 w-4 mr-2"></lucide-icon>
-        {{ isSaving() ? ('INSPECTION.SAVING' | translate) : ('INSPECTION.SAVE_INSPECTION' | translate) }}
-      </button>
+        <!-- segmented progress -->
+        <div class="insp-progress-wrap">
+          <div class="insp-progress-meta">
+            <span>{{ 'INSPECTION.PROGRESS' | translate }}</span>
+            <span class="insp-progress-fraction">{{ inspectedCount() }} / {{ activeInspectionPoints().length }}</span>
+          </div>
+          <div class="insp-progress-track">
+            <div class="insp-progress-fill"
+              [style.width.%]="activeInspectionPoints().length ? (inspectedCount() / activeInspectionPoints().length * 100) : 0">
+            </div>
+          </div>
+        </div>
+      </div>
 
-      @if (saveError()) {
-        <p class="text-error text-xs mt-2">{{ saveError() }}</p>
-      }
-      @if (saveSuccess()) {
-        <p class="text-success text-xs mt-2">{{ 'INSPECTION.SAVED_SUCCESS' | translate }}</p>
-      }
+      <div class="insp-summary-right">
+        <div class="insp-status-stat stat-ok">
+          <span class="insp-stat-num">{{ countByStatus('ok') }}</span>
+          <span class="insp-stat-lbl">{{ 'INSPECTION.OK' | translate }}</span>
+          <div class="insp-stat-pip pip-ok"></div>
+        </div>
+        <div class="insp-status-stat stat-warn">
+          <span class="insp-stat-num">{{ countByStatus('warning') }}</span>
+          <span class="insp-stat-lbl">{{ 'INSPECTION.WARN' | translate }}</span>
+          <div class="insp-stat-pip pip-warn"></div>
+        </div>
+        <div class="insp-status-stat stat-defect">
+          <span class="insp-stat-num">{{ countByStatus('defect') }}</span>
+          <span class="insp-stat-lbl">{{ 'INSPECTION.DEFECT' | translate }}</span>
+          <div class="insp-stat-pip pip-defect"></div>
+        </div>
+
+      </div>
     </section>
 
-    <section class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+    <!-- ══════════════════════════════════════ CHECKLIST ═══ -->
+    <section class="insp-checklist-section">
+      <div class="insp-section-header">
         <div>
-          <p class="text-[11px] uppercase tracking-[0.14em] font-bold text-base-content/50">
-            {{ 'INSPECTION.CHECKLIST' | translate }}
-          </p>
-          <h2 class="text-base sm:text-lg font-bold">{{ 'INSPECTION.HEALTH_RECORD' | translate }}</h2>
+          <p class="insp-eyebrow">{{ 'INSPECTION.CHECKLIST' | translate }}</p>
+          <h2 class="insp-section-title">{{ 'INSPECTION.HEALTH_RECORD' | translate }}</h2>
         </div>
-        <div
-          class="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] font-bold text-base-content/60"
-        >
-          <span class="w-2 h-2 rounded-full bg-success"></span><span>{{ 'INSPECTION.OK' | translate }}</span>
-          <span class="w-2 h-2 rounded-full bg-warning"></span><span>{{ 'INSPECTION.WARN' | translate }}</span>
-          <span class="w-2 h-2 rounded-full bg-error"></span><span>{{ 'INSPECTION.FAIL' | translate }}</span>
+        <div class="insp-legend">
+          <span class="insp-legend-item"><span class="insp-legend-dot dot-ok"></span>{{ 'INSPECTION.OK' | translate }}</span>
+          <span class="insp-legend-item"><span class="insp-legend-dot dot-warn"></span>{{ 'INSPECTION.WARN' | translate }}</span>
+          <span class="insp-legend-item"><span class="insp-legend-dot dot-fail"></span>{{ 'INSPECTION.FAIL' | translate }}</span>
         </div>
       </div>
 
-      <div class="space-y-3">
+      <div class="insp-groups">
         @for (group of groupedPoints(); track group.category) {
-          <section class="rounded-xl border border-base-300/80 bg-base-100/90 overflow-hidden">
-            <header
-              class="px-3 py-2 bg-base-200/70 flex items-center justify-between text-sm font-semibold"
-            >
-              <span>{{ group.category }}</span>
-              <span class="text-xs text-base-content/50">{{ group.points.length }} points</span>
-            </header>
+          <div class="insp-group">
+            <div class="insp-group-header">
+              <span class="insp-group-name">{{ group.category }}</span>
+              <span class="insp-group-count">{{ group.points.length }}</span>
+            </div>
 
-            <div>
+            <div class="insp-points-list">
               @for (point of group.points; track point.id) {
-                <details
-                  class="border-t border-base-300/60 first:border-t-0 bg-transparent open:bg-primary/[0.03]"
-                >
-                  <summary class="list-none cursor-pointer px-3 py-2.5">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div class="flex items-center gap-2 min-w-0">
-                        <div
-                          class="w-2.5 h-2.5 rounded-full shrink-0"
-                          [class.bg-success]="getPointStatus(point.id) === 'ok'"
-                          [class.bg-warning]="getPointStatus(point.id) === 'warning'"
-                          [class.bg-error]="getPointStatus(point.id) === 'defect'"
-                          [class.bg-base-content\/20]="getPointStatus(point.id) === 'not_inspected'"
-                        ></div>
-                        <div class="min-w-0">
-                          <p class="text-sm font-semibold truncate">{{ point.name }}</p>
-                          @if (
-                            getPointStatus(point.id) !== 'not_inspected' &&
-                            (getPointStatus(point.id) === 'warning' ||
-                              getPointStatus(point.id) === 'defect') &&
-                            getPointPartsCost(point.id) + getPointLaborCost(point.id) > 0
-                          ) {
-                            <p class="text-xs font-bold text-error/90">
-                              Est. &pound;{{
-                                (getPointPartsCost(point.id) + getPointLaborCost(point.id)).toFixed(
-                                  2
-                                )
-                              }}
-                            </p>
-                          }
-                        </div>
-                      </div>
+                <details class="insp-point" [class.is-ok]="getPointStatus(point.id) === 'ok'"
+                  [class.is-warn]="getPointStatus(point.id) === 'warning'"
+                  [class.is-defect]="getPointStatus(point.id) === 'defect'">
 
-                      <div class="flex items-center gap-1" (click)="$event.stopPropagation()">
-                        <button
-                          class="status-toggle"
-                          [class.active-ok]="getPointStatus(point.id) === 'ok'"
-                          (click)="setPointStatus(point.id, 'ok')"
-                          title="Set OK"
-                        >
-                          <lucide-icon [name]="icons.Check" class="h-3 w-3"></lucide-icon>
-                        </button>
-                        <button
-                          class="status-toggle"
-                          [class.active-warning]="getPointStatus(point.id) === 'warning'"
-                          (click)="setPointStatus(point.id, 'warning')"
-                          title="Set Warning"
-                        >
-                          <lucide-icon [name]="icons.TriangleAlert" class="h-3 w-3"></lucide-icon>
-                        </button>
-                        <button
-                          class="status-toggle"
-                          [class.active-defect]="getPointStatus(point.id) === 'defect'"
-                          (click)="setPointStatus(point.id, 'defect')"
-                          title="Set Defect"
-                        >
-                          <lucide-icon [name]="icons.X" class="h-3 w-3"></lucide-icon>
-                        </button>
-                      </div>
+                  <summary class="insp-point-summary">
+                    <div class="insp-point-status-bar"
+                      [class.bar-ok]="getPointStatus(point.id) === 'ok'"
+                      [class.bar-warn]="getPointStatus(point.id) === 'warning'"
+                      [class.bar-defect]="getPointStatus(point.id) === 'defect'">
                     </div>
+                    <div class="insp-point-info">
+                      <span class="insp-point-name">{{ point.name }}</span>
+                    </div>
+                    <div class="insp-toggles" (click)="$event.stopPropagation()">
+                      <button class="insp-toggle toggle-ok" [class.active]="getPointStatus(point.id) === 'ok'"
+                        (click)="setPointStatus(point.id, 'ok')" title="OK">
+                        <lucide-icon [name]="icons.Check" class="h-3.5 w-3.5"></lucide-icon>
+                      </button>
+                      <button class="insp-toggle toggle-warn" [class.active]="getPointStatus(point.id) === 'warning'"
+                        (click)="setPointStatus(point.id, 'warning')" title="Warning">
+                        <lucide-icon [name]="icons.TriangleAlert" class="h-3.5 w-3.5"></lucide-icon>
+                      </button>
+                      <button class="insp-toggle toggle-defect" [class.active]="getPointStatus(point.id) === 'defect'"
+                        (click)="setPointStatus(point.id, 'defect')" title="Defect">
+                        <lucide-icon [name]="icons.X" class="h-3.5 w-3.5"></lucide-icon>
+                      </button>
+                    </div>
+                    <lucide-icon [name]="icons.ChevronDown" class="insp-point-chevron h-4 w-4"></lucide-icon>
                   </summary>
 
-                  <div class="px-3 pb-3">
-                    <div class="mt-1 rounded-xl border border-base-300/80 bg-base-200/60 p-3">
-                      <div class="form-control mb-4">
-                        <label class="label pt-0">
-                          <span class="label-text font-medium text-xs uppercase opacity-70"
-                            >Comments & Notes</span
-                          >
-                        </label>
-                        <div class="flex flex-wrap gap-2 mb-2">
-                          @for (comment of point.predefinedComments; track comment) {
-                            <button
-                              class="btn btn-xs rounded-full normal-case font-normal"
-                              [class.btn-neutral]="getPointComment(point.id) === comment"
-                              [class.btn-outline]="getPointComment(point.id) !== comment"
-                              (click)="setPointComment(point.id, comment)"
-                            >
-                              {{ comment }}
-                            </button>
-                          }
-                        </div>
-                        <textarea
-                          class="textarea textarea-bordered h-20 text-sm"
-                          placeholder="Additional details..."
+                  <div class="insp-point-detail">
+                    <div class="insp-detail-inner">
+                      <!-- comment chips + textarea -->
+                      <div class="insp-field-group">
+                        <label class="insp-field-label">Comments &amp; Notes</label>
+                        @if (point.predefinedComments.length) {
+                          <div class="insp-chips">
+                            @for (comment of point.predefinedComments; track comment) {
+                              <button class="insp-chip"
+                                [class.chip-active]="getPointComment(point.id) === comment"
+                                (click)="setPointComment(point.id, comment)">{{ comment }}</button>
+                            }
+                          </div>
+                        }
+                        <textarea class="insp-textarea" rows="3" placeholder="Additional details…"
                           [value]="getPointComment(point.id)"
-                          (input)="setPointCommentFromEvent(point.id, $event)"
-                        ></textarea>
+                          (input)="setPointCommentFromEvent(point.id, $event)"></textarea>
                       </div>
 
-                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label class="label pt-0"
-                            ><span class="label-text font-medium text-xs uppercase opacity-70"
-                              >Parts &pound;</span
-                            ></label
-                          >
-                          <input
-                            type="number"
-                            class="input input-bordered input-sm w-full"
-                            [value]="getPointPartsCost(point.id)"
-                            (input)="setPointPartsCost(point.id, $event)"
-                          />
-                        </div>
-                        <div>
-                          <label class="label pt-0"
-                            ><span class="label-text font-medium text-xs uppercase opacity-70"
-                              >Labor &pound;</span
-                            ></label
-                          >
-                          <input
-                            type="number"
-                            class="input input-bordered input-sm w-full"
-                            [value]="getPointLaborCost(point.id)"
-                            (input)="setPointLaborCost(point.id, $event)"
-                          />
-                        </div>
-                      </div>
+                      <!-- photo upload -->
+                      <div class="insp-photo-section">
+                        <!-- hidden file inputs -->
+                        <input #galleryInput type="file" accept="image/*" class="sr-only"
+                          (change)="onPhotoFileSelected($event)" />
+                        <input #cameraInput type="file" accept="image/*" capture="environment" class="sr-only"
+                          (change)="onPhotoFileSelected($event)" />
 
-                      <div class="flex justify-end mt-4">
-                        <button class="btn btn-sm btn-outline gap-2">
-                          <lucide-icon [name]="icons.Camera" class="h-4 w-4"></lucide-icon>
-                          Add Photo
-                        </button>
+                        <!-- thumbnails -->
+                        @if ((inspectionResults().get(point.id)?.photos ?? []).length > 0) {
+                          <div class="insp-photo-thumbs">
+                            @for (url of (inspectionResults().get(point.id)?.photos ?? []); track url) {
+                              <div class="insp-photo-thumb">
+                                <a [href]="url" target="_blank" rel="noopener">
+                                  <img [src]="url" alt="Inspection photo"
+                                    (error)="$any($event.target).style.display='none'" />
+                                </a>
+                                <button class="insp-photo-remove" (click)="removePhoto(point.id, url)"
+                                  title="Remove photo">
+                                  <lucide-icon [name]="icons.X" class="h-3 w-3"></lucide-icon>
+                                </button>
+                              </div>
+                            }
+                          </div>
+                        }
+
+                        <!-- upload buttons -->
+                        <div class="insp-photo-actions">
+                          <button class="insp-photo-btn"
+                            [disabled]="uploadingPointId() === point.id"
+                            (click)="openPhotoPicker(point.id, galleryInput)">
+                            @if (uploadingPointId() === point.id) {
+                              <span class="insp-spinner-sm"></span>
+                            } @else {
+                              <lucide-icon [name]="icons.ImagePlus" class="h-4 w-4"></lucide-icon>
+                            }
+                            Gallery
+                          </button>
+                          <button class="insp-photo-btn"
+                            [disabled]="uploadingPointId() === point.id"
+                            (click)="openPhotoPicker(point.id, cameraInput)">
+                            <lucide-icon [name]="icons.Camera" class="h-4 w-4"></lucide-icon>
+                            Camera
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </details>
               }
             </div>
-          </section>
+          </div>
         }
       </div>
     </section>
 
-    <section class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl p-4">
-      <div class="text-center mb-6">
-        <h2 class="card-title text-xl justify-center mb-1 flex items-center gap-2">
-          <lucide-icon [name]="icons.Disc" class="h-5 w-5 text-primary"></lucide-icon>
-          Tyre Wear Record
-        </h2>
-        <p class="text-sm text-base-content/60">
-          Set condition and tread depth for each tyre. Measurements are in millimeters.
-        </p>
-      </div>
-
-      <div class="tyre-legend">
-        <div class="tyre-legend-item">
-          <div class="tyre-status-indicator status-attention"></div>
-          <span class="text-xs font-bold uppercase tracking-wider text-error">Attention</span>
+    <!-- ═══════════════════════════════════ TYRE RECORD ═══ -->
+    <section class="insp-tyre-section">
+      <div class="insp-section-header">
+        <div>
+          <p class="insp-eyebrow">Wheels &amp; Tyres</p>
+          <h2 class="insp-section-title">
+            <lucide-icon [name]="icons.Disc" class="h-5 w-5 insp-tyre-icon"></lucide-icon>
+            Tyre Wear Record
+          </h2>
         </div>
-        <div class="tyre-legend-item">
-          <div class="tyre-status-indicator status-acceptable"></div>
-          <span class="text-xs font-bold uppercase tracking-wider text-warning">Acceptable</span>
-        </div>
-        <div class="tyre-legend-item">
-          <div class="tyre-status-indicator status-good"></div>
-          <span class="text-xs font-bold uppercase tracking-wider text-success">Good</span>
-        </div>
-        <div class="tyre-legend-item">
-          <div class="tyre-status-indicator bg-base-200 border-base-300"></div>
-          <span class="text-xs font-bold uppercase tracking-wider text-base-content/50"
-            >Unknown</span
-          >
+        <div class="tyre-legend">
+          <div class="tyre-legend-item">
+            <div class="tyre-status-indicator status-attention"></div>
+            <span class="tyre-legend-label text-error">Attention</span>
+          </div>
+          <div class="tyre-legend-item">
+            <div class="tyre-status-indicator status-acceptable"></div>
+            <span class="tyre-legend-label text-warning">Acceptable</span>
+          </div>
+          <div class="tyre-legend-item">
+            <div class="tyre-status-indicator status-good"></div>
+            <span class="tyre-legend-label text-success">Good</span>
+          </div>
+          <div class="tyre-legend-item">
+            <div class="tyre-status-indicator bg-base-200 border-base-300"></div>
+            <span class="tyre-legend-label">Unknown</span>
+          </div>
         </div>
       </div>
+      <p class="insp-tyre-desc">Set condition and tread depth for each tyre. Measurements are in millimetres.</p>
 
       <div class="overflow-x-auto tyre-record-canvas">
         <div class="car-diagram-container min-w-[620px] sm:min-w-[760px] lg:min-w-0">
@@ -303,53 +248,23 @@
           @if (getTyrePointId('NSF'); as pid) {
             <div class="tyre-control front-left">
               <div class="tyre-control-card tyre-control-card-left">
-                <div
-                  class="tyre-status-indicator"
+                <div class="tyre-status-indicator"
                   [class.status-good]="getTyreCondition(pid) === 'good'"
                   [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
                   [class.status-attention]="getTyreCondition(pid) === 'attention'"
-                  (click)="
-                    setTyreCondition(
-                      pid,
-                      getTyreCondition(pid) === 'good'
-                        ? 'acceptable'
-                        : getTyreCondition(pid) === 'acceptable'
-                          ? 'attention'
-                          : 'good'
-                    )
-                  "
-                ></div>
-                <p class="tyre-control-title">
-                  Passenger Side Front <span class="tyre-code">NSF</span>
-                </p>
+                  (click)="setTyreCondition(pid, getTyreCondition(pid) === 'good' ? 'acceptable' : getTyreCondition(pid) === 'acceptable' ? 'attention' : 'good')">
+                </div>
+                <p class="tyre-control-title">Passenger Side Front <span class="tyre-code">NSF</span></p>
                 <div class="tyre-inputs">
-                  <span class="text-xs text-base-content/60">Inner</span
-                  ><input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'inner')"
-                    (change)="setTyreMeasurement(pid, 'inner', $event)"
-                  />
-                  <span class="text-xs text-base-content/60">Middle</span
-                  ><input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'middle')"
-                    (change)="setTyreMeasurement(pid, 'middle', $event)"
-                  />
-                  <span class="text-xs text-base-content/60">Outer</span
-                  ><input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'outer')"
-                    (change)="setTyreMeasurement(pid, 'outer', $event)"
-                  />
+                  <span class="tyre-input-label">Inner</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'inner')" (change)="setTyreMeasurement(pid, 'inner', $event)" />
+                  <span class="tyre-input-label">Mid</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'middle')" (change)="setTyreMeasurement(pid, 'middle', $event)" />
+                  <span class="tyre-input-label">Outer</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'outer')" (change)="setTyreMeasurement(pid, 'outer', $event)" />
                 </div>
               </div>
             </div>
@@ -357,50 +272,23 @@
           @if (getTyrePointId('OSF'); as pid) {
             <div class="tyre-control front-right">
               <div class="tyre-control-card tyre-control-card-right">
-                <div
-                  class="tyre-status-indicator"
+                <div class="tyre-status-indicator"
                   [class.status-good]="getTyreCondition(pid) === 'good'"
                   [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
                   [class.status-attention]="getTyreCondition(pid) === 'attention'"
-                  (click)="
-                    setTyreCondition(
-                      pid,
-                      getTyreCondition(pid) === 'good'
-                        ? 'acceptable'
-                        : getTyreCondition(pid) === 'acceptable'
-                          ? 'attention'
-                          : 'good'
-                    )
-                  "
-                ></div>
-                <p class="tyre-control-title">
-                  Driver Side Front <span class="tyre-code">OSF</span>
-                </p>
+                  (click)="setTyreCondition(pid, getTyreCondition(pid) === 'good' ? 'acceptable' : getTyreCondition(pid) === 'acceptable' ? 'attention' : 'good')">
+                </div>
+                <p class="tyre-control-title">Driver Side Front <span class="tyre-code">OSF</span></p>
                 <div class="tyre-inputs">
-                  <input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'inner')"
-                    (change)="setTyreMeasurement(pid, 'inner', $event)"
-                  /><span class="text-xs text-base-content/60">Inner</span>
-                  <input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'middle')"
-                    (change)="setTyreMeasurement(pid, 'middle', $event)"
-                  /><span class="text-xs text-base-content/60">Middle</span>
-                  <input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'outer')"
-                    (change)="setTyreMeasurement(pid, 'outer', $event)"
-                  /><span class="text-xs text-base-content/60">Outer</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'inner')" (change)="setTyreMeasurement(pid, 'inner', $event)" />
+                  <span class="tyre-input-label">Inner</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'middle')" (change)="setTyreMeasurement(pid, 'middle', $event)" />
+                  <span class="tyre-input-label">Mid</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'outer')" (change)="setTyreMeasurement(pid, 'outer', $event)" />
+                  <span class="tyre-input-label">Outer</span>
                 </div>
               </div>
             </div>
@@ -408,53 +296,23 @@
           @if (getTyrePointId('NSR'); as pid) {
             <div class="tyre-control rear-left">
               <div class="tyre-control-card tyre-control-card-left">
-                <div
-                  class="tyre-status-indicator"
+                <div class="tyre-status-indicator"
                   [class.status-good]="getTyreCondition(pid) === 'good'"
                   [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
                   [class.status-attention]="getTyreCondition(pid) === 'attention'"
-                  (click)="
-                    setTyreCondition(
-                      pid,
-                      getTyreCondition(pid) === 'good'
-                        ? 'acceptable'
-                        : getTyreCondition(pid) === 'acceptable'
-                          ? 'attention'
-                          : 'good'
-                    )
-                  "
-                ></div>
-                <p class="tyre-control-title">
-                  Passenger Side Rear <span class="tyre-code">NSR</span>
-                </p>
+                  (click)="setTyreCondition(pid, getTyreCondition(pid) === 'good' ? 'acceptable' : getTyreCondition(pid) === 'acceptable' ? 'attention' : 'good')">
+                </div>
+                <p class="tyre-control-title">Passenger Side Rear <span class="tyre-code">NSR</span></p>
                 <div class="tyre-inputs">
-                  <span class="text-xs text-base-content/60">Inner</span
-                  ><input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'inner')"
-                    (change)="setTyreMeasurement(pid, 'inner', $event)"
-                  />
-                  <span class="text-xs text-base-content/60">Middle</span
-                  ><input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'middle')"
-                    (change)="setTyreMeasurement(pid, 'middle', $event)"
-                  />
-                  <span class="text-xs text-base-content/60">Outer</span
-                  ><input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'outer')"
-                    (change)="setTyreMeasurement(pid, 'outer', $event)"
-                  />
+                  <span class="tyre-input-label">Inner</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'inner')" (change)="setTyreMeasurement(pid, 'inner', $event)" />
+                  <span class="tyre-input-label">Mid</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'middle')" (change)="setTyreMeasurement(pid, 'middle', $event)" />
+                  <span class="tyre-input-label">Outer</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'outer')" (change)="setTyreMeasurement(pid, 'outer', $event)" />
                 </div>
               </div>
             </div>
@@ -462,50 +320,23 @@
           @if (getTyrePointId('OSR'); as pid) {
             <div class="tyre-control rear-right">
               <div class="tyre-control-card tyre-control-card-right">
-                <div
-                  class="tyre-status-indicator"
+                <div class="tyre-status-indicator"
                   [class.status-good]="getTyreCondition(pid) === 'good'"
                   [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
                   [class.status-attention]="getTyreCondition(pid) === 'attention'"
-                  (click)="
-                    setTyreCondition(
-                      pid,
-                      getTyreCondition(pid) === 'good'
-                        ? 'acceptable'
-                        : getTyreCondition(pid) === 'acceptable'
-                          ? 'attention'
-                          : 'good'
-                    )
-                  "
-                ></div>
-                <p class="tyre-control-title">
-                  Driver Side Rear <span class="tyre-code">OSR</span>
-                </p>
+                  (click)="setTyreCondition(pid, getTyreCondition(pid) === 'good' ? 'acceptable' : getTyreCondition(pid) === 'acceptable' ? 'attention' : 'good')">
+                </div>
+                <p class="tyre-control-title">Driver Side Rear <span class="tyre-code">OSR</span></p>
                 <div class="tyre-inputs">
-                  <input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'inner')"
-                    (change)="setTyreMeasurement(pid, 'inner', $event)"
-                  /><span class="text-xs text-base-content/60">Inner</span>
-                  <input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'middle')"
-                    (change)="setTyreMeasurement(pid, 'middle', $event)"
-                  /><span class="text-xs text-base-content/60">Middle</span>
-                  <input
-                    class="tyre-input"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    [value]="getTyreMeasurement(pid, 'outer')"
-                    (change)="setTyreMeasurement(pid, 'outer', $event)"
-                  /><span class="text-xs text-base-content/60">Outer</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'inner')" (change)="setTyreMeasurement(pid, 'inner', $event)" />
+                  <span class="tyre-input-label">Inner</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'middle')" (change)="setTyreMeasurement(pid, 'middle', $event)" />
+                  <span class="tyre-input-label">Mid</span>
+                  <input class="tyre-input" type="number" min="0" step="0.1"
+                    [value]="getTyreMeasurement(pid, 'outer')" (change)="setTyreMeasurement(pid, 'outer', $event)" />
+                  <span class="tyre-input-label">Outer</span>
                 </div>
               </div>
             </div>
@@ -513,22 +344,12 @@
           @if (getTyrePointId('Spare'); as pid) {
             <div class="tyre-control spare">
               <div class="tyre-control-card">
-                <div
-                  class="tyre-status-indicator w-10 h-10 border-2"
+                <div class="tyre-status-indicator w-10 h-10 border-2"
                   [class.status-good]="getTyreCondition(pid) === 'good'"
                   [class.status-acceptable]="getTyreCondition(pid) === 'acceptable'"
                   [class.status-attention]="getTyreCondition(pid) === 'attention'"
-                  (click)="
-                    setTyreCondition(
-                      pid,
-                      getTyreCondition(pid) === 'good'
-                        ? 'acceptable'
-                        : getTyreCondition(pid) === 'acceptable'
-                          ? 'attention'
-                          : 'good'
-                    )
-                  "
-                ></div>
+                  (click)="setTyreCondition(pid, getTyreCondition(pid) === 'good' ? 'acceptable' : getTyreCondition(pid) === 'acceptable' ? 'attention' : 'good')">
+                </div>
                 <p class="tyre-control-title">Spare <span class="tyre-code">SS</span></p>
               </div>
             </div>
@@ -536,23 +357,45 @@
         </div>
       </div>
     </section>
-  } @else {
-    <section
-      class="card bg-base-100 shadow-xl border border-base-200 rounded-2xl min-h-[60vh] flex flex-col items-center justify-center text-center p-8"
-    >
-      <div
-        class="w-16 h-16 rounded-full flex items-center justify-center bg-base-200 border border-base-300"
-      >
-        <lucide-icon
-          [name]="icons.CircleCheckBig"
-          class="h-9 w-9 text-base-content/35"
-        ></lucide-icon>
+
+    <!-- ══════════════════════════════════ SUBMIT PANEL ═══ -->
+    <section class="insp-submit-panel">
+      <div class="insp-submit-inner">
+        @if (saveSuccess()) {
+          <div class="insp-save-success">
+            <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5"></lucide-icon>
+            {{ 'INSPECTION.SAVED_SUCCESS' | translate }}
+          </div>
+        }
+        @if (saveError()) {
+          <div class="insp-save-error">
+            <lucide-icon [name]="icons.TriangleAlert" class="h-5 w-5"></lucide-icon>
+            {{ saveError() }}
+          </div>
+        }
+        <button class="insp-submit-btn" [disabled]="!hasInspectionResults() || isSaving()" (click)="submitInspection()">
+          @if (isSaving()) {
+            <span class="insp-spinner"></span>
+            {{ 'INSPECTION.SAVING' | translate }}
+          } @else {
+            <lucide-icon [name]="icons.Send" class="h-4 w-4"></lucide-icon>
+            {{ 'INSPECTION.SAVE_INSPECTION' | translate }}
+          }
+        </button>
       </div>
-      <h3 class="mt-4 text-2xl font-extrabold">{{ 'INSPECTION.NOT_FOUND' | translate }}</h3>
-      <p class="mt-2 text-base-content/60 max-w-xl">
-        {{ 'INSPECTION.LOAD_ERROR' | translate }}
-      </p>
-      <button class="btn btn-primary mt-4" (click)="backToInspectionList()">{{ 'INSPECTION.BACK_TO_QUEUE' | translate }}</button>
     </section>
+
+  } @else {
+
+    <!-- ══════════════════════════════════ EMPTY STATE ═══ -->
+    <div class="insp-empty">
+      <div class="insp-empty-icon">
+        <lucide-icon [name]="icons.CircleCheckBig" class="h-10 w-10"></lucide-icon>
+      </div>
+      <h3 class="insp-empty-title">{{ 'INSPECTION.NOT_FOUND' | translate }}</h3>
+      <p class="insp-empty-desc">{{ 'INSPECTION.LOAD_ERROR' | translate }}</p>
+      <button class="insp-submit-btn" (click)="backToInspectionList()">{{ 'INSPECTION.BACK_TO_QUEUE' | translate }}</button>
+    </div>
+
   }
 </div>

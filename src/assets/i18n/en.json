@@ -198,6 +198,10 @@
       "TITLE": "Items Requiring Attention",
       "DESC": "We've identified the following issues that require your attention. Select the items you wish to proceed with."
     },
+    "ALL_CLEAR": {
+      "TITLE": "Vehicle Passed Inspection",
+      "DESC": "Great news! No issues were found during the inspection. Your vehicle is in good condition."
+    },
     "ESTIMATED_COST": "Estimated Cost",
     "EVIDENCE_PHOTOS": "Evidence Photos",
     "COST_DETAILS": {
@@ -230,7 +234,8 @@
       "DESC_2": "repairs.",
       "NOTE": "We will begin work on these items immediately. You'll be notified when your vehicle is ready.",
       "GO_BACK": "Go Back",
-      "YES_APPROVE": "Yes, Approve Work"
+      "YES_APPROVE": "Yes, Approve Work",
+      "SUBMITTING": "Submitting..."
     },
     "SUCCESS": {
       "TOAST": "Success! Your approval has been received."
@@ -254,7 +259,9 @@
       "JOB_NUMBER": "Job Number",
       "STATUS": "Status",
       "PROGRESS": "Progress",
-      "CREATED": "Created"
+      "CREATED": "Created",
+      "UNASSIGNED": "Unassigned",
+      "UNKNOWN_CLIENT": "Unknown"
     },
     "EMPTY": {
       "TITLE": "No vehicles found",
@@ -499,7 +506,13 @@
   "ESTIMATION": {
     "TITLE": "Estimation",
     "SUBTITLE": "Review completed operations and set pricing before sending to client.",
-    "GRAND_TOTAL": "Grand Total"
+    "GRAND_TOTAL": "Grand Total",
+    "MODAL": {
+      "TITLE": "Set Estimated Price",
+      "PRICE_LABEL": "Price (£)",
+      "CANCEL": "Cancel",
+      "SAVE": "Save Price"
+    }
   },
   "TASKS": {
     "TITLE": "Tasks",

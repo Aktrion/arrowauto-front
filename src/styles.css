@@ -120,6 +120,11 @@ textarea {
   width: fit-content;
 }
 
+/* Ensure CDK overlay dropdowns appear above DaisyUI modals (z-index: 999) */
+.cdk-overlay-container {
+  z-index: 10000 !important;
+}
+
 /* === Custom Scrollbar === */
 ::-webkit-scrollbar {
   width: 8px;

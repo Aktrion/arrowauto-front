@@ -1,17 +1,15 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { InspectionPoint } from '@features/inspection/models/inspection.model';
+import { InspectionPoint, InspectionValue } from '@features/inspection/models/inspection.model';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { Observable } from 'rxjs';
-import { of, switchMap, forkJoin } from 'rxjs';
+import { forkJoin, of, switchMap } from 'rxjs';
 import { ICONS } from '@shared/icons';
 import { VehicleInstancesApiService } from '@features/vehicles/services/api/vehicle-instances-api.service';
-import { InspectionValue } from '@features/inspection/models/inspection.model';
 import { InspectionService } from '@features/inspection/services/inspection.service';
 import { ToastService } from '@core/services/toast.service';
-import { OperationService } from '@shared/services/operation.service';
+import { OperationInstancesApiService } from '@shared/services/api/operation-instances-api.service';
 import { BrandLogoComponent } from '@shared/components/brand-logo/brand-logo.component';
 
 interface RepairItem {
@@ -38,7 +36,7 @@ export class CustomerPortalComponent implements OnInit {
   private readonly instanceApi = inject(VehicleInstancesApiService);
   private readonly inspectionService = inject(InspectionService);
   private readonly toastService = inject(ToastService);
-  private readonly operationService = inject(OperationService);
+  private readonly operationInstancesApi = inject(OperationInstancesApiService);
 
   vehicleData = {
     plate: '-',
@@ -61,10 +59,11 @@ export class CustomerPortalComponent implements OnInit {
 
   cartIds = signal<Set<string>>(new Set());
   inspectionPoints = signal<InspectionPoint[]>([]);
-  vehicleOperations = signal<any[]>([]);
   isSubmittingApproval = signal(false);
   private currentVehicleId = signal<string | null>(null);
   private currentVehicleInstanceId = signal<string | null>(null);
+  /** Map from inspectionValueId → operationInstanceId, built when inspection data loads. */
+  private opByInspectionValueId = new Map<string, string>();
 
   ngOnInit(): void {
     this.inspectionService
@@ -79,26 +78,27 @@ export class CustomerPortalComponent implements OnInit {
         return;
       }
       if (vehicleId) {
-        this.loadPortalDataOrByInstanceId(vehicleId);
+        this.instanceApi.findInstanceByVehicleId(vehicleId).subscribe({
+          next: (instance) => {
+            if (instance?._id) this.loadByVehicleInstanceId(instance._id);
+          },
+          error: () => {},
+        });
         return;
       }
 
+      // Fallback: load the first vehicle pending approval
       this.instanceApi
         .findByPagination({
           page: 1,
-          limit: 10,
+          limit: 1,
           sortBy: 'updatedAt',
           sortOrder: 'desc',
           filters: { status: { value: 'pending_approval', operator: 'equals' as const } },
         })
         .subscribe((res) => {
           const first = res.data?.[0];
-          const resolvedVehicleId =
-            first?.vehicleId ??
-            (first as { vehicle?: { _id?: string } })?.vehicle?._id;
-          if (resolvedVehicleId && first?._id) {
-            this.loadPortalData(resolvedVehicleId, first._id);
-          }
+          if (first?._id) this.loadByVehicleInstanceId(first._id);
         });
     });
   }
@@ -149,28 +149,19 @@ export class CustomerPortalComponent implements OnInit {
 
   submitApproval(): void {
     const vehicleInstanceId = this.currentVehicleInstanceId();
-    const vehicleId = this.currentVehicleId();
-    const filterId = vehicleInstanceId || vehicleId;
-    if (!filterId) return;
+    if (!vehicleInstanceId) return;
 
     this.isSubmittingApproval.set(true);
 
-    const allOps = this.operationService.getVehicleOperationsByVehicleId(
-      this.vehicleOperations(),
-      filterId,
-    );
-    const opsToUpdate = allOps.filter((o) => (o as any).inspectionValueId);
-
-    const requests = opsToUpdate.map((op) => {
-      const isApproved = this.cartIds().has((op as any).inspectionValueId);
-      return this.operationService.updateVehicleOperation(
-        op.id,
-        { status: isApproved ? 'pending' : 'cancelled' },
-        this.vehicleOperations(),
-      );
+    const requests = this.repairItems.map((item) => {
+      const opId = this.opByInspectionValueId.get(item.id);
+      if (!opId) return of(null);
+      const isApproved = this.cartIds().has(item.id);
+      return this.operationInstancesApi.update(opId, {
+        status: isApproved ? 'pending' : 'rejected',
+        approvalStatus: isApproved ? 'approved' : 'rejected',
+      });
     });
-
-    if (!vehicleInstanceId) return;
 
     const updateProcess$ = requests.length
       ? forkJoin(requests).pipe(
@@ -185,9 +176,6 @@ export class CustomerPortalComponent implements OnInit {
         (document.getElementById('confirm_modal') as HTMLDialogElement)?.close();
         this.toastService.success('Repairs approved successfully.');
         this.isSubmittingApproval.set(false);
-        this.operationService
-          .fetchData()
-          .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
       },
       error: () => {
         this.toastService.error('Failed to submit approval.');
@@ -198,18 +186,12 @@ export class CustomerPortalComponent implements OnInit {
 
   private loadByVehicleInstanceId(vehicleInstanceId: string) {
     this.currentVehicleInstanceId.set(vehicleInstanceId);
-    this.operationService
-      .fetchData()
-      .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
 
     this.instanceApi.findOne(vehicleInstanceId).subscribe({
       next: (instance) => {
         if (!instance) return;
         const apiInstance = instance as { vehicle?: { _id?: string }; vehicleId?: string };
-        const resolvedVehicleId = String(
-          apiInstance.vehicleId ?? apiInstance.vehicle?._id ?? '',
-        );
-        this.currentVehicleId.set(resolvedVehicleId || null);
+        this.currentVehicleId.set(String(apiInstance.vehicleId ?? apiInstance.vehicle?._id ?? '') || null);
         if (instance.vehicle) {
           this.vehicleData = {
             plate: instance.vehicle.licensePlate ?? '-',
@@ -227,124 +209,19 @@ export class CustomerPortalComponent implements OnInit {
     });
   }
 
-  private loadPortalDataOrByInstanceId(idFromUrl: string) {
-    this.instanceApi.findInstanceByVehicleId(idFromUrl).subscribe({
-      next: (instance) => {
-        if (instance?._id) {
-          const vehicleId =
-            instance.vehicleId ??
-            (instance as { vehicle?: { _id?: string } })?.vehicle?._id;
-          if (vehicleId) {
-            this.loadPortalData(vehicleId, instance._id);
-            return;
-          }
-        }
-        this.instanceApi.findOne(idFromUrl).subscribe({
-          next: (instanceById) => {
-            if (instanceById?._id) {
-              this.loadByVehicleInstanceId(idFromUrl);
-            }
-          },
-        });
-      },
-      error: () => {
-        this.instanceApi.findOne(idFromUrl).subscribe({
-          next: (instanceById) => {
-            if (instanceById?._id) {
-              this.loadByVehicleInstanceId(idFromUrl);
-            }
-          },
-        });
-      },
-    });
-  }
-
-  private loadPortalData(vehicleId: string, preferredInstanceId?: string) {
-    const resolvedVehicleId =
-      vehicleId ?? this.currentVehicleId() ?? '';
-    this.currentVehicleId.set(resolvedVehicleId);
-    this.operationService
-      .fetchData()
-      .subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
-    this.instanceApi.findInstanceByVehicleId(resolvedVehicleId).subscribe({
-      next: (instance) => {
-        if (!instance?._id) return;
-        const apiInstance = instance as { vehicle?: { _id?: string } };
-        const instanceVehicleId =
-          instance.vehicleId ?? apiInstance.vehicle?._id;
-        if (instanceVehicleId && !resolvedVehicleId) {
-          this.currentVehicleId.set(instanceVehicleId);
-        }
-        if (instance.vehicle) {
-          this.vehicleData = {
-            plate: instance.vehicle.licensePlate ?? '-',
-            make: instance.vehicle.make ?? '-',
-            model: instance.vehicle.model ?? '-',
-            year: instance.vehicle.year ?? new Date().getFullYear(),
-          };
-        }
-        this.resolveAndLoadInspectionData(
-          instanceVehicleId ?? resolvedVehicleId,
-          preferredInstanceId ?? instance._id,
-        );
-      },
-    });
-  }
-
-  private resolveAndLoadInspectionData(
-    vehicleId: string,
-    preferredVehicleInstanceId?: string,
-  ) {
-    if (!vehicleId && !preferredVehicleInstanceId) return;
-    const pagination =
-      vehicleId
-        ? {
-            page: 1,
-            limit: 50,
-            filters: { vehicleId: { value: vehicleId, operator: 'equals' as const } },
-          }
-        : { page: 1, limit: 50, filters: {} as Record<string, unknown> };
-    this.instanceApi.findByPagination(pagination)
-      .subscribe((res) => {
-        const candidates = (res.data ?? []).map((v) => v._id).filter((id): id is string => !!id);
-        const orderedIds = preferredVehicleInstanceId
-          ? [preferredVehicleInstanceId, ...candidates.filter((id) => id !== preferredVehicleInstanceId)]
-          : candidates;
-
-        if (!orderedIds.length) {
-          this.currentVehicleInstanceId.set(null);
-          this.repairItems = [];
-          this.inspectionCategories = [];
-          return;
-        }
-        this.tryLoadFirstInspectionData(orderedIds).subscribe();
-      });
-  }
-
-  private tryLoadFirstInspectionData(vehicleInstanceIds: string[]): Observable<InspectionValue[]> {
-    const [currentId, ...rest] = vehicleInstanceIds;
-    if (!currentId) {
-      this.currentVehicleInstanceId.set(null);
-      this.repairItems = [];
-      this.inspectionCategories = [];
-      return of([] as InspectionValue[]);
-    }
-
-    return this.inspectionService.getInspectionValuesByVehicleInstance(currentId).pipe(
-      switchMap((values) => {
-        if (values.length > 0 || rest.length === 0) {
-          this.currentVehicleInstanceId.set(currentId);
-          this.applyInspectionData(values);
-          return of(values as InspectionValue[]);
-        }
-        return this.tryLoadFirstInspectionData(rest);
-      }),
-    );
-  }
-
   private loadInspectionData(vehicleInstanceId: string) {
     this.currentVehicleInstanceId.set(vehicleInstanceId);
-    this.inspectionService.getInspectionValuesByVehicleInstance(vehicleInstanceId).subscribe((values) => {
+    forkJoin({
+      values: this.inspectionService.getInspectionValuesByVehicleInstance(vehicleInstanceId),
+      ops: this.operationInstancesApi.findAll({ vehicleInstanceId }),
+    }).subscribe(({ values, ops }) => {
+      // Build inspectionValueId → operationInstanceId map for approval
+      this.opByInspectionValueId.clear();
+      (ops as any[]).forEach((op: any) => {
+        const ivId = this.inspectionService.normalizeId(op.inspectionValueId);
+        const opId = op._id || op.id;
+        if (ivId && opId) this.opByInspectionValueId.set(ivId, String(opId));
+      });
       this.applyInspectionData(values);
     });
   }
@@ -366,7 +243,6 @@ export class CustomerPortalComponent implements OnInit {
         );
         const point = pointMap.get(pointId);
         const populatedPoint = value.inspectionPoint as { name?: string } | undefined;
-        const costs = this.inspectionService.readCostsFromComments(value.comments || []);
         return {
           id: this.inspectionService.normalizeId(value),
           name:
@@ -376,8 +252,8 @@ export class CustomerPortalComponent implements OnInit {
           category: point?.category || 'General',
           severity: value.value === 'red' ? 'major' : 'minor',
           comment: (value.comments || []).find((comment) => !comment.startsWith('__')) || '',
-          partsCost: costs.partsCost,
-          laborCost: costs.laborCost,
+          partsCost: 0,
+          laborCost: 0,
           photos: value.mediaUrls || [],
           approved: false,
         };
@@ -413,7 +289,4 @@ export class CustomerPortalComponent implements OnInit {
     });
   }
 
-  private readCosts(comments: string[]) {
-    return this.inspectionService.readCostsFromComments(comments);
-  }
 }

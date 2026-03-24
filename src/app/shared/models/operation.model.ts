@@ -40,15 +40,26 @@ export interface VehicleOperation {
   vehicleId: string;
   vehicleInstanceId?: string;
   operationId: string;
+  inspectionValueId?: string;
   operation?: Operation;
   assignedUserId?: string;
   assignedUser?: User;
   scheduledDate?: Date;
   scheduledTime?: string;
   status: OperationStatus;
+  approvalStatus?: string;
+  approvedBy?: string;
+  approvedAt?: Date;
+  /** Hours allowed for this labour line */
+  timeAllowed?: number;
+  /** Rate per hour in £ */
+  ratePerHour?: number;
+  /** VAT percentage (e.g. 20) */
+  vat?: number;
+  labourCode?: string;
+  labourDescription?: string;
   actualDuration?: number;
   actualPrice?: number;
-  hourlyRate?: number;
   notes?: string;
   completedAt?: Date;
 }

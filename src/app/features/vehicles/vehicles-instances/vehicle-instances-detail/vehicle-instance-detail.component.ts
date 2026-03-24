@@ -40,6 +40,7 @@ import { InspectionTemplate } from '@features/settings/inspection-templates/mode
 import { InspectionTemplatesService } from '@features/settings/inspection-templates/services/inspection-templates.service';
 import { SelectComponent, SelectOption } from '@shared/components/select/select.component';
 import { BrandLogoComponent } from '@shared/components/brand-logo/brand-logo.component';
+import { ReplacementPartsApiService, ReplacementPart } from '@shared/services/api/replacement-parts-api.service';
 
 @Component({
   selector: 'app-vehicle-instance-detail',
@@ -69,6 +70,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
   private clientService = inject(ClientService);
   private operationService = inject(OperationService);
   private notificationService = inject(ToastService);
+  private readonly replacementPartsApi = inject(ReplacementPartsApiService);
   private inspectionTemplatesService = inject(InspectionTemplatesService);
   private translateService = inject(TranslateService);
 
@@ -439,10 +441,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
         });
       } else {
         this.vehiclesApi
-          .create({
-            ...vehiclePayload,
-            vin: vehiclePayload.vin || 'TBD',
-          })
+          .create(vehiclePayload)
           .subscribe({
           next: (created) => {
             const vehicleId = created?._id;
@@ -592,15 +591,14 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
   }
 
   addOperationFromMaster() {
-    const id = this.selectedOperationId();
-    const vehicleId = this.vehicleInstance().vehicleId ?? (this.vehicleInstance() as VehicleInstanceApiResponse).vehicle?._id;
-    if (!id || !vehicleId) return;
+    const operationId = this.selectedOperationId();
+    const vehicleInstanceId = this.vehicleInstance()._id;
+    if (!operationId || !vehicleInstanceId) return;
 
-    const master = this.masterOperations().find((o) => o.id === id);
+    const master = this.masterOperations().find((o) => o.id === operationId);
     if (!master) return;
 
-    const currentOps = this.getVehicleOperations(this.operationsVehicleIdOrInstanceId());
-    this.operationService.addVehicleOperationFromMaster(vehicleId, master, currentOps).subscribe({
+    this.operationService.addVehicleOperationFromMaster(vehicleInstanceId, master).subscribe({
       next: () => {
         this.selectedOperationId.set('');
         this.notificationService.success(`Operation "${master.shortName}" added.`);
@@ -613,11 +611,9 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
   }
 
   removeOperation(op: VehicleOperation) {
-    const vehicleId = this.vehicleInstance().vehicleId ?? (this.vehicleInstance() as VehicleInstanceApiResponse).vehicle?._id;
-    if (!vehicleId || !op.id) return;
+    if (!op.id) return;
 
-    const currentOps = this.getVehicleOperations(this.operationsVehicleIdOrInstanceId());
-    this.operationService.removeVehicleOperation(vehicleId, op.id, currentOps).subscribe({
+    this.operationService.removeVehicleOperation(op.id).subscribe({
       next: () => {
         this.notificationService.success('Operation removed.');
         this.operationService
@@ -733,7 +729,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
 
     this.operationSaving.update((state) => ({ ...state, [operation.id]: true }));
     this.operationService
-      .updateVehicleOperation(operation.id, { status }, this.vehicleOperations())
+      .updateVehicleOperation(operation.id, { status })
       .subscribe({
         next: () => {
           this.operationSaving.update((state) => ({ ...state, [operation.id]: false }));
@@ -762,10 +758,10 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
 
     const updates: Partial<VehicleOperation> = { operation: updatedOp };
     if (field === 'duration') updates.actualDuration = value;
-    if (field === 'rate') updates.hourlyRate = value;
+    if (field === 'rate') updates.ratePerHour = value;
 
     this.operationService
-      .updateVehicleOperation(operation.id, updates, this.vehicleOperations())
+      .updateVehicleOperation(operation.id, updates)
       .subscribe({
         next: () => {
           this.notificationService.success('Operation details updated.');
@@ -832,6 +828,161 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
 
   cancelGeneralInfo() {
     this.syncFormModelFromVehicleInstance(this.vehicleInstance());
+  }
+
+  // ─── Operations table: expansion & replacement parts ──────────────────────
+
+  /** Set of operationInstance IDs that are currently expanded */
+  expandedOps = signal<Set<string>>(new Set());
+
+  /** Map of operationInstanceId → its replacement parts */
+  opParts = signal<Record<string, ReplacementPart[]>>({});
+
+  /** Which part row is currently being saved (by part _id or a temp key) */
+  partSaving = signal<Record<string, boolean>>({});
+
+  readonly VAT_OPTIONS = [0, 5, 20];
+
+  toggleOpExpand(opId: string): void {
+    this.expandedOps.update((set) => {
+      const next = new Set(set);
+      if (next.has(opId)) {
+        next.delete(opId);
+      } else {
+        next.add(opId);
+        // Lazy-load parts the first time the row is opened
+        if (!this.opParts()[opId]) {
+          this.loadPartsForOp(opId);
+        }
+      }
+      return next;
+    });
+  }
+
+  isOpExpanded(opId: string): boolean {
+    return this.expandedOps().has(opId);
+  }
+
+  loadPartsForOp(opId: string): void {
+    this.replacementPartsApi.findByOperationInstance(opId).subscribe({
+      next: (parts) => this.opParts.update((m) => ({ ...m, [opId]: parts })),
+      error: () => this.opParts.update((m) => ({ ...m, [opId]: [] })),
+    });
+  }
+
+  getOpParts(opId: string): ReplacementPart[] {
+    return this.opParts()[opId] ?? [];
+  }
+
+  addPart(opId: string): void {
+    const newPart: Omit<ReplacementPart, '_id'> = {
+      operationInstanceId: opId,
+      qty: 1,
+      price: 0,
+      vat: 20,
+      partCategory: 'MISC',
+      partDescription: '',
+      partNumber: '',
+    };
+    this.operationService.createReplacementPart(newPart).subscribe({
+      next: (created) => {
+        this.opParts.update((m) => ({ ...m, [opId]: [...(m[opId] ?? []), created] }));
+      },
+      error: () => this.notificationService.error('Failed to add part.'),
+    });
+  }
+
+  updatePartField(part: ReplacementPart, field: keyof ReplacementPart, value: unknown): void {
+    if (!part._id) return;
+    const updated = { ...part, [field]: value };
+    // Optimistically update local state
+    const opId = part.operationInstanceId;
+    this.opParts.update((m) => ({
+      ...m,
+      [opId]: (m[opId] ?? []).map((p) => (p._id === part._id ? updated : p)),
+    }));
+    this.partSaving.update((s) => ({ ...s, [part._id!]: true }));
+    this.operationService.updateReplacementPart(part._id, { [field]: value }).subscribe({
+      next: () => this.partSaving.update((s) => ({ ...s, [part._id!]: false })),
+      error: () => {
+        this.partSaving.update((s) => ({ ...s, [part._id!]: false }));
+        this.notificationService.error('Failed to update part.');
+      },
+    });
+  }
+
+  deletePart(part: ReplacementPart): void {
+    if (!part._id) return;
+    const opId = part.operationInstanceId;
+    this.operationService.deleteReplacementPart(part._id).subscribe({
+      next: () => {
+        this.opParts.update((m) => ({
+          ...m,
+          [opId]: (m[opId] ?? []).filter((p) => p._id !== part._id),
+        }));
+      },
+      error: () => this.notificationService.error('Failed to delete part.'),
+    });
+  }
+
+  updateLabourField(op: VehicleOperation, field: 'timeAllowed' | 'ratePerHour' | 'vat' | 'labourCode' | 'labourDescription', value: unknown): void {
+    if (!op.id) return;
+    // Optimistically update local signal
+    this.vehicleOperations.update((list) =>
+      list.map((o) => (o.id === op.id ? { ...o, [field]: value } : o)),
+    );
+    this.operationService.updateVehicleOperation(op.id, { [field]: value } as Partial<VehicleOperation>).subscribe({
+      error: () => {
+        this.notificationService.error('Failed to update labour.');
+        // Revert optimistic update
+        this.operationService.fetchData().subscribe((d) => this.vehicleOperations.set(d.vehicleOperations));
+      },
+    });
+  }
+
+  // ─── Calculation helpers ───────────────────────────────────────────────────
+
+  getPartsExcVat(opId: string): number {
+    return this.getOpParts(opId).reduce((sum, p) => sum + (p.qty || 0) * (p.price || 0), 0);
+  }
+
+  getPartsVatAmount(opId: string): number {
+    return this.getOpParts(opId).reduce(
+      (sum, p) => sum + (p.qty || 0) * (p.price || 0) * ((p.vat || 0) / 100),
+      0,
+    );
+  }
+
+  getPartsTotalIncVat(opId: string): number {
+    return this.getPartsExcVat(opId) + this.getPartsVatAmount(opId);
+  }
+
+  getLabourExcVat(op: VehicleOperation): number {
+    return (op.timeAllowed || 0) * (op.ratePerHour || 0);
+  }
+
+  getLabourVatAmount(op: VehicleOperation): number {
+    return this.getLabourExcVat(op) * ((op.vat || 0) / 100);
+  }
+
+  getLabourTotalIncVat(op: VehicleOperation): number {
+    return this.getLabourExcVat(op) + this.getLabourVatAmount(op);
+  }
+
+  getItemNet(op: VehicleOperation): number {
+    return this.getPartsExcVat(op.id) + this.getLabourExcVat(op);
+  }
+
+  getItemVat(op: VehicleOperation): number {
+    return this.getPartsVatAmount(op.id) + this.getLabourVatAmount(op);
+  }
+
+  getItemTotal(op: VehicleOperation): number {
+    return this.getItemNet(op) + this.getItemVat(op);
+  }
+
+  formatGbp(value: number): string {
+    return `£${value.toFixed(2)}`;
   }
 
   saveGeneralInfo() {

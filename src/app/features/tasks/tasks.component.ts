@@ -129,7 +129,7 @@ export class TasksComponent extends BaseListDirective<
 
   startOperation(row: TaskRow): void {
     this.operationService
-      .updateVehicleOperation(row.id, { status: 'in_progress' }, [])
+      .updateVehicleOperation(row.id, { status: 'in_progress' })
       .subscribe({
         next: () => {
           this.notificationService.success(`Started: ${row.operationName}`);
@@ -141,7 +141,7 @@ export class TasksComponent extends BaseListDirective<
 
   completeOperation(row: TaskRow): void {
     this.operationService
-      .updateVehicleOperation(row.id, { status: 'completed', completedAt: new Date() }, [])
+      .updateVehicleOperation(row.id, { status: 'completed' })
       .subscribe({
         next: () => {
           this.notificationService.success(`Completed: ${row.operationName}`);

@@ -65,21 +65,10 @@ export class InspectionService {
     return undefined;
   }
 
-  buildComments(comment?: string, partsCost?: number, laborCost?: number): string[] {
+  buildComments(comment?: string): string[] {
     const comments: string[] = [];
     if (comment?.trim()) comments.push(comment.trim());
-    comments.push(`__partsCost:${Number(partsCost || 0)}`);
-    comments.push(`__laborCost:${Number(laborCost || 0)}`);
     return comments;
-  }
-
-  readCostsFromComments(comments: string[]): { partsCost: number; laborCost: number } {
-    const partsTag = comments.find((item) => item.startsWith('__partsCost:'));
-    const laborTag = comments.find((item) => item.startsWith('__laborCost:'));
-    return {
-      partsCost: Number(partsTag?.split(':')[1] || 0),
-      laborCost: Number(laborTag?.split(':')[1] || 0),
-    };
   }
 
   normalizeId(ref?: unknown): string {

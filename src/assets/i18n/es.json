@@ -198,6 +198,10 @@
       "TITLE": "Artículos que Requieren Atención",
       "DESC": "Hemos identificado los siguientes problemas que requieren su atención. Seleccione los artículos con los que desea proceder."
     },
+    "ALL_CLEAR": {
+      "TITLE": "Vehículo Pasó la Inspección",
+      "DESC": "¡Buenas noticias! No se encontraron problemas durante la inspección. Su vehículo está en buen estado."
+    },
     "ESTIMATED_COST": "Costo Estimado",
     "EVIDENCE_PHOTOS": "Fotos de Evidencia",
     "COST_DETAILS": {
@@ -230,7 +234,8 @@
       "DESC_2": "reparaciones.",
       "NOTE": "Comenzaremos a trabajar en estos artículos de inmediato. Se le notificará cuando su vehículo esté listo.",
       "GO_BACK": "Volver",
-      "YES_APPROVE": "Sí, Aprobar Trabajo"
+      "YES_APPROVE": "Sí, Aprobar Trabajo",
+      "SUBMITTING": "Enviando..."
     },
     "SUCCESS": {
       "TOAST": "¡Éxito! Su aprobación ha sido recibida."
@@ -254,7 +259,9 @@
       "JOB_NUMBER": "Nº Trabajo",
       "STATUS": "Estado",
       "PROGRESS": "Progreso",
-      "CREATED": "Creado"
+      "CREATED": "Creado",
+      "UNASSIGNED": "Sin asignar",
+      "UNKNOWN_CLIENT": "Desconocido"
     },
     "EMPTY": {
       "TITLE": "No se encontraron vehículos",
@@ -499,7 +506,13 @@
   "ESTIMATION": {
     "TITLE": "Estimación",
     "SUBTITLE": "Revisa las operaciones completadas y establece precios antes de enviar al cliente.",
-    "GRAND_TOTAL": "Total General"
+    "GRAND_TOTAL": "Total General",
+    "MODAL": {
+      "TITLE": "Establecer Precio Estimado",
+      "PRICE_LABEL": "Precio (£)",
+      "CANCEL": "Cancelar",
+      "SAVE": "Guardar Precio"
+    }
   },
   "TASKS": {
     "TITLE": "Tareas",
