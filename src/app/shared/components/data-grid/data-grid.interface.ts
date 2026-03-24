@@ -58,6 +58,7 @@ export interface DataGridConfig<T> {
   showDeleteButton?: boolean;
   showViewButton?: boolean;
   storageKey?: string;
+  expandable?: boolean;
 }
 
 export interface GridState {

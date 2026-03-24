@@ -224,7 +224,20 @@
                 }}</span>
               </button>
             </div>
-
+            <!-- VIN -->
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.VIN' | translate }}</label
+              >
+              <input
+                type="text"
+                placeholder="Vehicle Identification Number"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 font-mono"
+                [formField]="detailForm.vehicle.vin"
+                (input)="onFieldLookup('vin', $any($event.target).value)"
+              />
+            </div>
             @if (lookupLoading()) {
               <div
                 class="lg:col-span-3 p-4 rounded-2xl bg-base-200/50 border border-base-300 flex items-center gap-4"
@@ -311,6 +324,8 @@
                 </div>
               </div>
             }
+
+            <!-- MAKE -->
             <div class="space-y-2">
               <label
                 class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
@@ -324,6 +339,7 @@
               />
             </div>
 
+            <!-- MODEL -->
             <div class="space-y-2">
               <label
                 class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
@@ -376,6 +392,46 @@
                 [formField]="detailForm.vehicle.colour"
               />
             </div>
+
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.ENGINE' | translate }}</label
+              >
+              <input
+                type="text"
+                placeholder="e.g. 2.0L"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.engine"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label
+                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
+                >{{ 'VEHICLE.DETAIL.SPECS.NEXT_MOT' | translate }}</label
+              >
+              <input
+                type="date"
+                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [formField]="detailForm.vehicle.nextEntryDate"
+              />
+            </div>
+          </div>
+        </section>
+
+        <div class="divider"></div>
+        <section>
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 bg-secondary/10 rounded-lg">
+              <lucide-icon [name]="icons.Settings" class="h-5 w-5 text-secondary"></lucide-icon>
+            </div>
+            <h3 class="font-bold text-base-content uppercase tracking-wider text-sm">
+              {{ 'VEHICLE.DETAIL.SPECS.RECEPTION_DETAILS' | translate }}
+            </h3>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="space-y-2">
               <label
                 class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
@@ -397,7 +453,7 @@
               <label
                 class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
               >
-                Distance Unit
+                {{ 'VEHICLE.DETAIL.SPECS.DISTANCE_UNIT' | translate }}
               </label>
               <app-select
                 [options]="distanceUnitSelectOptions"
@@ -407,46 +463,8 @@
                 [placeholder]="'Distance unit'"
               ></app-select>
             </div>
-            <div class="space-y-2">
-              <label
-                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                >{{ 'VEHICLE.DETAIL.SPECS.ENGINE' | translate }}</label
-              >
-              <input
-                type="text"
-                placeholder="e.g. 2.0L"
-                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                [formField]="detailForm.vehicle.engine"
-              />
-            </div>
-            <div class="lg:col-span-2 space-y-2">
-              <label
-                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                >{{ 'VEHICLE.DETAIL.SPECS.VIN' | translate }}</label
-              >
-              <input
-                type="text"
-                placeholder="Vehicle Identification Number"
-                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30 font-mono"
-                [formField]="detailForm.vehicle.vin"
-                (input)="onFieldLookup('vin', $any($event.target).value)"
-              />
-            </div>
-            <div class="lg:col-span-2 space-y-2">
-              <label
-                class="block text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 pl-1"
-                >{{ 'VEHICLE.DETAIL.SPECS.NEXT_MOT' | translate }}</label
-              >
-              <input
-                type="date"
-                class="input input-bordered w-full h-11 rounded-xl border-base-300 bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                [formField]="detailForm.vehicle.nextEntryDate"
-              />
-            </div>
           </div>
         </section>
-
-        <div class="divider"></div>
 
         <!-- Assignment -->
         <section>
@@ -541,36 +559,53 @@
               max="100"
             ></progress>
           </div>
-          @if (formModel().status === 'pending_estimation' && getVehicleOperations(operationsVehicleIdOrInstanceId()).length > 0) {
-            <button (click)="submitToCustomer()" class="btn btn-warning btn-sm gap-2 font-bold" [disabled]="isSubmittingToCustomer()">
-              @if (isSubmittingToCustomer()) { <span class="loading loading-spinner loading-xs"></span> }
-              @else { <lucide-icon [name]="icons.Send" class="h-4 w-4"></lucide-icon> }
+        </div>
+
+        @if (
+          formModel().status === 'pending_estimation' &&
+          getVehicleOperations(operationsVehicleIdOrInstanceId()).length > 0
+        ) {
+          <div class="mb-6 p-4 bg-warning/10 border border-warning/30 rounded-xl">
+            <button
+              (click)="submitToCustomer()"
+              class="btn btn-warning gap-2 font-bold"
+              [disabled]="isSubmittingToCustomer()"
+            >
+              @if (isSubmittingToCustomer()) {
+                <span class="loading loading-spinner loading-sm"></span>
+              } @else {
+                <lucide-icon [name]="icons.Send" class="h-4 w-4"></lucide-icon>
+              }
               Submit to Customer
             </button>
-          }
-        </div>
-      </div>
-
-      <!-- Add operation -->
-      <div class="flex items-center gap-3 px-1">
-        <app-select
-          [options]="masterOperationSelectOptions()"
-          [selectedValue]="selectedOperationId()"
-          (selectionChange)="selectedOperationId.set($event || '')"
-          [placeholder]="'Select an operation to add...'"
-          class="flex-1"
-        ></app-select>
-        <button (click)="addOperationFromMaster()" class="btn btn-primary btn-sm gap-2 font-bold" [disabled]="!selectedOperationId()">
-          <lucide-icon [name]="icons.Plus" class="h-4 w-4"></lucide-icon>
-          Add
-        </button>
+            <p class="text-sm text-base-content/60 mt-2">
+              Send estimation to customer for approval. Vehicle status will change to Pending
+              Approval.
+            </p>
+          </div>
+        }
       </div>
 
       <!-- Standard Items table -->
       <div class="card bg-base-100 shadow-sm rounded-2xl border border-base-200 overflow-hidden">
-        <div class="ops-table-header flex items-center gap-2 px-4 py-2 bg-base-200/60 border-b border-base-300">
-          <lucide-icon [name]="icons.ClipboardList" class="h-4 w-4 text-base-content/50"></lucide-icon>
-          <span class="text-xs font-bold uppercase tracking-wider text-base-content/60">Standard Items</span>
+        <div class="ops-table-header flex items-center justify-between gap-3 px-4 py-2 bg-base-200/60 border-b border-base-300">
+          <div class="flex items-center gap-2">
+            <lucide-icon [name]="icons.ClipboardList" class="h-4 w-4 text-base-content/50"></lucide-icon>
+            <span class="text-xs font-bold uppercase tracking-wider text-base-content/60">Standard Items</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <app-select
+              [options]="masterOperationSelectOptions()"
+              [selectedValue]="selectedOperationId()"
+              (selectionChange)="selectedOperationId.set($event || '')"
+              [placeholder]="'Select an operation to add...'"
+              class="min-w-[200px]"
+            ></app-select>
+            <button (click)="addOperationFromMaster()" class="btn btn-primary btn-xs gap-1.5 font-bold" [disabled]="!selectedOperationId()">
+              <lucide-icon [name]="icons.Plus" class="h-3.5 w-3.5"></lucide-icon>
+              Add
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -802,67 +837,52 @@
 
   <!-- Tab Content: History (Full Width) -->
   @if (activeTab() === 'history') {
-    <div>
-      <div class="card bg-base-100 shadow-xl rounded-2xl border border-base-200 p-4 sm:p-8">
-        @if (activityLoading()) {
-          <div class="text-center py-16">
-            <span class="loading loading-spinner loading-lg text-primary"></span>
-          </div>
-        } @else if (activityTimeline().length === 0) {
-          <div class="text-center py-16 sm:py-20">
-            <div
-              class="w-20 h-20 bg-base-200 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <lucide-icon
-                [name]="icons.Clock"
-                class="h-10 w-10 text-base-content/20"
-              ></lucide-icon>
-            </div>
-            <h3 class="font-bold text-xl text-base-content mb-2">
-              {{ 'VEHICLE.DETAIL.HISTORY.TITLE' | translate }}
-            </h3>
-            <p class="text-base-content/60 max-w-xs mx-auto">
-              {{ 'VEHICLE.DETAIL.HISTORY.DESC' | translate }}
-            </p>
-          </div>
-        } @else {
-          <div class="relative">
-            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-base-300/80"></div>
-            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-y-6 md:gap-y-5 md:gap-x-6">
-              @for (
-                event of activityTimeline();
-                track event.occurredAt.toISOString() + event.message;
-                let i = $index
-              ) {
-                <article
-                  class="rounded-2xl border border-base-200 bg-base-100 p-4 shadow-sm hover:shadow-md transition-shadow"
-                  [class]="getTimelineCardClass(i)"
-                >
-                  <p class="text-base font-bold text-base-content leading-tight">
-                    {{ event.message }}
-                  </p>
-                  <p class="mt-1 text-sm text-base-content/60">
+    <div class="card bg-base-100 shadow-sm rounded-2xl border border-base-200 overflow-hidden">
+      @if (activityLoading()) {
+        <div class="text-center py-16">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+        </div>
+      } @else if (activityTimeline().length === 0) {
+        <div class="text-center py-16">
+          <lucide-icon [name]="icons.Clock" class="h-10 w-10 mx-auto mb-3 text-base-content/20"></lucide-icon>
+          <h3 class="font-bold text-lg text-base-content mb-1">
+            {{ 'VEHICLE.DETAIL.HISTORY.TITLE' | translate }}
+          </h3>
+          <p class="text-sm text-base-content/50">
+            {{ 'VEHICLE.DETAIL.HISTORY.DESC' | translate }}
+          </p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr class="bg-base-200/40 text-[10px] font-bold uppercase tracking-wider text-base-content/50">
+                <th class="pl-4">Date</th>
+                <th>Event</th>
+                <th>User</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (event of activityTimeline(); track event.occurredAt.toISOString() + event.message) {
+                <tr class="hover:bg-base-200/20 border-b border-base-200/60">
+                  <td class="pl-4 text-xs text-base-content/50 whitespace-nowrap font-mono">
                     {{ event.occurredAt | date: 'dd/MM/yy HH:mm' }}
-                  </p>
-                  <div class="mt-2 flex items-center gap-2 text-xs text-base-content/50">
-                    <lucide-icon [name]="icons.User" class="h-4 w-4"></lucide-icon>
-                    <span>{{ event.actorName || 'system' }}</span>
-                  </div>
-                </article>
-                <div class="hidden md:flex items-center justify-center md:col-start-2">
-                  <span
-                    class="h-3.5 w-3.5 rounded-full bg-primary border-2 border-base-100 shadow"
-                  ></span>
-                </div>
-                <div
-                  class="hidden md:block"
-                  [class]="i % 2 === 0 ? 'md:col-start-3' : 'md:col-start-1'"
-                ></div>
+                  </td>
+                  <td class="text-sm font-medium text-base-content">
+                    {{ event.message }}
+                  </td>
+                  <td class="text-xs text-base-content/50">
+                    <div class="flex items-center gap-1.5">
+                      <lucide-icon [name]="icons.User" class="h-3.5 w-3.5"></lucide-icon>
+                      {{ event.actorName || 'system' }}
+                    </div>
+                  </td>
+                </tr>
               }
-            </div>
-          </div>
-        }
-      </div>
+            </tbody>
+          </table>
+        </div>
+      }
     </div>
   }
 </div>

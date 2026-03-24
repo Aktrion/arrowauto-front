@@ -1,9 +1,11 @@
 import { Component, inject, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { BaseListDirective } from '@core/directives/base-list.directive';
 import { VehiclesApiService } from '@features/vehicles/services/api/vehicles-api.service';
 import { Vehicle } from '@features/vehicles/models/vehicle.model';
+import { map, Observable } from 'rxjs';
 import { DataGridComponent } from '@shared/components/data-grid/data-grid.component';
 import { ColumnDef } from '@shared/components/data-grid/data-grid.interface';
 import { licensePlateBadge } from '@shared/utils/license-plate.utils';
@@ -11,10 +13,18 @@ import { ToastService } from '@core/services/toast.service';
 import { VehicleEditModalComponent } from './vehicle-edit-modal/vehicle-edit-modal.component';
 import { ICONS } from '@shared/icons';
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-vehicles-database',
   standalone: true,
-  imports: [DataGridComponent, LucideAngularModule, TranslateModule, VehicleEditModalComponent],
+  imports: [
+    CommonModule,
+    DataGridComponent,
+    LucideAngularModule,
+    TranslateModule,
+    VehicleEditModalComponent,
+  ],
   templateUrl: './vehicles-database.component.html',
 })
 export class VehiclesDatabaseComponent extends BaseListDirective<
@@ -25,11 +35,23 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
   icons = ICONS;
   private vehiclesApi = inject(VehiclesApiService);
   private toastService = inject(ToastService);
+  private router = inject(Router);
 
   @ViewChild('editModal') editModal!: VehicleEditModalComponent;
 
   constructor() {
-    super(inject(VehiclesApiService));
+    const vehiclesApiService = inject(VehiclesApiService);
+    super(vehiclesApiService, (params) =>
+      vehiclesApiService.findByPagination(params).pipe(
+        map((res: any) => ({
+          ...res,
+          data: res.data.map((v: Vehicle) => ({
+            ...v,
+            vehicleInstances: v.vehicleInstances?.length ? v.vehicleInstances : [],
+          })),
+        })),
+      ),
+    );
     this.gridConfig = {
       ...this.gridConfig,
       titleIcon: 'Database',
@@ -38,6 +60,7 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
       showDeleteButton: true,
       selectable: false,
       storageKey: 'vehicles_database_grid',
+      expandable: true,
     };
   }
 
@@ -112,5 +135,11 @@ export class VehiclesDatabaseComponent extends BaseListDirective<
   private getDeleteConfirmMessage(make?: string, model?: string, plate?: string): string {
     const desc = [make, model].filter(Boolean).join(' ') || plate || 'this vehicle';
     return `Delete ${desc}? This cannot be undone.`;
+  }
+
+  protected viewInstance(instance: any): void {
+    const id = instance?._id || instance?.id;
+    if (!id) return;
+    this.router.navigate(['/vehicles-instances', id]);
   }
 }
