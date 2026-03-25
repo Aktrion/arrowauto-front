@@ -52,7 +52,7 @@ export class ItemsComponent extends BaseListDirective<any, any, any> {
     return 'ITEMS.TITLE';
   }
 
-  protected getStorageKey(): string {
+  protected override getStorageKey(): string {
     return 'items-grid';
   }
 
@@ -82,7 +82,7 @@ export class ItemsComponent extends BaseListDirective<any, any, any> {
       {
         field: 'price',
         headerName: 'ITEMS.MODAL.PRICE',
-        type: 'currency',
+        type: 'number',
         sortable: true,
         filterable: false,
       },
