@@ -48,7 +48,7 @@ export class ItemsComponent extends BaseListDirective<any, any, any> {
     };
   }
 
-  protected getTitle(): string {
+  protected override getTitle(): string {
     return 'ITEMS.TITLE';
   }
 
@@ -56,7 +56,7 @@ export class ItemsComponent extends BaseListDirective<any, any, any> {
     return 'items-grid';
   }
 
-  protected getColumnDefinitions(): ColumnDef[] {
+  protected override getColumnDefinitions(): ColumnDef[] {
     return [
       {
         field: 'partCategory',
@@ -82,7 +82,7 @@ export class ItemsComponent extends BaseListDirective<any, any, any> {
       {
         field: 'price',
         headerName: 'ITEMS.MODAL.PRICE',
-        type: 'number',
+        type: 'string',
         sortable: true,
         filterable: false,
       },

@@ -6,7 +6,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ICONS } from '@shared/icons';
 import { InspectionTemplatesListComponent } from '@features/settings/inspection-templates/inspection-templates-list/inspection-templates-list.component';
 import { TyreConfigurationsComponent } from '@features/settings/tyre-configurations/tyre-configurations.component';
-import { ItemsConfiguration } from './items-configuration/items-configuration';
+import { ItemsComponent } from '@features/items/items.component';
 
 @Component({
   selector: 'app-settings',
@@ -16,7 +16,7 @@ import { ItemsConfiguration } from './items-configuration/items-configuration';
     LucideAngularModule,
     InspectionTemplatesListComponent,
     TyreConfigurationsComponent,
-    ItemsConfiguration,
+    ItemsComponent,
   ],
   templateUrl: './settings.component.html',
 })
