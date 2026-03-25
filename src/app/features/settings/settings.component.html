@@ -206,12 +206,14 @@
 
       <!-- Items Configurations -->
       @if (activeSection() === 'items-configuration') {
-        <app-items></app-items>
+        <app-items-configuration></app-items-configuration>
       }
 
       <!-- Save Button -->
       @if (
-        activeSection() !== 'inspection-templates' && activeSection() !== 'tyre-configurations' && activeSection() !== 'items-configuration'
+        activeSection() !== 'inspection-templates' &&
+        activeSection() !== 'tyre-configurations' &&
+        activeSection() !== 'items-configuration'
       ) {
         <div class="flex justify-end mt-6">
           <button class="btn btn-primary">
