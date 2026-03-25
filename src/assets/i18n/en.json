@@ -67,7 +67,8 @@
       "SETTINGS_LINK": "Settings",
       "TASKS": "Tasks",
       "ESTIMATION": "Estimation",
-      "APPROVALS": "Approvals"
+      "APPROVALS": "Approvals",
+      "ITEMS": "Items"
     }
   },
   "LOGIN": {
@@ -599,5 +600,32 @@
   },
   "HEADER": {
     "SIGNED_IN_AS": "Signed in as"
+  },
+  "ITEMS": {
+    "TITLE": "Items Catalog",
+    "SUBTITLE": "Manage your references and parts catalog",
+    "MODAL": {
+      "TITLE": "Add New Item",
+      "SUBTITLE": "Create a new reference in the catalog",
+      "EDIT_TITLE": "Edit Item",
+      "PART_CATEGORY": "Category",
+      "PART_NUMBER": "Part Number",
+      "PART_DESCRIPTION": "Description",
+      "PRICE": "Price",
+      "PLACEHOLDER_CATEGORY": "e.g. Brakes, Engine, Suspension",
+      "PLACEHOLDER_PART_NUMBER": "e.g. BP-001, ENG-123",
+      "PLACEHOLDER_DESCRIPTION": "e.g. Front Brake Pad Set",
+      "PLACEHOLDER_PRICE": "0.00",
+      "CANCEL": "Cancel",
+      "CREATE": "Create Item"
+    },
+    "TOAST": {
+      "CREATED": "Item created successfully.",
+      "CREATE_FAILED": "Failed to create item.",
+      "UPDATED": "Item updated successfully.",
+      "UPDATE_FAILED": "Failed to update item.",
+      "DELETED": "Item deleted successfully.",
+      "DELETE_FAILED": "Failed to delete item."
+    }
   }
 }

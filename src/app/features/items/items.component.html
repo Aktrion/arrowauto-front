@@ -1,0 +1,176 @@
+<div class="space-y-6">
+  <app-data-grid
+    [config]="gridConfig"
+    (stateChange)="handleGridStateChange($event)"
+    (selectionChange)="handleSelectionChanged($event)"
+    (create)="handleCreate()"
+    (edit)="handleEdit($event)"
+    (delete)="handleDelete($event)"
+  />
+
+  <dialog id="new_item_modal" class="modal">
+    <div class="modal-box max-w-lg bg-base-100 border border-base-300">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">x</button>
+      </form>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+          <lucide-icon [name]="icons.ShoppingCart" class="h-6 w-6 text-white"></lucide-icon>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-base-content">
+            {{ 'ITEMS.MODAL.TITLE' | translate }}
+          </h3>
+          <p class="text-sm text-base-content/60">{{ 'ITEMS.MODAL.SUBTITLE' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PART_CATEGORY' | translate
+          }}</label>
+          <input
+            type="text"
+            [placeholder]="'ITEMS.MODAL.PLACEHOLDER_CATEGORY' | translate"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="newItem.partCategory"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PART_NUMBER' | translate
+          }}</label>
+          <input
+            type="text"
+            [placeholder]="'ITEMS.MODAL.PLACEHOLDER_PART_NUMBER' | translate"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="newItem.partNumber"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PART_DESCRIPTION' | translate
+          }}</label>
+          <input
+            type="text"
+            [placeholder]="'ITEMS.MODAL.PLACEHOLDER_DESCRIPTION' | translate"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="newItem.partDescription"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PRICE' | translate
+          }}</label>
+          <input
+            type="number"
+            [placeholder]="'ITEMS.MODAL.PLACEHOLDER_PRICE' | translate"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="newItem.price"
+            min="0"
+            step="0.01"
+          />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-base-200">
+        <form method="dialog">
+          <button class="btn btn-ghost">{{ 'ITEMS.MODAL.CANCEL' | translate }}</button>
+        </form>
+        <button class="btn btn-primary" (click)="createItem()">
+          <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-2"></lucide-icon>
+          {{ 'ITEMS.MODAL.CREATE' | translate }}
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-base-content/30 backdrop-blur-sm">
+      <button>{{ 'COMMON.CLOSE' | translate }}</button>
+    </form>
+  </dialog>
+
+  <dialog id="edit_item_modal" class="modal">
+    <div class="modal-box max-w-lg bg-base-100 border border-base-300">
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4">x</button>
+      </form>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+          <lucide-icon [name]="icons.Pencil" class="h-6 w-6 text-white"></lucide-icon>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-base-content">
+            {{ 'ITEMS.MODAL.EDIT_TITLE' | translate }}
+          </h3>
+          <p class="text-sm text-base-content/60">{{ editItem.partNumber }}</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PART_CATEGORY' | translate
+          }}</label>
+          <input
+            type="text"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="editItem.partCategory"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PART_NUMBER' | translate
+          }}</label>
+          <input
+            type="text"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="editItem.partNumber"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PART_DESCRIPTION' | translate
+          }}</label>
+          <input
+            type="text"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="editItem.partDescription"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-base-content mb-1">{{
+            'ITEMS.MODAL.PRICE' | translate
+          }}</label>
+          <input
+            type="number"
+            class="w-full px-4 py-3 bg-base-200 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-base-100 transition-all"
+            [(ngModel)]="editItem.price"
+            min="0"
+            step="0.01"
+          />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-base-200">
+        <form method="dialog">
+          <button class="btn btn-ghost">{{ 'ITEMS.MODAL.CANCEL' | translate }}</button>
+        </form>
+        <button class="btn btn-primary" (click)="saveEditItem()">
+          <lucide-icon [name]="icons.CircleCheckBig" class="h-5 w-5 mr-2"></lucide-icon>
+          {{ 'VEHICLE.DETAIL.SAVE_CHANGES' | translate }}
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-base-content/30 backdrop-blur-sm">
+      <button>{{ 'COMMON.CLOSE' | translate }}</button>
+    </form>
+  </dialog>
+</div>

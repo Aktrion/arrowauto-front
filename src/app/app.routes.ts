@@ -92,6 +92,11 @@ export const routes: Routes = [
           import('./features/settings/settings.component').then((m) => m.SettingsComponent),
       },
       {
+        path: 'items',
+        loadComponent: () =>
+          import('./features/items/items.component').then((m) => m.ItemsComponent),
+      },
+      {
         path: 'customer-approvals',
         loadComponent: () =>
           import('./features/customer-approvals/customer-approvals.component').then(
