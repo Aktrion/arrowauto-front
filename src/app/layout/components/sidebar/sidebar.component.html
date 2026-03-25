@@ -352,6 +352,29 @@
               <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.SETTINGS_LINK' | translate }}</span>
             }
           </a>
+
+          <a
+            routerLink="/items"
+            [routerLinkActive]="'!bg-secondary/30'"
+            class="nav-link flex items-center py-3 text-sm text-gray-700 hover:bg-secondary/40 transition-colors group w-full"
+            [class.px-4]="!collapsed"
+            [class.px-3]="collapsed"
+            [class.justify-center]="collapsed"
+            [title]="collapsed ? ('SHELL.SIDEBAR.ITEMS' | translate) : ''"
+            (click)="sidenavMode === 'over' ? toggleSidebarAfterSelect.emit() : null"
+          >
+            <span class="flex items-center justify-center flex-none w-8 h-8 rounded-lg">
+              <lucide-icon
+                [name]="icons.ShoppingCart"
+                class="h-6 w-6"
+                [class.text-primary]="isRouteActive('/items')"
+                [class.text-gray-500]="!isRouteActive('/items')"
+              ></lucide-icon>
+            </span>
+            @if (!collapsed) {
+              <span class="ml-3 truncate">{{ 'SHELL.SIDEBAR.ITEMS' | translate }}</span>
+            }
+          </a>
         </div>
       </div>
     </div>
