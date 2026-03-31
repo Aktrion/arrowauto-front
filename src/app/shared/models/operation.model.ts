@@ -41,6 +41,7 @@ export interface VehicleOperation {
   vehicleInstanceId?: string;
   operationId: string;
   inspectionValueId?: string;
+  inspectionValue?: { value?: string };
   operation?: Operation;
   assignedUserId?: string;
   assignedUser?: User;

@@ -638,9 +638,19 @@
                     <lucide-icon [name]="isOpExpanded(op.id) ? icons.ChevronDown : icons.ChevronRight" class="h-3.5 w-3.5"></lucide-icon>
                   </td>
                   <td class="px-2 py-2">
-                    <div class="w-6 h-6 rounded bg-warning flex items-center justify-center">
-                      <lucide-icon [name]="icons.Wrench" class="h-3.5 w-3.5 text-warning-content"></lucide-icon>
-                    </div>
+                    @if (op.inspectionValue?.value === 'red') {
+                      <div class="w-6 h-6 rounded bg-error flex items-center justify-center" title="Red repair">
+                        <lucide-icon [name]="icons.Wrench" class="h-3.5 w-3.5 text-error-content"></lucide-icon>
+                      </div>
+                    } @else if (op.inspectionValue?.value === 'yellow') {
+                      <div class="w-6 h-6 rounded bg-warning flex items-center justify-center" title="Yellow repair">
+                        <lucide-icon [name]="icons.Wrench" class="h-3.5 w-3.5 text-warning-content"></lucide-icon>
+                      </div>
+                    } @else {
+                      <div class="w-6 h-6 rounded bg-info flex items-center justify-center" title="Service">
+                        <lucide-icon [name]="icons.Settings" class="h-3.5 w-3.5 text-info-content"></lucide-icon>
+                      </div>
+                    }
                   </td>
                   <td class="px-2 py-2">
                     <p class="font-semibold text-base-content">{{ op.labourDescription || op.operation?.name || '—' }}</p>
