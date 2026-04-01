@@ -53,3 +53,27 @@
 
   <app-data-grid [config]="gridConfig" (stateChange)="handleGridStateChange($event)" />
 </div>
+
+<dialog id="task_photos_modal" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box bg-base-100 shadow-2xl border border-base-300 max-w-3xl">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+    <h3 class="font-bold text-lg mb-4">Inspection Photos</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      @for (url of viewingImages(); track url) {
+        <a [href]="url" target="_blank" rel="noopener">
+          <img [src]="url" class="w-full h-40 object-cover rounded-lg border border-base-200 hover:opacity-80 transition-opacity cursor-pointer" alt="Inspection photo" />
+        </a>
+      }
+    </div>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn">Close</button>
+      </form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop bg-neutral/50 backdrop-blur-sm">
+    <button>close</button>
+  </form>
+</dialog>
