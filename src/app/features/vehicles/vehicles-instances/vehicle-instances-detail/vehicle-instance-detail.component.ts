@@ -77,6 +77,7 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
   masterOperations = signal<OperationMaster[]>([]);
   vehicleOperations = signal<any[]>([]);
   selectedOperationId = signal('');
+  viewingImages = signal<string[]>([]);
 
   isNew = signal(false);
 
@@ -842,6 +843,11 @@ export class VehicleInstanceDetailComponent implements OnInit, OnDestroy {
   partSaving = signal<Record<string, boolean>>({});
 
   readonly VAT_OPTIONS = [0, 5, 20];
+
+  openMediaModal(urls: string[]): void {
+    this.viewingImages.set(urls);
+    (document.getElementById('op_photos_modal') as HTMLDialogElement)?.showModal();
+  }
 
   toggleOpExpand(opId: string): void {
     this.expandedOps.update((set) => {
