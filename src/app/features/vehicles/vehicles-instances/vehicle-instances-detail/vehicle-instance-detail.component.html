@@ -616,7 +616,8 @@
               <tr class="bg-base-200/40 border-b border-base-200 text-base-content/60 font-semibold uppercase tracking-wide">
                 <th class="w-8 px-2 py-2"></th>
                 <th class="px-2 py-2 text-left w-10">Media</th>
-                <th class="px-2 py-2 text-left min-w-[160px]">Item Description</th>
+                <th class="px-2 py-2 text-left w-20">Code</th>
+                <th class="px-2 py-2 text-left min-w-[140px]">Description</th>
                 <th class="px-2 py-2 text-right">T. Parts</th>
                 <th class="px-2 py-2 text-right">L. Time</th>
                 <th class="px-2 py-2 text-right">L. Rate</th>
@@ -652,11 +653,11 @@
                       </div>
                     }
                   </td>
+                  <td class="px-2 py-2 font-mono text-sm font-semibold text-base-content/70">
+                    {{ op.inspectionValueId ? (op.labourCode || '—') : (op.operation?.code || '—') }}
+                  </td>
                   <td class="px-2 py-2">
-                    <p class="font-semibold text-base-content">{{ op.labourDescription || op.operation?.name || '—' }}</p>
-                    @if (op.labourDescription && op.operation?.name) {
-                      <p class="text-base-content/50">{{ op.operation?.name }}</p>
-                    }
+                    <p class="font-semibold text-base-content">{{ op.operation?.description || op.operation?.name || '—' }}</p>
                   </td>
                   <td class="px-2 py-2 text-right font-mono">{{ formatGbp(getPartsExcVat(op.id)) }}</td>
                   <td class="px-2 py-2 text-right font-mono">{{ (op.timeAllowed || 0).toFixed(2) }}</td>
@@ -687,7 +688,7 @@
 
                   <!-- Labour sub-header -->
                   <tr class="bg-base-200/20 border-b border-base-200/60">
-                    <td colspan="2"></td>
+                    <td colspan="3"></td>
                     <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Time (hrs)</td>
                     <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Rate £/hr</td>
                     <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Labour Code</td>
@@ -700,7 +701,7 @@
 
                   <!-- Labour row -->
                   <tr class="border-b border-base-300 bg-primary/5">
-                    <td colspan="2"></td>
+                    <td colspan="3"></td>
                     <td class="px-2 py-1.5">
                       <input type="number" min="0" step="0.1" class="input input-bordered input-xs w-[64px] text-right"
                         [ngModel]="op.timeAllowed || 0"
@@ -743,7 +744,7 @@
 
                   <!-- Parts sub-header -->
                   <tr class="bg-base-200/20 border-b border-base-200/60">
-                    <td colspan="2"></td>
+                    <td colspan="3"></td>
                     <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Part Category</td>
                     <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50" colspan="2">Part Description</td>
                     <td class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-base-content/50">Part Number</td>
@@ -757,7 +758,7 @@
                   <!-- Part rows -->
                   @for (part of getOpParts(op.id); track part._id) {
                     <tr class="border-b border-base-200/40 bg-base-100 hover:bg-blue-50/20">
-                      <td colspan="2"></td>
+                      <td colspan="3"></td>
                       <td class="px-2 py-1.5">
                         <select class="select select-bordered select-xs w-full min-w-[90px]"
                           [ngModel]="part.partCategory"
@@ -815,7 +816,7 @@
 
                   <!-- Add part row -->
                   <tr class="border-b border-base-200/40 bg-base-200/10">
-                    <td colspan="2"></td>
+                    <td colspan="3"></td>
                     <td colspan="9" class="px-2 py-1.5">
                       <button class="btn btn-ghost btn-xs gap-1.5 text-primary" (click)="addPart(op.id); $event.stopPropagation()">
                         <lucide-icon [name]="icons.Plus" class="h-3.5 w-3.5"></lucide-icon>
@@ -828,7 +829,7 @@
 
               } @empty {
                 <tr>
-                  <td colspan="11">
+                  <td colspan="12">
                     <div class="text-center py-16 text-base-content/50">
                       <lucide-icon [name]="icons.ClipboardList" class="h-10 w-10 mx-auto mb-3 opacity-20"></lucide-icon>
                       <p class="font-medium">{{ 'VEHICLE.DETAIL.OPERATIONS.EMPTY.TITLE' | translate }}</p>

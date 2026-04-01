@@ -27,6 +27,7 @@ interface EstimationRow extends MongoEntity {
   status: string;
   duration: number;
   price: number;
+  mediaUrls?: string[];
 }
 
 interface VehicleGroupRow {
@@ -88,6 +89,7 @@ export class EstimationComponent extends BaseListDirective<
   sendingVehicle = signal<string | null>(null);
   priceModalRow = signal<EstimationRow | null>(null);
   priceInputValue = signal<number>(0);
+  viewingImages = signal<string[]>([]);
 
   /** Grand total across all vehicles — recalculated on each CD cycle from gridConfig.rowData */
   get grandTotal(): number {
@@ -115,6 +117,12 @@ export class EstimationComponent extends BaseListDirective<
       showDeleteButton: false,
       storageKey: 'estimation_detail_grid',
       customActions: [
+        {
+          icon: 'Image',
+          iconLabel: 'View Photos',
+          visible: (row: EstimationRow) => Array.isArray(row.mediaUrls) && row.mediaUrls.length > 0,
+          action: (row: EstimationRow) => this.viewPhotos(row),
+        },
         {
           icon: 'DollarSign',
           iconLabel: 'Set Price',
@@ -263,7 +271,25 @@ export class EstimationComponent extends BaseListDirective<
         dontTranslate: true,
         cellRenderer: ({ data }) => `£${this.getEstimatedCost(data).toFixed(2)}`,
       },
+      {
+        field: 'mediaUrls',
+        headerName: 'Photos',
+        type: 'custom',
+        sortable: false,
+        filterable: false,
+        dontTranslate: true,
+        cellRenderer: ({ value }) => {
+          const count = Array.isArray(value) ? value.length : 0;
+          if (!count) return '<span class="text-base-content/30">—</span>';
+          return `<span class="badge badge-info badge-sm">${count} photo${count === 1 ? '' : 's'}</span>`;
+        },
+      },
     ];
+  }
+
+  viewPhotos(row: EstimationRow): void {
+    this.viewingImages.set(row.mediaUrls || []);
+    (document.getElementById('estimation_photos_modal') as HTMLDialogElement)?.showModal();
   }
 
   // ── Navigation ────────────────────────────────────────────────

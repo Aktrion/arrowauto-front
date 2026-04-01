@@ -31,6 +31,7 @@ interface InvoicingRow extends MongoEntity {
   rate: number;
   total: number;
   completedAt?: string | Date;
+  mediaUrls?: string[];
 }
 
 @Component({
@@ -88,6 +89,7 @@ export class InvoicingComponent extends BaseListDirective<
   });
 
   selectedItem = signal<InvoicingRow | null>(null);
+  viewingImages = signal<string[]>([]);
   completeForm = {
     operatorId: '',
     duration: 0,
@@ -143,6 +145,12 @@ export class InvoicingComponent extends BaseListDirective<
       selectable: true,
       storageKey: 'invoicing_grid',
       customActions: [
+        {
+          icon: 'Image',
+          iconLabel: 'View Photos',
+          visible: (row) => Array.isArray(row.mediaUrls) && row.mediaUrls.length > 0,
+          action: (row) => this.viewPhotos(row),
+        },
         {
           icon: 'CircleCheckBig',
           iconLabel: 'Complete',
@@ -248,6 +256,19 @@ export class InvoicingComponent extends BaseListDirective<
         filterable: true,
         dontTranslate: true,
         cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
+      },
+      {
+        field: 'mediaUrls',
+        headerName: 'Photos',
+        type: 'custom',
+        sortable: false,
+        filterable: false,
+        dontTranslate: true,
+        cellRenderer: ({ value }) => {
+          const count = Array.isArray(value) ? value.length : 0;
+          if (!count) return '<span class="text-base-content/30">—</span>';
+          return `<span class="badge badge-info badge-sm">${count} photo${count === 1 ? '' : 's'}</span>`;
+        },
       },
     ];
   }
@@ -371,6 +392,11 @@ export class InvoicingComponent extends BaseListDirective<
   clearSelection(): void {
     this.selectedRows.set([]);
     this.selectedItems = [];
+  }
+
+  viewPhotos(row: InvoicingRow): void {
+    this.viewingImages.set(row.mediaUrls || []);
+    (document.getElementById('invoicing_photos_modal') as HTMLDialogElement)?.showModal();
   }
 
   getClientName(clientId?: string): string {

@@ -24,6 +24,7 @@ interface TaskRow {
   scheduledDate?: Date;
   scheduledTime?: string;
   status: string;
+  mediaUrls?: string[];
 }
 
 @Component({
@@ -44,6 +45,7 @@ export class TasksComponent extends BaseListDirective<
 
   filterStatus = signal<string>('all');
   taskCounts = signal({ all: 0, pending: 0, scheduled: 0, in_progress: 0, completed: 0 });
+  viewingImages = signal<string[]>([]);
 
   constructor() {
     const api = inject(OperationInstancesApiService);
@@ -68,6 +70,12 @@ export class TasksComponent extends BaseListDirective<
           icon: 'ExternalLink',
           iconLabel: 'Open',
           action: (row) => this.openVehicle(row),
+        },
+        {
+          icon: 'Image',
+          iconLabel: 'View Photos',
+          visible: (row) => Array.isArray(row.mediaUrls) && row.mediaUrls.length > 0,
+          action: (row) => this.viewPhotos(row),
         },
         {
           icon: 'Zap',
@@ -104,6 +112,19 @@ export class TasksComponent extends BaseListDirective<
         filterable: true,
         dontTranslate: true,
         cellRenderer: ({ value }) => VehicleStatusUtils.statusBadge(value),
+      },
+      {
+        field: 'mediaUrls',
+        headerName: 'Photos',
+        type: 'custom',
+        sortable: false,
+        filterable: false,
+        dontTranslate: true,
+        cellRenderer: ({ value }) => {
+          const count = Array.isArray(value) ? value.length : 0;
+          if (!count) return '<span class="text-base-content/30">—</span>';
+          return `<span class="badge badge-info badge-sm">${count} photo${count === 1 ? '' : 's'}</span>`;
+        },
       },
     ];
   }
@@ -155,6 +176,11 @@ export class TasksComponent extends BaseListDirective<
     const instanceId = row.vehicleInstanceId || row.vehicleId;
     if (!instanceId) return;
     this.router.navigate(['/vehicles-instances', instanceId]);
+  }
+
+  viewPhotos(row: TaskRow): void {
+    this.viewingImages.set(row.mediaUrls || []);
+    (document.getElementById('task_photos_modal') as HTMLDialogElement)?.showModal();
   }
 
   formatStatus(status: string): string {

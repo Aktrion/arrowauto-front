@@ -63,4 +63,5 @@ export interface VehicleOperation {
   actualPrice?: number;
   notes?: string;
   completedAt?: Date;
+  mediaUrls?: string[];
 }
